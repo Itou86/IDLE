@@ -8,8 +8,8 @@ const GachaSystem = {
 
     // 执行抽卡 (count=1 单抽, count=10 十连)
     draw: function(gameState, count) {
-        count = count || 1;
-        const cost = count === 10 ? this.COST_10.tickets : this.COST.tickets * count;
+        count = parseInt(count, 10) || 1;
+        const cost = count >= 10 ? this.COST_10.tickets : this.COST.tickets * count;
         
         if (gameState.tickets < cost) {
             return { success: false, reason: '抽卡券不足' };

@@ -74,7 +74,7 @@ const Game = {
 
     // 抽卡 (count=1 单抽, count=10 十连)
     gacha: function(count) {
-        count = count || 1;
+        count = parseInt(count, 10) || 1;
         const result = GachaSystem.draw(this.state, count);
         if (!result.success) {
             this.showToast(result.reason, 'error');
@@ -186,11 +186,19 @@ const Game = {
         document.getElementById('current-stage').textContent = this.state.stage;
         document.getElementById('enemy-power').textContent = Formatter.number(stageInfo.enemyPower);
 
-        // 按钮状态
+        // 按钮状态 - 抽卡
         const gachaBtn = document.getElementById('gacha-btn');
-        if (gachaBtn) gachaBtn.disabled = this.state.tickets < GachaSystem.COST.tickets;
         const gacha10Btn = document.getElementById('gacha-10-btn');
-        if (gacha10Btn) gacha10Btn.disabled = this.state.tickets < GachaSystem.COST_10.tickets;
+        const canSingle = this.state.tickets >= GachaSystem.COST.tickets;
+        const canTen = this.state.tickets >= GachaSystem.COST_10.tickets;
+        if (gachaBtn) {
+            gachaBtn.disabled = !canSingle;
+            gachaBtn.textContent = canSingle ? `单抽 (${GachaSystem.COST.tickets} 🎫)` : `单抽 (券不足)`;
+        }
+        if (gacha10Btn) {
+            gacha10Btn.disabled = !canTen;
+            gacha10Btn.textContent = canTen ? `十连抽 (${GachaSystem.COST_10.tickets} 🎫)` : `十连抽 (券不足)`;
+        }
 
         // 卡牌列表
         const cardsDiv = document.getElementById('cards-list');
@@ -462,15 +470,28 @@ const Game = {
         for (const set of activeSets) {
             const statusIcon = set.isComplete ? '✅' : '⏳';
             const statusClass = set.isComplete ? 'set-complete' : 'set-incomplete';
+            const hasAnyCard = set.collected.some(c => c.has);
             
-            // 构建卡牌收集状态
+            // 如果套装中一张卡都没有，默认折叠显示（节省空间）
+            const setVisible = hasAnyCard || set.isComplete;
+            const collapseClass = setVisible ? '' : 'set-collapsed';
+            
+            // 构建卡牌收集状态 - 显示卡牌名称和稀有度
             let cardsHtml = '';
             for (const c of set.collected) {
                 const cardConfig = CARD_CONFIG.pool.find(p => p.id === c.id);
                 const rarityColor = cardConfig ? CARD_CONFIG.rarityStyle[cardConfig.rarity].color : '#888';
-                const hasIcon = c.has ? '✓' : '○';
+                const rarityName = cardConfig ? CARD_CONFIG.rarityStyle[cardConfig.rarity].name : '?';
                 const hasClass = c.has ? 'has-card' : 'missing-card';
-                cardsHtml += `<span class="set-card ${hasClass}" style="color:${c.has ? rarityColor : '#444'}" title="${cardConfig ? cardConfig.name : c.id}">${hasIcon}</span>`;
+                const opacity = c.has ? '1' : '0.35';
+                cardsHtml += `
+                    <div class="set-card-detail ${hasClass}" style="opacity:${opacity}">
+                        <span class="card-rarity-dot" style="color:${rarityColor}">●</span>
+                        <span class="card-name">${cardConfig ? cardConfig.name : c.id}</span>
+                        <span class="card-rarity-tag" style="color:${rarityColor}">${rarityName}</span>
+                        ${c.has ? '<span class="card-owned">✓</span>' : '<span class="card-missing">—</span>'}
+                    </div>
+                `;
             }
 
             // 套装效果
@@ -483,14 +504,14 @@ const Game = {
             if (set.bonus.heal) bonusParts.push(`❤️+${set.bonus.heal}`);
 
             html += `
-                <div class="set-item ${statusClass}">
+                <div class="set-item ${statusClass} ${collapseClass}">
                     <div class="set-header">
                         <span class="set-status">${statusIcon}</span>
                         <span class="set-name">${set.name}</span>
                         <span class="set-count">${set.collected.filter(c => c.has).length}/${set.ids.length}</span>
                     </div>
                     <div class="set-desc">${set.desc || ''}</div>
-                    <div class="set-cards">${cardsHtml}</div>
+                    <div class="set-cards-detail">${cardsHtml}</div>
                     <div class="set-bonus">${bonusParts.join(' ')}</div>
                 </div>
             `;

@@ -460,6 +460,65 @@ button:disabled {
 .set-card.missing-card {
     opacity: 0.4;
 }
+
+/* 新版卡组图鉴 - 详细卡牌列表 */
+.set-cards-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+.set-card-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: #0f0f1a;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+.set-card-detail.has-card {
+    background: #1a2e1a;
+}
+.set-card-detail.missing-card {
+    background: #0f0f1a;
+}
+.set-card-detail .card-rarity-dot {
+    font-size: 0.7rem;
+}
+.set-card-detail .card-name {
+    flex: 1;
+    color: var(--text);
+}
+.set-card-detail.missing-card .card-name {
+    color: #666;
+}
+.set-card-detail .card-rarity-tag {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+.set-card-detail .card-owned {
+    color: #4caf50;
+    font-weight: bold;
+}
+.set-card-detail .card-missing {
+    color: #444;
+}
+
+/* 未收集套装折叠显示 */
+.set-collapsed {
+    opacity: 0.6;
+}
+.set-collapsed .set-cards-detail {
+    display: none;
+}
+.set-collapsed .set-bonus {
+    display: none;
+}
+.set-collapsed .set-desc {
+    display: none;
+}
 .set-bonus {
     font-size: 0.8rem;
     color: #4caf50;
