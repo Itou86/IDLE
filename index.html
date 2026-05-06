@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDLE - 网页放置游戏</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>IDLE</h1>
+            <div id="resources">
+                <span>💰 <span id="gold">0</span></span>
+                <span>🎫 <span id="tickets">0</span></span>
+            </div>
+        </header>
+
+        <main>
+            <section id="gacha-panel">
+                <h2>🎲 抽卡</h2>
+                <button id="gacha-btn" onclick="game.gacha()">抽卡 (10 🎫)</button>
+                <div id="gacha-result"></div>
+            </section>
+
+            <section id="battle-panel">
+                <h2>⚔️ 竞技</h2>
+                <div id="stage-info">
+                    <span>当前关卡: <span id="current-stage">1</span></span>
+                    <span>敌人战力: <span id="enemy-power">100</span></span>
+                </div>
+                <button id="battle-btn" onclick="game.battle()">挑战</button>
+                <div id="battle-result"></div>
+            </section>
+
+            <section id="cards-panel">
+                <h2>🃏 卡组</h2>
+                <div id="cards-list"></div>
+            </section>
+
+            <section id="achievements-panel">
+                <h2>🏆 成就</h2>
+                <div id="achievements-list"></div>
+            </section>
+        </main>
+
+        <footer>
+            <button onclick="game.save()">💾 保存</button>
+            <button onclick="game.load()">📂 读取</button>
+            <button onclick="game.reset()">🔄 重置</button>
+        </footer>
+    </div>
+
+    <!-- 配置 -->
+    <script src="js/config/cards.js"></script>
+    <script src="js/config/achievements.js"></script>
+    <script src="js/config/stages.js"></script>
+
+    <!-- 工具 -->
+    <script src="js/utils/formatter.js"></script>
+
+    <!-- 系统 -->
+    <script src="js/systems/save.js"></script>
+    <script src="js/systems/gacha.js"></script>
+    <script src="js/systems/battle.js"></script>
+    <script src="js/systems/achievement.js"></script>
+
+    <!-- 入口 -->
+    <script src="js/main.js"></script>
+</body>
+</html>

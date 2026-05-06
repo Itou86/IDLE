@@ -1,0 +1,240 @@
+/* ===== 全局变量 ===== */
+:root {
+    --bg: #1a1a2e;
+    --bg-panel: #16213e;
+    --bg-card: #0f3460;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #eee;
+    --text-dim: #aaa;
+    --border: #2a2a4a;
+    --shadow: 0 2px 8px rgba(0,0,0,0.4);
+    --radius: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+#app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+/* ===== Header ===== */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--bg-panel);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+}
+
+header h1 {
+    font-size: 1.5rem;
+    color: var(--accent);
+}
+
+#resources {
+    display: flex;
+    gap: 20px;
+    font-size: 1.1rem;
+}
+
+#resources span span {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* ===== Main Layout ===== */
+main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+    main { grid-template-columns: 1fr; }
+}
+
+section {
+    background: var(--bg-panel);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+}
+
+section h2 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+
+/* ===== Buttons ===== */
+button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+button:hover { opacity: 0.85; }
+button:active { transform: scale(0.97); }
+button:disabled {
+    background: var(--text-dim);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* ===== Gacha Panel ===== */
+#gacha-result {
+    margin-top: 12px;
+    min-height: 60px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.card-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: popIn 0.3s ease-out;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+
+/* Rarity colors */
+.rarity-N { border-color: #888; }
+.rarity-R { border-color: #4fc3f7; }
+.rarity-SR { border-color: #ba68c8; }
+.rarity-SSR { border-color: #ffd54f; box-shadow: 0 0 8px #ffd54f44; }
+
+/* ===== Battle Panel ===== */
+#stage-info {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    color: var(--text-dim);
+}
+
+#battle-result {
+    margin-top: 12px;
+    font-size: 0.95rem;
+}
+
+.battle-win { color: #4caf50; }
+.battle-lose { color: #f44336; }
+
+/* ===== Cards Panel ===== */
+#cards-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.owned-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    font-size: 0.85rem;
+}
+
+.owned-card .level {
+    color: var(--accent);
+    font-size: 0.75rem;
+    margin-left: 4px;
+}
+
+/* ===== Achievements Panel ===== */
+#achievements-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.achievement {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.achievement.unlocked { color: #4caf50; }
+.achievement.locked { color: var(--text-dim); }
+
+.achievement .reward {
+    font-size: 0.8rem;
+    color: #ffd700;
+}
+
+/* ===== Toast Notification ===== */
+#toast-container {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.toast {
+    background: var(--bg-panel);
+    border-left: 4px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    animation: slideIn 0.3s ease-out;
+    max-width: 280px;
+}
+
+.toast.achievement-toast {
+    border-left-color: #ffd700;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+
+/* ===== Footer ===== */
+footer {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    padding: 12px;
+}
+
+footer button {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
