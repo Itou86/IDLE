@@ -4,7 +4,7 @@
   "description": "网页放置游戏 - 抽卡→竞技→奖励循环",
   "scripts": {
     "start": "python -m http.server 8000",
-    "test": "open tests/index.html",
+    "test": "node tests/run-node.js",
     "lint": "echo '纯前端项目，无需构建'",
     "build": "echo '纯静态项目，无需构建，直接部署'"
   },
