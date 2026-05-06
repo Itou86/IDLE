@@ -17,6 +17,10 @@ const Game = {
 
         // 离线收益计算
         this._calcOfflineEarnings();
+
+        // 启动自动收益和商店计时器
+        this._startAutoTick();
+        this._startShopTimer();
     },
 
     // 创建存档
@@ -179,6 +183,56 @@ const Game = {
             `;
             achDiv.appendChild(el);
         }
+
+        // 生活面板 - 收益信息
+        const idleInfo = IdleSystem.getInfo(this.state);
+        const clickValEl = document.getElementById('click-value');
+        if (clickValEl) clickValEl.textContent = idleInfo.clickValue;
+        const autoValEl = document.getElementById('auto-value');
+        if (autoValEl) autoValEl.textContent = idleInfo.autoValue;
+        const clickLvlEl = document.getElementById('click-level');
+        if (clickLvlEl) clickLvlEl.textContent = idleInfo.clickLevel;
+        const autoLvlEl = document.getElementById('auto-level');
+        if (autoLvlEl) autoLvlEl.textContent = idleInfo.autoLevel;
+        const clickCostEl = document.getElementById('click-cost');
+        if (clickCostEl) clickCostEl.textContent = idleInfo.clickUpgradeCost;
+        const autoCostEl = document.getElementById('auto-cost');
+        if (autoCostEl) autoCostEl.textContent = idleInfo.autoUpgradeCost;
+
+        // 升级按钮状态
+        const buyClickBtn = document.getElementById('buy-click-btn');
+        if (buyClickBtn) buyClickBtn.disabled = !idleInfo.canAffordClick;
+        const buyAutoBtn = document.getElementById('buy-auto-btn');
+        if (buyAutoBtn) buyAutoBtn.disabled = !idleInfo.canAffordAuto;
+
+        // 商店面板
+        this._renderShop();
+    },
+
+    _renderShop: function() {
+        if (!this.state) return;
+        const items = ShopSystem.getItems(this.state);
+        const shopDiv = document.getElementById('shop-items');
+        if (!shopDiv) return;
+
+        shopDiv.innerHTML = '';
+        for (const item of items) {
+            const el = document.createElement('div');
+            el.className = 'shop-item';
+            const canAfford = this.state.gold >= item.cost;
+            el.innerHTML = `
+                <div class="item-info">
+                    <span class="item-name">${item.icon || ''} ${item.name}</span>
+                    <span class="item-desc">${item.desc}${item.stock ? ` (库存: ${item.stock})` : ''}</span>
+                </div>
+                <span class="item-cost">💰${item.cost}</span>
+                <button ${canAfford ? '' : 'disabled'} onclick="game.buyShopItem('${item.id}')">购买</button>
+            `;
+            shopDiv.appendChild(el);
+        }
+
+        // 更新倒计时
+        this._renderShopTimer();
     },
 
     // ===== 成就检查 =====
@@ -221,21 +275,116 @@ const Game = {
         }, 3000);
     },
 
+    // ===== 生活 / 放置 =====
+
+    click: function() {
+        const earned = IdleSystem.click(this.state);
+        this._checkAchievements();
+        this.render();
+        // 显示浮动文字效果
+        this._showClickFloat(earned);
+    },
+
+    _showClickFloat: function(amount) {
+        const btn = document.getElementById('click-btn');
+        if (!btn) return;
+        const float = document.createElement('div');
+        float.textContent = `+${amount}`;
+        float.style.cssText = `
+            position: absolute;
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.2rem;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+        `;
+        const rect = btn.getBoundingClientRect();
+        float.style.left = (rect.left + rect.width / 2) + 'px';
+        float.style.top = rect.top + 'px';
+        document.body.appendChild(float);
+        setTimeout(() => float.remove(), 800);
+    },
+
+    buyClickUpgrade: function() {
+        const result = IdleSystem.buyClickUpgrade(this.state);
+        if (!result.success) {
+            this.showToast(result.reason, 'error');
+            return;
+        }
+        this.showToast(`升级A成功！点击收益 +${result.newValue} 金币`, 'info');
+        this.render();
+    },
+
+    buyAutoUpgrade: function() {
+        const result = IdleSystem.buyAutoUpgrade(this.state);
+        if (!result.success) {
+            this.showToast(result.reason, 'error');
+            return;
+        }
+        this.showToast(`升级B成功！每秒自动 +${result.newValue} 金币`, 'info');
+        this.render();
+    },
+
+    // ===== 商店 =====
+
+    refreshShop: function() {
+        const result = ShopSystem.refresh(this.state);
+        if (result.success) {
+            this.showToast('商店已刷新', 'info');
+        }
+        this.render();
+    },
+
+    buyShopItem: function(itemId) {
+        const result = ShopSystem.buy(this.state, itemId);
+        if (!result.success) {
+            this.showToast(result.reason, 'error');
+            return;
+        }
+        this.showToast(`购买成功：${result.received}`, 'info');
+        this._checkAchievements();
+        this.render();
+    },
+
     // ===== 离线收益 =====
 
     _calcOfflineEarnings: function() {
         if (!this.state || !this.state.stats.lastSaveTime) return;
-        const offline = (Date.now() - this.state.stats.lastSaveTime) / 1000;
-        if (offline < 60) return; // 小于1分钟不算
+        const result = IdleSystem.applyOfflineGold(this.state);
+        if (result.gold > 0) {
+            this.showToast(
+                `离线收益：💰${result.gold}（离线${Formatter.time(result.seconds)}）`,
+                'info'
+            );
+        }
+    },
 
-        // 简单离线收益：每分钟1金币
-        const minutes = Math.floor(offline / 60);
-        const earnings = Math.min(minutes, 60 * 24); // 最多算24小时
-        this.state.gold += earnings;
-        this.state.stats.goldTotal += earnings;
+    _startAutoTick: function() {
+        // 每秒自动收益
+        setInterval(() => {
+            if (!this.state) return;
+            const goldPerSec = IdleSystem.getAutoGoldPerSecond(this.state);
+            if (goldPerSec > 0) {
+                this.state.gold += goldPerSec;
+                this.state.stats.goldTotal += goldPerSec;
+                this.render();
+            }
+        }, 1000);
+    },
 
-        if (earnings > 0) {
-            this.showToast(`离线收益：💰${earnings}（离线${Formatter.time(offline)}）`, 'info');
+    _startShopTimer: function() {
+        // 每秒更新商店倒计时
+        setInterval(() => {
+            this._renderShopTimer();
+        }, 1000);
+    },
+
+    _renderShopTimer: function() {
+        if (!this.state) return;
+        const remaining = ShopSystem.getNextRefreshTime(this.state);
+        const timerEl = document.getElementById('refresh-timer');
+        if (timerEl) {
+            timerEl.textContent = Formatter.time(remaining / 1000);
         }
     }
 };

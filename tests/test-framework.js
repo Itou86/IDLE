@@ -175,6 +175,13 @@ const Assert = {
         }
     },
 
+    // 非空
+    isNotNull: function(value, msg) {
+        if (value === null || value === undefined) {
+            throw new Error(msg || '期望非空值');
+        }
+    },
+
     // 类型检查
     type: function(value, expectedType, msg) {
         const actual = typeof value;

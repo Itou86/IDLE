@@ -72,6 +72,8 @@ loadJS('../js/systems/save.js');
 loadJS('../js/systems/gacha.js');
 loadJS('../js/systems/battle.js');
 loadJS('../js/systems/achievement.js');
+loadJS('../js/systems/idle.js');
+loadJS('../js/systems/shop.js');
 
 // ===== 加载测试框架 =====
 loadJS('test-framework.js');
@@ -155,6 +157,8 @@ loadJS('test-battle.js');
 loadJS('test-achievement.js');
 loadJS('test-save.js');
 loadJS('test-integration.js');
+loadJS('test-idle.js');
+loadJS('test-shop.js');
 
 // ===== 运行测试 =====
 vm.runInContext('TestRunner.runAll();', context);

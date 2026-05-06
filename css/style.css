@@ -226,6 +226,146 @@ button:disabled {
     to   { transform: translateX(0); opacity: 1; }
 }
 
+/* ===== Life Panel ===== */
+#life-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#click-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+#click-btn {
+    font-size: 1.2rem;
+    padding: 16px 32px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--accent), #ff6b6b);
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+}
+
+#click-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(233, 69, 96, 0.4);
+}
+
+#click-btn:active {
+    transform: translateY(0) scale(0.97);
+}
+
+#click-info, #idle-info {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+#idle-info span span {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+#upgrades {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.upgrade-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.upgrade-item span {
+    font-size: 0.85rem;
+}
+
+.upgrade-item button {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+}
+
+/* ===== Shop Panel ===== */
+#shop-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#shop-timer {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+#shop-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.shop-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.shop-item .item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.shop-item .item-name {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.shop-item .item-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.shop-item .item-cost {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+.shop-item button {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+}
+
+#refresh-shop-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 0.9rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+#refresh-shop-btn:hover {
+    background: var(--border);
+}
+
 /* ===== Footer ===== */
 footer {
     display: flex;

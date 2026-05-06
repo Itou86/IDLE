@@ -42,6 +42,42 @@
                 <h2>🏆 成就</h2>
                 <div id="achievements-list"></div>
             </section>
+
+            <section id="life-panel">
+                <h2>🏠 生活</h2>
+                <div id="life-content">
+                    <div id="click-section">
+                        <button id="click-btn" onclick="game.click()">💰 赚金币</button>
+                        <div id="click-info">每次点击: +<span id="click-value">1</span> 金币</div>
+                    </div>
+                    <div id="idle-info">
+                        <span>每秒自动: +<span id="auto-value">0</span> 金币</span>
+                    </div>
+                    <div id="upgrades">
+                        <div class="upgrade-item" id="upgrade-a">
+                            <span>升级A - 点击收益</span>
+                            <span>当前等级: <span id="click-level">0</span></span>
+                            <span>价格: <span id="click-cost">10</span> 金币</span>
+                            <button id="buy-click-btn" onclick="game.buyClickUpgrade()">购买</button>
+                        </div>
+                        <div class="upgrade-item" id="upgrade-b">
+                            <span>升级B - 自动收益</span>
+                            <span>当前等级: <span id="auto-level">0</span></span>
+                            <span>价格: <span id="auto-cost">50</span> 金币</span>
+                            <button id="buy-auto-btn" onclick="game.buyAutoUpgrade()">购买</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="shop-panel">
+                <h2>🛒 商店</h2>
+                <div id="shop-content">
+                    <div id="shop-timer">下次刷新: <span id="refresh-timer">20:00</span></div>
+                    <div id="shop-items"></div>
+                    <button id="refresh-shop-btn" onclick="game.refreshShop()">🔄 刷新商店</button>
+                </div>
+            </section>
         </main>
 
         <footer>
@@ -64,6 +100,8 @@
     <script src="js/systems/gacha.js"></script>
     <script src="js/systems/battle.js"></script>
     <script src="js/systems/achievement.js"></script>
+    <script src="js/systems/idle.js"></script>
+    <script src="js/systems/shop.js"></script>
 
     <!-- 入口 -->
     <script src="js/main.js"></script>
