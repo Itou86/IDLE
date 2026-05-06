@@ -9,7 +9,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
             cards: cards,
             achievements: achievements,
             stats: {
-                goldTotal: gold,
+                goldTotal: 0,  // 累计金币从0开始，避免触发成就
                 gachaCount: 0,
                 battleWin: 0,
                 battleLose: 0,
@@ -27,8 +27,18 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
     // --- checkAll: 基础检测 ---
     test('checkAll: 空状态无成就解锁', () => {
         const state = createState();
+        // 午夜登录成就依赖当前时间，非午夜不应触发
+        const hour = new Date().getHours();
         const unlocked = AchievementSystem.checkAll(state);
-        Assert.equal(unlocked.length, 0, '初始状态不应解锁任何成就');
+        if (hour === 0) {
+            // 午夜时可能解锁1个，检查是否只有午夜成就
+            const nonMidnight = unlocked.filter(a => a.id !== 'hid_010');
+            Assert.equal(nonMidnight.length, 0, '午夜时除午夜登录外不应有其他成就');
+        } else {
+            // 过滤掉午夜成就再检查
+            const nonMidnight = unlocked.filter(a => a.id !== 'hid_010');
+            Assert.equal(nonMidnight.length, 0, '初始状态不应解锁任何成就');
+        }
     });
 
     test('checkAll: 金币成就解锁', () => {
@@ -166,7 +176,6 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
 
     test('checkAll: 午夜登录成就', () => {
         // 无法稳定测试，因为依赖当前时间
-        // 但我们可以测试条件函数
         const state = createState();
         const hour = new Date().getHours();
         const unlocked = AchievementSystem.checkAll(state);
@@ -174,7 +183,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         if (hour === 0) {
             Assert.exists(found, '午夜应解锁成就');
         } else {
-            Assert.notEqual(found, undefined, '非午夜不应解锁');
+            Assert.equal(found, undefined, '非午夜不应解锁');
         }
     });
 
@@ -240,7 +249,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.goldTotal = 99; // 刚好不到100
         let unlocked = AchievementSystem.checkAll(state);
         let found = unlocked.find(a => a.id === 'num_001');
-        Assert.notEqual(found, undefined, '99金币不应解锁');
+        Assert.equal(found, undefined, '99金币不应解锁');
 
         state.stats.goldTotal = 100; // 刚好100
         unlocked = AchievementSystem.checkAll(state);

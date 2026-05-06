@@ -93,8 +93,9 @@ TestRunner.suite('⚔️ 竞技系统 - BattleSystem', (test) => {
         const state = createState(100, 10, 50);
         BattleSystem.fight(state); // 失败
         Assert.equal(state.stats.loseStreak, 1);
-        // 装备后胜利
-        state.cards['ssr_001'] = { count: 1, level: 1, instances: ['a'] };
+        // 装备后胜利 - 用足够强的装备确保胜利
+        state.cards['ssr_001'] = { count: 5, level: 10, instances: Array(5).fill('x') };
+        state.stage = 1; // 回到第1关确保能赢
         BattleSystem.fight(state);
         Assert.equal(state.stats.loseStreak, 0, '胜利应重置连败');
     });

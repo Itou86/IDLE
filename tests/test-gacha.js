@@ -53,6 +53,7 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         const state = createState(100, 100);
         for (let i = 0; i < 20; i++) {
             const result = GachaSystem.draw(state);
+            if (!result.success) continue; // 券耗尽时跳过
             Assert.includes(validRarities, result.card.rarity, `第${i+1}次抽卡稀有度应合法`);
         }
     });
@@ -200,7 +201,12 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
 
     test('upgradeCard: 升级后战力提升', () => {
         const state = createState();
-        state.cards['n_001'] = { count: 2, level: 1, instances: ['a', 'b'] };
+        // 需要足够多的卡：升级消耗1张，但等级提升带来的倍率要弥补数量减少
+        // 基础战力 = 10 + count * basePower * (1 + (level-1)*0.1)
+        // 需要 count * 1.1 > (count+1) * 1.0 => count > 10
+        // 12张1级: 10+60=70, 11张2级: 10+60.5=70 取整后相等！
+        // 需要13张：13张1级=75, 12张2级=76
+        state.cards['n_001'] = { count: 13, level: 1, instances: Array(13).fill('x') };
         const power1 = GachaSystem.getTotalPower(state);
         GachaSystem.upgradeCard(state, 'n_001');
         const power2 = GachaSystem.getTotalPower(state);

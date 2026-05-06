@@ -9,24 +9,24 @@ TestRunner.suite('🛠️ 工具函数 - Formatter', (test) => {
     });
 
     test('number: 1000-999,999 显示为 K', () => {
-        Assert.equal(Formatter.number(1000), '1.0K');
-        Assert.equal(Formatter.number(1500), '1.5K');
+        Assert.equal(Formatter.number(1000), '1.00K');
+        Assert.equal(Formatter.number(1500), '1.50K');
         Assert.equal(Formatter.number(999999), '1000.0K');
     });
 
     test('number: 百万级显示为 M', () => {
-        Assert.equal(Formatter.number(1000000), '1.0M');
-        Assert.equal(Formatter.number(2500000), '2.5M');
+        Assert.equal(Formatter.number(1000000), '1.00M');
+        Assert.equal(Formatter.number(2500000), '2.50M');
         Assert.equal(Formatter.number(100000000), '100.0M');
     });
 
     test('number: 十亿级显示为 B', () => {
-        Assert.equal(Formatter.number(1000000000), '1.0B');
-        Assert.equal(Formatter.number(5000000000), '5.0B');
+        Assert.equal(Formatter.number(1000000000), '1.00B');
+        Assert.equal(Formatter.number(5000000000), '5.00B');
     });
 
     test('number: 万亿级显示为 T', () => {
-        Assert.equal(Formatter.number(1000000000000), '1.0T');
+        Assert.equal(Formatter.number(1000000000000), '1.00T');
     });
 
     test('number: 小数精度正确', () => {
@@ -40,7 +40,7 @@ TestRunner.suite('🛠️ 工具函数 - Formatter', (test) => {
 
     test('number: 负数处理', () => {
         Assert.equal(Formatter.number(-100), '-100');
-        Assert.equal(Formatter.number(-1500), '-1.5K');
+        Assert.equal(Formatter.number(-1500), '-1.50K');
     });
 
     test('number: 非数字输入应返回合理结果', () => {

@@ -2,11 +2,13 @@
 const Formatter = {
     // 格式化大数字（K/M/B/T）
     number: function(num) {
-        if (num < 1000) return Math.floor(num).toString();
+        if (num === undefined || num === null) return '0';
+        if (Math.abs(num) < 1000) return Math.floor(num).toString();
         const units = ['', 'K', 'M', 'B', 'T', 'aa', 'ab', 'ac'];
-        const unitIndex = Math.floor(Math.log10(num) / 3);
-        const scaled = num / Math.pow(1000, unitIndex);
-        return scaled.toFixed(scaled < 10 ? 2 : 1) + units[unitIndex];
+        const unitIndex = Math.floor(Math.log10(Math.abs(num)) / 3);
+        const scaled = Math.abs(num) / Math.pow(1000, unitIndex);
+        const sign = num < 0 ? '-' : '';
+        return sign + scaled.toFixed(scaled < 10 ? 2 : 1) + units[unitIndex];
     },
 
     // 格式化时间

@@ -207,5 +207,12 @@ const Assert = {
         if (!threw) {
             throw new Error(msg || '期望抛出异常');
         }
+    },
+
+    // 不抛出异常
+    doesNotThrow: function(fn, msg) {
+        try { fn(); } catch (e) {
+            throw new Error((msg || '不应抛出异常') + ': ' + e.message);
+        }
     }
 };

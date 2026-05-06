@@ -116,5 +116,29 @@ const GachaSystem = {
         cardData.instances.pop(); // 移除一个实例
 
         return { success: true, newLevel: cardData.level };
+    },
+
+    // 批量升级卡牌（消耗多张提升更多等级）
+    upgradeCardBatch: function(gameState, cardId, targetLevel) {
+        const cardData = gameState.cards[cardId];
+        if (!cardData) {
+            return { success: false, reason: '卡牌不存在' };
+        }
+
+        const currentLevel = cardData.level || 1;
+        const levelsNeeded = targetLevel - currentLevel;
+        const cardsNeeded = levelsNeeded; // 每升1级需要1张
+
+        if (cardData.count < cardsNeeded + 1) { // 至少留1张
+            return { success: false, reason: `需要${cardsNeeded}张卡牌升到${targetLevel}级` };
+        }
+
+        cardData.count -= cardsNeeded;
+        cardData.level = targetLevel;
+        for (let i = 0; i < cardsNeeded; i++) {
+            cardData.instances.pop();
+        }
+
+        return { success: true, newLevel: cardData.level };
     }
 };
