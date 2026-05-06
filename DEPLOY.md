@@ -14,7 +14,7 @@
 
 ```bash
 cd /mnt/d/Work/IDLE
-git remote add origin https://github.com/你的用户名/IDLE.git
+git remote add origin https://github.com/Itou86/IDLE.git
 git branch -M main
 git push -u origin main
 ```
@@ -28,7 +28,7 @@ git push -u origin main
 ### 步骤 4：访问游戏
 等待 1-2 分钟后，访问：
 ```
-https://你的用户名.github.io/IDLE/
+https://Itou86.github.io/IDLE/
 ```
 
 ---
@@ -110,7 +110,7 @@ GitHub Pages 部署的是仓库根目录内容，确保结构如下：
 
 1. 在仓库根目录创建 `CNAME` 文件
 2. 写入你的域名，如 `game.example.com`
-3. 在域名 DNS 添加 CNAME 记录指向 `你的用户名.github.io`
+3. 在域名 DNS 添加 CNAME 记录指向 `Itou86.github.io`
 4. 在 Settings → Pages 中配置自定义域名
 
 ---
@@ -146,7 +146,7 @@ GitHub Actions 会自动重新部署，约 1-2 分钟后生效。
 
 可以，测试页面会一起部署：
 ```
-https://你的用户名.github.io/IDLE/tests/
+https://Itou86.github.io/IDLE/tests/
 ```
 
 **Q: 如何回滚？**
@@ -184,8 +184,8 @@ git status
 
 1. 仓库 **Actions** 页面显示绿色 ✓
 2. **Settings** → **Pages** 显示绿色勾
-3. 访问 `https://你的用户名.github.io/IDLE/` 能看到游戏界面
-4. 访问 `https://你的用户名.github.io/IDLE/tests/` 能看到测试套件
+3. 访问 `https://Itou86.github.io/IDLE/` 能看到游戏界面
+4. 访问 `https://Itou86.github.io/IDLE/tests/` 能看到测试套件
 
 ---
 
@@ -193,4 +193,4 @@ git status
 
 - [GitHub Pages 官方文档](https://docs.github.com/zh/pages)
 - [GitHub Actions 官方文档](https://docs.github.com/zh/actions)
-- 在仓库 [Issues](https://github.com/你的用户名/IDLE/issues) 提问
+- 在仓库 [Issues](https://github.com/Itou86/IDLE/issues) 提问
