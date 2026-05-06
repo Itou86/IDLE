@@ -26,13 +26,17 @@ const Game = {
     // 创建存档
     reset: function() {
         this.state = {
-            gold: 100,           // 初始金币
-            tickets: 10,         // 初始抽卡券
+            gold: 50,            // 初始金币(原100，降低因为点击收益高了)
+            tickets: 20,         // 初始抽卡券(原10，让玩家能抽20次)
             stage: 1,            // 当前关卡
             cards: {},           // 拥有的卡牌
             achievements: {},    // 已解锁成就
+            idle: {              // 初始放置等级
+                clickLevel: 0,
+                autoLevel: 1     // 初始自动收益1级
+            },
             stats: {
-                goldTotal: 100,
+                goldTotal: 50,
                 gachaCount: 0,
                 battleWin: 0,
                 battleLose: 0,
@@ -68,38 +72,79 @@ const Game = {
 
     // ===== 核心操作 =====
 
-    // 抽卡
-    gacha: function() {
-        const result = GachaSystem.draw(this.state);
+    // 抽卡 (count=1 单抽, count=10 十连)
+    gacha: function(count) {
+        count = count || 1;
+        const result = GachaSystem.draw(this.state, count);
         if (!result.success) {
             this.showToast(result.reason, 'error');
             return;
         }
 
-        const card = result.card;
-        const rarityInfo = CARD_CONFIG.rarityStyle[card.rarity];
-
         // 显示结果
         const resultDiv = document.getElementById('gacha-result');
-        const cardEl = document.createElement('div');
-        cardEl.className = `card-item rarity-${card.rarity}`;
-        cardEl.innerHTML = `
-            <span style="color:${rarityInfo.color}">●</span>
-            ${card.name} <small>(${rarityInfo.name})</small>
-        `;
-        resultDiv.insertBefore(cardEl, resultDiv.firstChild);
-        if (resultDiv.children.length > 5) {
+        
+        // 如果是十连，显示汇总
+        if (count === 10) {
+            const rarityCount = {};
+            for (const card of result.cards) {
+                rarityCount[card.rarity] = (rarityCount[card.rarity] || 0) + 1;
+            }
+            const summaryEl = document.createElement('div');
+            summaryEl.className = 'gacha-summary';
+            summaryEl.style.cssText = 'background:#1a1a2e;padding:8px 12px;margin:4px 0;border-radius:6px;border-left:3px solid #ffd54f;';
+            let summaryText = '🎉 十连抽结果: ';
+            const parts = [];
+            if (rarityCount.SSR) parts.push(`<span style="color:#ffd54f">SSR×${rarityCount.SSR}</span>`);
+            if (rarityCount.SR) parts.push(`<span style="color:#ba68c8">SR×${rarityCount.SR}</span>`);
+            if (rarityCount.R) parts.push(`<span style="color:#4fc3f7">R×${rarityCount.R}</span>`);
+            if (rarityCount.N) parts.push(`<span style="color:#888">N×${rarityCount.N}</span>`);
+            summaryText += parts.join(' ');
+            summaryEl.innerHTML = summaryText;
+            resultDiv.insertBefore(summaryEl, resultDiv.firstChild);
+            
+            // 显示每张卡
+            for (const card of result.cards) {
+                const rarityInfo = CARD_CONFIG.rarityStyle[card.rarity];
+                const cardEl = document.createElement('div');
+                cardEl.className = `card-item rarity-${card.rarity}`;
+                cardEl.innerHTML = `
+                    <span style="color:${rarityInfo.color}">●</span>
+                    ${card.name} <small>(${rarityInfo.name})</small>
+                `;
+                resultDiv.insertBefore(cardEl, resultDiv.firstChild);
+            }
+            
+            // SSR特殊提示
+            if (rarityCount.SSR > 0) {
+                const ssrCards = result.cards.filter(c => c.rarity === 'SSR');
+                this.showToast(`🎉 恭喜获得 ${rarityCount.SSR} 张SSR！${ssrCards.map(c => c.name).join('、')}`, 'achievement');
+            }
+        } else {
+            // 单抽显示
+            const card = result.cards[0];
+            const rarityInfo = CARD_CONFIG.rarityStyle[card.rarity];
+            const cardEl = document.createElement('div');
+            cardEl.className = `card-item rarity-${card.rarity}`;
+            cardEl.innerHTML = `
+                <span style="color:${rarityInfo.color}">●</span>
+                ${card.name} <small>(${rarityInfo.name})</small>
+            `;
+            resultDiv.insertBefore(cardEl, resultDiv.firstChild);
+            
+            if (card.rarity === 'SSR') {
+                this.showToast(`🎉 恭喜获得 SSR：${card.name}！`, 'achievement');
+            }
+        }
+        
+        // 限制显示数量
+        while (resultDiv.children.length > 15) {
             resultDiv.removeChild(resultDiv.lastChild);
         }
 
         // 检查成就
         this._checkAchievements();
         this.render();
-
-        // SSR特殊提示
-        if (card.rarity === 'SSR') {
-            this.showToast(`🎉 恭喜获得 SSR：${card.name}！`, 'achievement');
-        }
     },
 
     // 竞技
@@ -142,26 +187,36 @@ const Game = {
         document.getElementById('enemy-power').textContent = Formatter.number(stageInfo.enemyPower);
 
         // 按钮状态
-        document.getElementById('gacha-btn').disabled = this.state.tickets < GachaSystem.COST.tickets;
+        const gachaBtn = document.getElementById('gacha-btn');
+        if (gachaBtn) gachaBtn.disabled = this.state.tickets < GachaSystem.COST.tickets;
+        const gacha10Btn = document.getElementById('gacha-10-btn');
+        if (gacha10Btn) gacha10Btn.disabled = this.state.tickets < GachaSystem.COST_10.tickets;
 
         // 卡牌列表
         const cardsDiv = document.getElementById('cards-list');
-        cardsDiv.innerHTML = '';
-        for (const [id, data] of Object.entries(this.state.cards)) {
-            const config = CARD_CONFIG.pool.find(c => c.id === id);
-            if (!config) continue;
-            const el = document.createElement('div');
-            el.className = 'owned-card';
-            el.innerHTML = `
-                ${config.name}
-                <span class="level">Lv.${data.level}</span>
-                <small>x${data.count}</small>
-            `;
-            cardsDiv.appendChild(el);
+        if (cardsDiv) {
+            cardsDiv.innerHTML = '';
+            for (const [id, data] of Object.entries(this.state.cards)) {
+                const config = CARD_CONFIG.pool.find(c => c.id === id);
+                if (!config) continue;
+                const rarityInfo = CARD_CONFIG.rarityStyle[config.rarity];
+                const el = document.createElement('div');
+                el.className = 'owned-card';
+                el.innerHTML = `
+                    <span style="color:${rarityInfo.color}">●</span>
+                    ${config.name}
+                    <span class="level">Lv.${data.level}</span>
+                    <small>x${data.count}</small>
+                `;
+                cardsDiv.appendChild(el);
+            }
+            if (cardsDiv.children.length === 0) {
+                cardsDiv.innerHTML = '<span style="color:#888">暂无卡牌，快去抽卡吧！</span>';
+            }
         }
-        if (cardsDiv.children.length === 0) {
-            cardsDiv.innerHTML = '<span style="color:#888">暂无卡牌，快去抽卡吧！</span>';
-        }
+
+        // 卡组图鉴
+        this._renderCollection();
 
         // 成就列表
         const achDiv = document.getElementById('achievements-list');
@@ -386,6 +441,63 @@ const Game = {
         if (timerEl) {
             timerEl.textContent = Formatter.time(remaining / 1000);
         }
+    },
+
+    // ===== 卡组图鉴渲染 =====
+    _renderCollection: function() {
+        const collectionDiv = document.getElementById('collection-list');
+        if (!collectionDiv) return;
+
+        const activeSets = GachaSystem.getActiveSets(this.state);
+        const progress = GachaSystem.getCollectionProgress(this.state);
+
+        let html = `
+            <div class="collection-progress">
+                <div>📚 卡牌收集: ${progress.cardsOwned}/${progress.cardsTotal} (${progress.cardPercent}%)</div>
+                <div>🎯 套装完成: ${progress.setsComplete}/${progress.setsTotal} (${progress.setPercent}%)</div>
+            </div>
+            <div class="sets-grid">
+        `;
+
+        for (const set of activeSets) {
+            const statusIcon = set.isComplete ? '✅' : '⏳';
+            const statusClass = set.isComplete ? 'set-complete' : 'set-incomplete';
+            
+            // 构建卡牌收集状态
+            let cardsHtml = '';
+            for (const c of set.collected) {
+                const cardConfig = CARD_CONFIG.pool.find(p => p.id === c.id);
+                const rarityColor = cardConfig ? CARD_CONFIG.rarityStyle[cardConfig.rarity].color : '#888';
+                const hasIcon = c.has ? '✓' : '○';
+                const hasClass = c.has ? 'has-card' : 'missing-card';
+                cardsHtml += `<span class="set-card ${hasClass}" style="color:${c.has ? rarityColor : '#444'}" title="${cardConfig ? cardConfig.name : c.id}">${hasIcon}</span>`;
+            }
+
+            // 套装效果
+            const bonusParts = [];
+            if (set.bonus.power) bonusParts.push(`⚔️+${set.bonus.power}`);
+            if (set.bonus.defense) bonusParts.push(`🛡️+${set.bonus.defense}`);
+            if (set.bonus.gold) bonusParts.push(`💰+${set.bonus.gold}`);
+            if (set.bonus.speed) bonusParts.push(`⚡+${set.bonus.speed}`);
+            if (set.bonus.dropRate) bonusParts.push(`🍀+${set.bonus.dropRate}%`);
+            if (set.bonus.heal) bonusParts.push(`❤️+${set.bonus.heal}`);
+
+            html += `
+                <div class="set-item ${statusClass}">
+                    <div class="set-header">
+                        <span class="set-status">${statusIcon}</span>
+                        <span class="set-name">${set.name}</span>
+                        <span class="set-count">${set.collected.filter(c => c.has).length}/${set.ids.length}</span>
+                    </div>
+                    <div class="set-desc">${set.desc || ''}</div>
+                    <div class="set-cards">${cardsHtml}</div>
+                    <div class="set-bonus">${bonusParts.join(' ')}</div>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        collectionDiv.innerHTML = html;
     }
 };
 

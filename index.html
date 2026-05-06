@@ -19,7 +19,10 @@
         <main>
             <section id="gacha-panel">
                 <h2>🎲 抽卡</h2>
-                <button id="gacha-btn" onclick="game.gacha()">抽卡 (10 🎫)</button>
+                <div class="gacha-buttons">
+                    <button id="gacha-btn" onclick="game.gacha(1)">单抽 (1 🎫)</button>
+                    <button id="gacha-10-btn" onclick="game.gacha(10)">十连抽 (10 🎫)</button>
+                </div>
                 <div id="gacha-result"></div>
             </section>
 
@@ -33,8 +36,13 @@
                 <div id="battle-result"></div>
             </section>
 
+            <section id="collection-panel">
+                <h2>📚 卡组图鉴</h2>
+                <div id="collection-list"></div>
+            </section>
+
             <section id="cards-panel">
-                <h2>🃏 卡组</h2>
+                <h2>🃏 我的卡牌</h2>
                 <div id="cards-list"></div>
             </section>
 

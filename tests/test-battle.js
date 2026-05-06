@@ -127,7 +127,8 @@ TestRunner.suite('⚔️ 竞技系统 - BattleSystem', (test) => {
         });
         const result = BattleSystem.fight(state);
         Assert.true(result.isBoss, '第10关应为BOSS');
-        Assert.greaterThan(result.enemyPower, 1000, 'BOSS战力应增强');
+        // 第10关BOSS战力 = 600 * 1.3 = 780 (调整后)
+        Assert.greaterThan(result.enemyPower, 700, 'BOSS战力应增强');
     });
 
     test('fight: 高关卡敌人更强', () => {

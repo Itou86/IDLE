@@ -1,34 +1,67 @@
 /* ===== 抽卡系统 ===== */
 const GachaSystem = {
     // 抽卡消耗
-    COST: { tickets: 10 },
+    COST: { tickets: 1 },
+    
+    // 十连抽消耗
+    COST_10: { tickets: 10 },
 
-    // 执行抽卡
-    draw: function(gameState) {
-        if (gameState.tickets < this.COST.tickets) {
+    // 执行抽卡 (count=1 单抽, count=10 十连)
+    draw: function(gameState, count) {
+        count = count || 1;
+        const cost = count === 10 ? this.COST_10.tickets : this.COST.tickets * count;
+        
+        if (gameState.tickets < cost) {
             return { success: false, reason: '抽卡券不足' };
         }
 
-        gameState.tickets -= this.COST.tickets;
-        gameState.stats.gachaCount++;
+        gameState.tickets -= cost;
+        gameState.stats.gachaCount += count;
 
-        const card = this._rollCard();
-        this._addCard(gameState, card);
+        const cards = [];
+        for (let i = 0; i < count; i++) {
+            const isLastOfTen = (count === 10 && i === 9);
+            const card = this._rollCard(count === 10, isLastOfTen);
+            this._addCard(gameState, card);
+            cards.push(card);
+            // 检查保底相关
+            this._updateStreaks(gameState, card.rarity);
+        }
 
-        // 检查保底相关
-        this._updateStreaks(gameState, card.rarity);
-
-        return { success: true, card: card };
+        return { success: true, cards: cards, count: count };
     },
 
-    // 内部：随机抽取一张卡
-    _rollCard: function() {
-        const rand = Math.random();
+    // 稀有度保底概率提升（十连时SR/SSR概率提升，第10张保底SR）
+    _rollCard: function(isTenPull, isLastOfTen) {
         let rarity;
-        if (rand < CARD_CONFIG.rates.SSR) rarity = 'SSR';
-        else if (rand < CARD_CONFIG.rates.SSR + CARD_CONFIG.rates.SR) rarity = 'SR';
-        else if (rand < CARD_CONFIG.rates.SSR + CARD_CONFIG.rates.SR + CARD_CONFIG.rates.R) rarity = 'R';
-        else rarity = 'N';
+        
+        // 十连最后一张保底SR
+        if (isLastOfTen) {
+            const rand = Math.random();
+            if (rand < 0.15) rarity = 'SSR';  // 15%
+            else rarity = 'SR'; // 85%
+            const pool = CARD_CONFIG.pool.filter(c => c.rarity === rarity);
+            const card = Formatter.clone(pool[Math.floor(Math.random() * pool.length)]);
+            card.uid = Formatter.uid();
+            card.level = 1;
+            return card;
+        }
+        
+        const rand = Math.random();
+        
+        // 十连抽整体稀有度概率提升
+        if (isTenPull) {
+            if (rand < 0.08) rarity = 'SSR';      // 8% (vs 平时5%)
+            else if (rand < 0.08 + 0.18) rarity = 'SR'; // 18% (vs 平时10%)
+            else if (rand < 0.08 + 0.18 + 0.35) rarity = 'R'; // 35% (vs 平时25%)
+            else rarity = 'N'; // 39% (vs 平时60%)
+        } else {
+            // 单抽用原概率
+            if (rand < CARD_CONFIG.rates.SSR) rarity = 'SSR';
+            else if (rand < CARD_CONFIG.rates.SSR + CARD_CONFIG.rates.SR) rarity = 'SR';
+            else if (rand < CARD_CONFIG.rates.SSR + CARD_CONFIG.rates.SR + CARD_CONFIG.rates.R) rarity = 'R';
+            else rarity = 'N';
+        }
 
         // 从对应稀有度中随机选一张
         const pool = CARD_CONFIG.pool.filter(c => c.rarity === rarity);
@@ -92,16 +125,53 @@ const GachaSystem = {
 
     // 内部：计算套装加成
     _getSetBonus: function(gameState) {
-        const bonus = { power: 0, defense: 0, gold: 0 };
+        const bonus = { power: 0, defense: 0, gold: 0, speed: 0, dropRate: 0 };
         for (const set of CARD_CONFIG.sets) {
             const hasAll = set.ids.every(id => gameState.cards[id] && gameState.cards[id].count > 0);
             if (hasAll) {
                 bonus.power += set.bonus.power || 0;
                 bonus.defense += set.bonus.defense || 0;
                 bonus.gold += set.bonus.gold || 0;
+                bonus.speed += set.bonus.speed || 0;
+                bonus.dropRate += set.bonus.dropRate || 0;
             }
         }
         return bonus;
+    },
+
+    // 获取玩家已激活的套装列表
+    getActiveSets: function(gameState) {
+        const active = [];
+        for (const set of CARD_CONFIG.sets) {
+            const collected = [];
+            const hasAll = set.ids.every(id => {
+                const has = gameState.cards[id] && gameState.cards[id].count > 0;
+                collected.push({ id: id, has: has });
+                return has;
+            });
+            active.push({
+                ...set,
+                collected: collected,
+                isComplete: hasAll
+            });
+        }
+        return active;
+    },
+
+    // 获取玩家卡组图鉴进度
+    getCollectionProgress: function(gameState) {
+        const totalCards = CARD_CONFIG.pool.length;
+        const ownedCards = Object.keys(gameState.cards).length;
+        const totalSets = CARD_CONFIG.sets.length;
+        const completeSets = this.getActiveSets(gameState).filter(s => s.isComplete).length;
+        return {
+            cardsOwned: ownedCards,
+            cardsTotal: totalCards,
+            setsComplete: completeSets,
+            setsTotal: totalSets,
+            cardPercent: Math.floor((ownedCards / totalCards) * 100),
+            setPercent: Math.floor((completeSets / totalSets) * 100)
+        };
     },
 
     // 升级卡牌

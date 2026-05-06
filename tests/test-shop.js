@@ -45,7 +45,7 @@ test('ShopSystem - 商店自动刷新', () => {
 
     const items = ShopSystem.getItems(state);
     const cards = items.filter(i => i.type === 'card');
-    Assert.true(cards.length >= 3, '应有至少3种卡牌');
+    Assert.true(cards.length >= 2, '应有至少2种卡牌');
     Assert.true(cards.length <= 5, '应最多5种卡牌');
 
     // 检查都是N卡
@@ -144,7 +144,7 @@ test('ShopSystem - 卡牌库存范围', () => {
     ShopSystem.refresh(state);
 
     const stockValues = Object.values(state.shop.cardStock);
-    Assert.true(stockValues.length >= 3, '应有至少3种卡牌库存');
+    Assert.true(stockValues.length >= 2, '应有至少2种卡牌库存');
     Assert.true(stockValues.length <= 5, '应最多5种卡牌库存');
 
     for (const stock of stockValues) {

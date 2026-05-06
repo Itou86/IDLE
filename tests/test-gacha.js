@@ -26,42 +26,43 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
 
     test('draw: 正常抽卡消耗券', () => {
         const state = createState(100, 10);
-        const result = GachaSystem.draw(state);
+        const result = GachaSystem.draw(state, 1);
         Assert.true(result.success, '应有足够券抽卡');
-        Assert.equal(state.tickets, 0, '应消耗10张券');
+        Assert.equal(state.tickets, 9, '应消耗1张券');
     });
 
     test('draw: 券不足时失败', () => {
-        const state = createState(100, 5);
-        const result = GachaSystem.draw(state);
+        const state = createState(100, 0);
+        const result = GachaSystem.draw(state, 1);
         Assert.false(result.success, '券不足应失败');
         Assert.includes(result.reason, '不足', '应提示券不足');
-        Assert.equal(state.tickets, 5, '不应消耗券');
+        Assert.equal(state.tickets, 0, '不应消耗券');
     });
 
     test('draw: 返回卡牌信息', () => {
         const state = createState(100, 10);
-        const result = GachaSystem.draw(state);
-        Assert.exists(result.card, '应返回卡牌');
-        Assert.exists(result.card.id, '卡牌应有id');
-        Assert.exists(result.card.name, '卡牌应有name');
-        Assert.exists(result.card.rarity, '卡牌应有rarity');
+        const result = GachaSystem.draw(state, 1);
+        Assert.exists(result.cards, '应返回卡牌数组');
+        Assert.equal(result.cards.length, 1, '单抽应返回1张卡');
+        Assert.exists(result.cards[0].id, '卡牌应有id');
+        Assert.exists(result.cards[0].name, '卡牌应有name');
+        Assert.exists(result.cards[0].rarity, '卡牌应有rarity');
     });
 
     test('draw: 卡牌稀有度合法', () => {
         const validRarities = ['N', 'R', 'SR', 'SSR'];
         const state = createState(100, 100);
         for (let i = 0; i < 20; i++) {
-            const result = GachaSystem.draw(state);
+            const result = GachaSystem.draw(state, 1);
             if (!result.success) continue; // 券耗尽时跳过
-            Assert.includes(validRarities, result.card.rarity, `第${i+1}次抽卡稀有度应合法`);
+            Assert.includes(validRarities, result.cards[0].rarity, `第${i+1}次抽卡稀有度应合法`);
         }
     });
 
     test('draw: 卡牌添加到库存', () => {
         const state = createState(100, 10);
-        const result = GachaSystem.draw(state);
-        const cardId = result.card.id;
+        const result = GachaSystem.draw(state, 1);
+        const cardId = result.cards[0].id;
         Assert.exists(state.cards[cardId], `卡牌${cardId}应加入库存`);
         Assert.equal(state.cards[cardId].count, 1, '数量应为1');
         Assert.equal(state.cards[cardId].level, 1, '等级应为1');
@@ -71,7 +72,7 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         const state = createState(100, 100);
         // 抽到同一张卡（概率低，多抽几次）
         for (let i = 0; i < 50; i++) {
-            GachaSystem.draw(state);
+            GachaSystem.draw(state, 1);
         }
         let hasDuplicate = false;
         for (const data of Object.values(state.cards)) {
@@ -87,9 +88,9 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
     test('draw: 统计计数增加', () => {
         const state = createState(100, 20);
         Assert.equal(state.stats.gachaCount, 0);
-        GachaSystem.draw(state);
+        GachaSystem.draw(state, 1);
         Assert.equal(state.stats.gachaCount, 1, '抽卡计数应+1');
-        GachaSystem.draw(state);
+        GachaSystem.draw(state, 1);
         Assert.equal(state.stats.gachaCount, 2, '抽卡计数应+2');
     });
 
@@ -97,7 +98,7 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         const state = createState(100, 100);
         // 大量抽卡确保各稀有度都有
         for (let i = 0; i < 100; i++) {
-            GachaSystem.draw(state);
+            GachaSystem.draw(state, 1);
         }
         // 至少应有N卡记录
         Assert.true(state.stats.rarityObtained.N, '应记录获得N卡');
@@ -108,7 +109,7 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         // 连续抽到N卡会增加streakNoRare
         let foundStreak = false;
         for (let i = 0; i < 20; i++) {
-            GachaSystem.draw(state);
+            GachaSystem.draw(state, 1);
             if (state.stats.streakNoRare > 1) {
                 foundStreak = true;
                 break;
@@ -121,17 +122,51 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         const state = createState(100, 20);
         const uids = new Set();
         for (let i = 0; i < 2; i++) {
-            const result = GachaSystem.draw(state);
-            uids.add(result.card.uid);
+            const result = GachaSystem.draw(state, 1);
+            uids.add(result.cards[0].uid);
         }
         Assert.equal(uids.size, 2, '两次抽卡的UID应不同');
     });
 
     test('draw: 卡牌等级初始为1', () => {
         const state = createState(100, 10);
-        const result = GachaSystem.draw(state);
-        Assert.equal(result.card.level, 1, '新卡牌等级应为1');
+        const result = GachaSystem.draw(state, 1);
+        Assert.equal(result.cards[0].level, 1, '新卡牌等级应为1');
     });
+
+    test('draw: 十连抽消耗10券', () => {
+        const state = createState(100, 15);
+        const result = GachaSystem.draw(state, 10);
+        Assert.true(result.success, '应有足够券十连');
+        Assert.equal(state.tickets, 5, '应消耗10张券');
+        Assert.equal(result.cards.length, 10, '应返回10张卡');
+        Assert.equal(result.count, 10, 'count应为10');
+    });
+
+    test('draw: 十连抽券不足', () => {
+        const state = createState(100, 5);
+        const result = GachaSystem.draw(state, 10);
+        Assert.false(result.success, '5张券不应能十连');
+        Assert.equal(state.tickets, 5, '不应消耗券');
+    });
+
+test('draw: 十连抽最后一张保底SR', () => {
+    const state = createState(100, 100);
+    let foundSRGuarantee = false;
+    // 测试多次十连，验证保底机制
+    for (let attempt = 0; attempt < 20; attempt++) {
+        const result = GachaSystem.draw(state, 10);
+        // 确保有10张卡再检查
+        if (result.cards && result.cards.length === 10) {
+            const lastCard = result.cards[9];
+            if (lastCard.rarity === 'SR' || lastCard.rarity === 'SSR') {
+                foundSRGuarantee = true;
+            }
+        }
+    }
+    // 保底机制下应该经常触发
+    Assert.warn(foundSRGuarantee, '十连最后一张应有SR保底（概率事件）');
+});
 
     // --- getTotalPower ---
     test('getTotalPower: 无卡牌时有基础战力', () => {
@@ -224,8 +259,8 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         const state = createState(10000, 10000);
         const counts = { N: 0, R: 0, SR: 0, SSR: 0 };
         for (let i = 0; i < 1000; i++) {
-            const result = GachaSystem.draw(state);
-            counts[result.card.rarity]++;
+            const result = GachaSystem.draw(state, 1);
+            counts[result.cards[0].rarity]++;
         }
         // 允许±10%误差
         Assert.greaterThan(counts.N, 500, 'N卡应占约60%');

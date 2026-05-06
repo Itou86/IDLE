@@ -1,19 +1,19 @@
 /* ===== 放置收益系统 ===== */
 const IdleSystem = {
     // 基础配置
-    BASE_CLICK_GOLD: 1,      // 点击基础收益
-    BASE_AUTO_GOLD: 0,       // 自动基础收益（初始为0）
+    BASE_CLICK_GOLD: 2,      // 点击基础收益(原1)
+    BASE_AUTO_GOLD: 1,       // 自动基础收益(原0，初始给1)
     
     // 升级配置
     clickUpgrade: {
-        baseCost: 10,        // 初始价格
-        costMultiplier: 1.5,  // 价格增长倍数
+        baseCost: 5,         // 初始价格(原10)
+        costMultiplier: 1.3,  // 价格增长倍数(原1.5)
         valuePerLevel: 1,     // 每级增加点击收益
     },
     
     autoUpgrade: {
-        baseCost: 50,
-        costMultiplier: 1.8,
+        baseCost: 20,        // 初始价格(原50)
+        costMultiplier: 1.5,  // 价格增长倍数(原1.8)
         valuePerLevel: 1,     // 每级增加每秒收益
     },
 

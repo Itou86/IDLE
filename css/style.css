@@ -104,6 +104,24 @@ button:disabled {
 }
 
 /* ===== Gacha Panel ===== */
+#gacha-panel .gacha-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+#gacha-panel .gacha-buttons button {
+    flex: 1;
+}
+#gacha-10-btn {
+    background: #ffd54f;
+    color: #1a1a2e;
+    font-weight: bold;
+}
+#gacha-10-btn:disabled {
+    background: #444;
+    color: #888;
+}
+
 #gacha-result {
     margin-top: 12px;
     min-height: 60px;
@@ -364,6 +382,91 @@ button:disabled {
 
 #refresh-shop-btn:hover {
     background: var(--border);
+}
+
+/* ===== Collection Panel ===== */
+#collection-panel {
+    grid-column: 1 / -1;
+}
+.collection-progress {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background: #1a1a2e;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+.sets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+.set-item {
+    background: #1a1a2e;
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 3px solid #444;
+    transition: border-color 0.3s;
+}
+.set-item.set-complete {
+    border-left-color: #4caf50;
+    background: #1a2e1a;
+}
+.set-item.set-incomplete {
+    border-left-color: #888;
+}
+.set-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.set-status {
+    font-size: 1.2rem;
+}
+.set-name {
+    font-weight: bold;
+    flex: 1;
+}
+.set-count {
+    font-size: 0.85rem;
+    color: #888;
+}
+.set-desc {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+.set-cards {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.set-card {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: #0f0f1a;
+    font-size: 0.9rem;
+    cursor: help;
+}
+.set-card.has-card {
+    background: #1a2e1a;
+}
+.set-card.missing-card {
+    opacity: 0.4;
+}
+.set-bonus {
+    font-size: 0.8rem;
+    color: #4caf50;
+}
+.set-item.set-complete .set-bonus {
+    color: #81c784;
+    font-weight: bold;
 }
 
 /* ===== Footer ===== */
