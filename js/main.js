@@ -10,6 +10,7 @@ const Game = {
             this.reset();
         }
         this._createToastContainer();
+        this._initMobileTabs();
         this.render();
 
         // 自动保存（每30秒）
@@ -366,6 +367,35 @@ const Game = {
         const container = document.createElement('div');
         container.id = 'toast-container';
         document.body.appendChild(container);
+    },
+
+    // ===== Mobile Tabs =====
+
+    TAB_PANELS: {
+        gacha: ['gacha-panel'],
+        battle: ['battle-panel'],
+        cards: ['cards-panel', 'collection-panel', 'achievements-panel'],
+        life: ['life-panel', 'shop-panel'],
+        log: ['log-panel']
+    },
+
+    _initMobileTabs: function() {
+        // Set default active tab on mobile
+        this.switchTab('gacha');
+    },
+
+    switchTab: function(tabName) {
+        const panelIds = this.TAB_PANELS[tabName] || [];
+
+        // Update tab buttons
+        document.querySelectorAll('.mobile-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+
+        // Update panels visibility (only affects mobile via CSS media query)
+        document.querySelectorAll('main > section').forEach(section => {
+            section.classList.toggle('panel-active', panelIds.includes(section.id));
+        });
     },
 
     showToast: function(message, type = 'info') {

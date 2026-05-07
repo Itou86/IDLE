@@ -97,6 +97,29 @@
             <button onclick="game.load()">📂 读取</button>
             <button onclick="game.reset()">🔄 重置</button>
         </footer>
+
+        <nav class="mobile-tabs" id="mobile-tabs">
+            <button class="mobile-tab active" data-tab="gacha" onclick="game.switchTab('gacha')">
+                <span class="tab-icon">🎲</span>
+                <span>抽卡</span>
+            </button>
+            <button class="mobile-tab" data-tab="battle" onclick="game.switchTab('battle')">
+                <span class="tab-icon">⚔️</span>
+                <span>战斗</span>
+            </button>
+            <button class="mobile-tab" data-tab="cards" onclick="game.switchTab('cards')">
+                <span class="tab-icon">🃏</span>
+                <span>卡牌</span>
+            </button>
+            <button class="mobile-tab" data-tab="life" onclick="game.switchTab('life')">
+                <span class="tab-icon">🏠</span>
+                <span>生活</span>
+            </button>
+            <button class="mobile-tab" data-tab="log" onclick="game.switchTab('log')">
+                <span class="tab-icon">📜</span>
+                <span>日志</span>
+            </button>
+        </nav>
     </div>
 
     <!-- 配置 -->
