@@ -28,8 +28,8 @@ IDLE/
 ├── js/
 │   ├── main.js             # 游戏主入口、UI渲染、事件绑定
 │   ├── config/
-│   │   ├── cards.js        # CARD_CONFIG：卡池、概率、套装
-│   │   ├── achievements.js # ACHIEVEMENT_CONFIG：54个成就定义
+│   │   ├── cards.js        # CARD_CONFIG：40张卡 + 15套装
+│   │   ├── achievements.js # ACHIEVEMENT_CONFIG：38个成就定义
 │   │   └── stages.js       # STAGE_CONFIG：关卡生成规则
 │   ├── systems/
 │   │   ├── gacha.js        # GachaSystem：抽卡、战力计算、升级
@@ -43,10 +43,13 @@ IDLE/
 ├── tests/
 │   ├── index.html          # 测试套件入口
 │   ├── test-framework.js   # TestRunner + Assert
-│   ├── test-*.js           # 各系统测试文件（8个）
+│   ├── test-*.js           # 各系统测试文件（9个，191用例）
 │   └── run-node.js         # Node.js 运行测试（可选）
 ├── AGENTS.md               # 游戏设计文档（做什么）
+├── CLAUDE.md               # AI 开发脚手架（怎么做）
 ├── GAME_MANUAL.md          # 完整公式与数据手册
+├── CHANGELOG.md            # 开发日志与版本历史
+├── TODO.md                 # 当前任务与待办事项
 ├── README.md               # 项目说明
 ├── DEPLOY.md               # 部署指南
 └── .github/workflows/      # CI/CD

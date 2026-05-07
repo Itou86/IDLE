@@ -136,8 +136,8 @@
 ├── js/
 │   ├── main.js             # 入口逻辑、游戏循环、UI渲染
 │   ├── config/             # 配置数据（所有游戏数据）
-│   │   ├── cards.js        # 卡牌定义（20张卡 + 4套装）
-│   │   ├── achievements.js # 成就定义（54个成就）
+│   │   ├── cards.js        # 卡牌定义（40张卡 + 15套装）
+│   │   ├── achievements.js # 成就定义（38个成就）
 │   │   └── stages.js       # 竞技关卡/阶段（预设+生成规则）
 │   ├── systems/            # 系统模块（业务逻辑）
 │   │   ├── gacha.js        # 抽卡逻辑、战力计算、卡牌升级
@@ -148,13 +148,15 @@
 │   │   └── save.js         # 存档读写（localStorage）
 │   └── utils/
 │       └── formatter.js    # 大数字格式化、时间格式化、深拷贝
-├── tests/                  # 测试套件（136+ 用例）
+├── tests/                  # 测试套件（191 用例）
 │   ├── index.html          # 测试入口页面
 │   ├── test-framework.js   # 轻量级测试框架
 │   └── test-*.js           # 各系统测试文件
 ├── AGENTS.md               # 本文件（设计文档）
-├── AI_SCAFFOLD.md          # AI 开发脚手架
+├── CLAUDE.md               # AI 开发脚手架
 ├── GAME_MANUAL.md          # 完整公式与数据手册
+├── CHANGELOG.md            # 开发日志与版本历史
+├── TODO.md                 # 当前任务与待办事项
 ├── README.md               # 项目说明
 ├── DEPLOY.md               # 部署指南
 └── .github/workflows/      # GitHub Actions CI/CD

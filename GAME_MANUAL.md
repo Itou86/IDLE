@@ -17,7 +17,7 @@ IDLE/
 │   ├── main.js             # 游戏主入口、UI渲染、事件绑定
 │   ├── config/
 │   │   ├── cards.js        # 卡牌配置（40张卡 + 15套装）
-│   │   ├── achievements.js # 成就配置（54个成就定义）
+│   │   ├── achievements.js # 成就配置（38个成就定义）
 │   │   └── stages.js       # 竞技关卡配置（预设+生成规则）
 │   ├── systems/
 │   │   ├── gacha.js        # 抽卡系统（单抽/十连/保底）
@@ -32,10 +32,12 @@ IDLE/
 │   ├── index.html          # 测试套件入口页面
 │   ├── test-framework.js   # 轻量级测试框架
 │   ├── run-node.js         # Node.js 测试运行器
-│   └── test-*.js           # 各系统测试文件（8个，187+用例）
+│   └── test-*.js           # 各系统测试文件（9个，191用例）
 ├── AGENTS.md               # 游戏设计文档
-├── AI_SCAFFOLD.md          # AI 开发脚手架
+├── CLAUDE.md               # AI 开发脚手架
 ├── GAME_MANUAL.md          # 本文件（公式与数据手册）
+├── CHANGELOG.md            # 开发日志与版本历史
+├── TODO.md                 # 当前任务与待办事项
 ├── README.md               # 项目说明
 ├── DEPLOY.md               # 部署指南
 ├── CONTRIBUTING.md         # 贡献指南
