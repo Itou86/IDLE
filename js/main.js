@@ -45,7 +45,12 @@ const Game = {
                 streakNoSSR: 0,
                 rarityObtained: {},
                 lastSaveTime: Date.now(),
-                createTime: Date.now()
+                createTime: Date.now(),
+                // 隐藏成就追踪
+                gachaSingleSSR: false,      // hid_002: 是否单抽过SSR
+                underdogWin: false,         // hid_008: 是否低战力获胜过
+                clickSpamCount: 0,          // hid_009: 点击计数
+                clickSpamStartTime: 0       // hid_009: 点击计时起点
             }
         };
         this.save();
@@ -142,6 +147,33 @@ const Game = {
             resultDiv.removeChild(resultDiv.lastChild);
         }
 
+        // 记录隐藏成就数据
+        if (count === 1) {
+            const hasSSR = result.cards.some(c => c.rarity === 'SSR');
+            if (hasSSR) {
+                this.state.stats.gachaSingleSSR = true;
+            }
+        }
+
+        // 记录日志
+        if (count === 10) {
+            const rarityCount = {};
+            for (const card of result.cards) {
+                rarityCount[card.rarity] = (rarityCount[card.rarity] || 0) + 1;
+            }
+            let logMsg = `🎲 十连抽: `;
+            const parts = [];
+            if (rarityCount.SSR) parts.push(`SSR×${rarityCount.SSR}`);
+            if (rarityCount.SR) parts.push(`SR×${rarityCount.SR}`);
+            if (rarityCount.R) parts.push(`R×${rarityCount.R}`);
+            if (rarityCount.N) parts.push(`N×${rarityCount.N}`);
+            logMsg += parts.join(' ');
+            this._log(logMsg, 'gacha');
+        } else {
+            const card = result.cards[0];
+            this._log(`🎲 单抽: ${card.name} (${CARD_CONFIG.rarityStyle[card.rarity].name})`, 'gacha');
+        }
+
         // 检查成就
         this._checkAchievements();
         this.render();
@@ -158,6 +190,18 @@ const Game = {
             if (result.reward.tickets > 0) msg += ` 🎫${result.reward.tickets}`;
             if (result.isBoss) msg += `<br>🎉 BOSS击破！`;
             resultDiv.innerHTML = `<div class="battle-win">${msg}</div>`;
+            
+            // 记录绝地反击（hid_008）
+            if (result.playerPower < result.enemyPower * 0.9) {
+                this.state.stats.underdogWin = true;
+            }
+            
+            // 记录日志
+            let logMsg = `⚔️ 通过第 ${result.stage} 关`;
+            if (result.isBoss) logMsg += ' (BOSS)';
+            logMsg += `, 获得 💰${result.reward.gold}`;
+            if (result.reward.tickets > 0) logMsg += ` 🎫${result.reward.tickets}`;
+            this._log(logMsg, 'battle-win');
         } else {
             resultDiv.innerHTML = `
                 <div class="battle-lose">
@@ -166,6 +210,7 @@ const Game = {
                     你的战力: ${Formatter.number(result.playerPower)}
                 </div>
             `;
+            this._log(`⚔️ 第 ${result.stage} 关失败 (敌人${Formatter.number(result.enemyPower)} vs 我方${Formatter.number(result.playerPower)})`, 'battle-lose');
         }
 
         this._checkAchievements();
@@ -310,6 +355,7 @@ const Game = {
                 `🏆 成就解锁：${ach.name}<br>${ach.desc}<br>奖励：${rewardText.join(' ')}`,
                 'achievement'
             );
+            this._log(`🏆 成就解锁: ${ach.name} (${ach.desc}) 奖励: ${rewardText.join(' ')}`, 'achievement');
         }
     },
 
@@ -338,6 +384,26 @@ const Game = {
         }, 3000);
     },
 
+    // ===== 日志系统 =====
+
+    _log: function(message, type = 'info') {
+        const logList = document.getElementById('log-list');
+        if (!logList) return;
+
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.innerHTML = `<span class="log-time">${timeStr}</span>${message}`;
+        logList.insertBefore(entry, logList.firstChild);
+
+        // 限制日志数量
+        while (logList.children.length > 50) {
+            logList.removeChild(logList.lastChild);
+        }
+    },
+
     // ===== 生活 / 放置 =====
 
     click: function() {
@@ -346,6 +412,21 @@ const Game = {
         this.render();
         // 显示浮动文字效果
         this._showClickFloat(earned);
+        
+        // 记录点击狂魔（hid_009）
+        const now = Date.now();
+        if (now - this.state.stats.clickSpamStartTime > 60000) {
+            // 超过1分钟，重置计数
+            this.state.stats.clickSpamStartTime = now;
+            this.state.stats.clickSpamCount = 1;
+        } else {
+            this.state.stats.clickSpamCount++;
+        }
+        
+        // 每10次点击记录一次日志，避免刷屏
+        if (this.state.stats.clickSpamCount % 10 === 0) {
+            this._log(`💰 点击赚金币 +${earned} (累计${this.state.stats.clickSpamCount}次)`, 'info');
+        }
     },
 
     _showClickFloat: function(amount) {
@@ -375,6 +456,7 @@ const Game = {
             return;
         }
         this.showToast(`升级A成功！点击收益 +${result.newValue} 金币`, 'info');
+        this._log(`⬆️ 升级A成功，点击收益 +${result.newValue} 金币`, 'upgrade');
         this.render();
     },
 
@@ -385,6 +467,7 @@ const Game = {
             return;
         }
         this.showToast(`升级B成功！每秒自动 +${result.newValue} 金币`, 'info');
+        this._log(`⬆️ 升级B成功，自动收益 +${result.newValue} 金币/秒`, 'upgrade');
         this.render();
     },
 
@@ -405,6 +488,7 @@ const Game = {
             return;
         }
         this.showToast(`购买成功：${result.received}`, 'info');
+        this._log(`🛒 购买: ${result.received}`, 'shop');
         this._checkAchievements();
         this.render();
     },
@@ -419,6 +503,7 @@ const Game = {
                 `离线收益：💰${result.gold}（离线${Formatter.time(result.seconds)}）`,
                 'info'
             );
+            this._log(`💤 离线收益: 💰${result.gold} (离线${Formatter.time(result.seconds)})`, 'info');
         }
     },
 

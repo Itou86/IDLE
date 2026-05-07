@@ -187,6 +187,41 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         }
     });
 
+    // --- 新增隐藏成就测试 ---
+    test('checkAll: 欧皇附体成就 - 单抽SSR', () => {
+        const state = createState();
+        state.stats.gachaSingleSSR = true;
+        const unlocked = AchievementSystem.checkAll(state);
+        const found = unlocked.find(a => a.id === 'hid_002');
+        Assert.exists(found, '应解锁"欧皇附体"隐藏成就');
+    });
+
+    test('checkAll: 绝地反击成就 - 低战力获胜', () => {
+        const state = createState();
+        state.stats.underdogWin = true;
+        const unlocked = AchievementSystem.checkAll(state);
+        const found = unlocked.find(a => a.id === 'hid_008');
+        Assert.exists(found, '应解锁"绝地反击"隐藏成就');
+    });
+
+    test('checkAll: 点击狂魔成就 - 1分钟30次点击', () => {
+        const state = createState();
+        state.stats.clickSpamStartTime = Date.now();
+        state.stats.clickSpamCount = 30;
+        const unlocked = AchievementSystem.checkAll(state);
+        const found = unlocked.find(a => a.id === 'hid_009');
+        Assert.exists(found, '应解锁"点击狂魔"隐藏成就');
+    });
+
+    test('checkAll: 点击狂魔成就 - 超过1分钟应重置', () => {
+        const state = createState();
+        state.stats.clickSpamStartTime = Date.now() - 120000; // 2分钟前
+        state.stats.clickSpamCount = 30;
+        const unlocked = AchievementSystem.checkAll(state);
+        const found = unlocked.find(a => a.id === 'hid_009');
+        Assert.equal(found, undefined, '超过1分钟不应解锁');
+    });
+
     // --- getList ---
     test('getList: 返回所有成就', () => {
         const state = createState();

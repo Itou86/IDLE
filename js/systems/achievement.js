@@ -50,10 +50,10 @@ const AchievementSystem = {
             case 'gacha_streak_no_ssr':
                 return stats.streakNoSSR >= condition.value;
             case 'gacha_single_ssr':
-                // 这个需要在抽卡时单独记录
-                return false;
+                // 单抽抽到SSR
+                return !!stats.gachaSingleSSR;
             case 'speedrun_stage5':
-                // 需要记录创建时间
+                // 已删除此成就，保留兼容
                 return false;
             case 'hoarder':
                 return gameState.gold >= condition.value && stats.gachaCount === 0;
@@ -62,11 +62,18 @@ const AchievementSystem = {
             case 'lose_streak':
                 return stats.loseStreak >= condition.value;
             case 'underdog_win':
-                // 需要记录最近一场战斗的战力比
-                return false;
+                // 战力低于敌人10%时获胜
+                return !!stats.underdogWin;
             case 'click_spam':
-                // 需要前端记录点击次数
-                return false;
+                // 1分钟内点击超过30次
+                if (!stats.clickSpamStartTime || !stats.clickSpamCount) return false;
+                const clickNow = Date.now();
+                // 如果超过1分钟没点击，重置
+                if (clickNow - stats.clickSpamStartTime > 60000) {
+                    stats.clickSpamCount = 0;
+                    return false;
+                }
+                return stats.clickSpamCount >= condition.value;
             case 'midnight_login':
                 const hour = new Date().getHours();
                 return hour === 0;

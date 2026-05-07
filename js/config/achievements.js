@@ -45,7 +45,6 @@ const ACHIEVEMENT_CONFIG = {
         { id: 'hid_001', name: '十连保底', desc: '连续10次抽卡没有R以上', condition: { type: 'gacha_streak_no_rare', value: 10 }, reward: { tickets: 5 }, hidden: true },
         { id: 'hid_002', name: '欧皇附体', desc: '单次抽卡抽到SSR', condition: { type: 'gacha_single_ssr', value: 1 }, reward: { tickets: 10 }, hidden: true },
         { id: 'hid_003', name: '非酋之王', desc: '连续100次抽卡没有SSR', condition: { type: 'gacha_streak_no_ssr', value: 100 }, reward: { tickets: 20 }, hidden: true },
-        { id: 'hid_004', name: '速通者', desc: '创建存档后1分钟内通过第5关', condition: { type: 'speedrun_stage5', value: 60 }, reward: { gold: 5000, tickets: 5 }, hidden: true },
         { id: 'hid_005', name: '守财奴', desc: '持有金币超过10万但一次都不抽卡', condition: { type: 'hoarder', value: 100000 }, reward: { tickets: 10 }, hidden: true },
         { id: 'hid_006', name: '赌徒', desc: '金币为0时进行抽卡', condition: { type: 'gamble', value: 0 }, reward: { gold: 100 }, hidden: true },
         { id: 'hid_007', name: '连败者', desc: '连续失败10场竞技', condition: { type: 'lose_streak', value: 10 }, reward: { gold: 1000 }, hidden: true },

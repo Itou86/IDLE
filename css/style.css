@@ -516,8 +516,67 @@ button:disabled {
 .set-collapsed .set-bonus {
     display: none;
 }
-.set-collapsed .set-desc {
-    display: none;
+/* 日志面板 */
+#log-panel {
+    grid-column: 1 / -1;
+    max-height: 200px;
+    overflow: hidden;
+}
+
+#log-list {
+    max-height: 160px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+    background: #0a0a1a;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.log-entry {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border-left: 3px solid #444;
+    background: #111122;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.log-entry.gacha {
+    border-left-color: #ba68c8;
+}
+
+.log-entry.battle-win {
+    border-left-color: #4caf50;
+}
+
+.log-entry.battle-lose {
+    border-left-color: #f44336;
+}
+
+.log-entry.achievement {
+    border-left-color: #ffd54f;
+    background: #1a1a00;
+}
+
+.log-entry.shop {
+    border-left-color: #4fc3f7;
+}
+
+.log-entry.upgrade {
+    border-left-color: #8bc34a;
+}
+
+.log-time {
+    color: #666;
+    font-size: 0.75rem;
+    margin-right: 6px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 .set-bonus {
     font-size: 0.8rem;
