@@ -273,25 +273,7 @@ const Game = {
         this._renderCollection();
 
         // 成就列表
-        const achDiv = document.getElementById('achievements-list');
-        achDiv.innerHTML = '';
-        const achList = AchievementSystem.getList(this.state);
-        // 只显示已解锁的 + 前5个未解锁的（避免一次显示太多）
-        const unlocked = achList.filter(a => a.unlocked);
-        const locked = achList.filter(a => !a.unlocked).slice(0, 5);
-
-        for (const ach of [...unlocked.slice(-5), ...locked]) {
-            const el = document.createElement('div');
-            el.className = `achievement ${ach.unlocked ? 'unlocked' : 'locked'}`;
-            const rewardText = [];
-            if (ach.reward.gold) rewardText.push(`💰${ach.reward.gold}`);
-            if (ach.reward.tickets) rewardText.push(`🎫${ach.reward.tickets}`);
-            el.innerHTML = `
-                <span>${ach.unlocked ? '✅' : '🔒'} ${ach.name}</span>
-                <span class="reward">${rewardText.join(' ')}</span>
-            `;
-            achDiv.appendChild(el);
-        }
+        this._renderAchievements();
 
         // 生活面板 - 收益信息
         const idleInfo = IdleSystem.getInfo(this.state);
@@ -538,14 +520,28 @@ const Game = {
     },
 
     _startAutoTick: function() {
-        // 每秒自动收益
+        // 每秒自动收益 - 只更新金币显示，不触发全量渲染
         setInterval(() => {
             if (!this.state) return;
             const goldPerSec = IdleSystem.getAutoGoldPerSecond(this.state);
             if (goldPerSec > 0) {
                 this.state.gold += goldPerSec;
                 this.state.stats.goldTotal += goldPerSec;
-                this.render();
+                // 只更新金币显示，避免全量渲染导致图鉴跳动
+                const goldEl = document.getElementById('gold');
+                if (goldEl) {
+                    goldEl.textContent = Formatter.number(this.state.gold);
+                }
+                // 成就检测（可能触发成就解锁）
+                const newAchievements = AchievementSystem.checkAll(this.state);
+                if (newAchievements.length > 0) {
+                    // 有成就解锁时才更新成就列表
+                    this._renderAchievements();
+                    for (const ach of newAchievements) {
+                        this.showToast(`🏆 成就解锁: ${ach.name}`, 'achievement');
+                        this._log(`🏆 成就解锁: ${ach.name}`, 'achievement');
+                    }
+                }
             }
         }, 1000);
     },
@@ -563,6 +559,29 @@ const Game = {
         const timerEl = document.getElementById('refresh-timer');
         if (timerEl) {
             timerEl.textContent = Formatter.time(remaining / 1000);
+        }
+    },
+
+    _renderAchievements: function() {
+        const achDiv = document.getElementById('achievements-list');
+        if (!achDiv) return;
+        achDiv.innerHTML = '';
+        const achList = AchievementSystem.getList(this.state);
+        // 只显示已解锁的 + 前5个未解锁的（避免一次显示太多）
+        const unlocked = achList.filter(a => a.unlocked);
+        const locked = achList.filter(a => !a.unlocked).slice(0, 5);
+
+        for (const ach of [...unlocked.slice(-5), ...locked]) {
+            const el = document.createElement('div');
+            el.className = `achievement ${ach.unlocked ? 'unlocked' : 'locked'}`;
+            const rewardText = [];
+            if (ach.reward.gold) rewardText.push(`💰${ach.reward.gold}`);
+            if (ach.reward.tickets) rewardText.push(`🎫${ach.reward.tickets}`);
+            el.innerHTML = `
+                <span>${ach.unlocked ? '✅' : '🔒'} ${ach.name}</span>
+                <span class="reward">${rewardText.join(' ')}</span>
+            `;
+            achDiv.appendChild(el);
         }
     },
 
