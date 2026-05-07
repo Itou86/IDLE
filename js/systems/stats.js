@@ -160,4 +160,7 @@ const StatSystem = {
 };
 
 // 全局暴露
-window.StatSystem = StatSystem;
+// 全局暴露（兼容浏览器和Node.js测试环境）
+if (typeof window !== 'undefined') {
+    window.StatSystem = StatSystem;
+}

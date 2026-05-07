@@ -111,7 +111,7 @@ const GachaSystem = {
             };
         }
         
-        // 降级：使用旧版计算（兼容测试环境）
+        // 降级：使用旧版计算（兼容测试环境 + 新版卡牌格式）
         let power = 10;
         let defense = 0;
         for (const [id, cardData] of Object.entries(gameState.cards)) {
@@ -119,11 +119,23 @@ const GachaSystem = {
             if (!config) continue;
             const level = cardData.level || 1;
             const multiplier = 1 + (level - 1) * 0.1;
-            const baseValue = config.basePower || (config.stats && config.stats.power) || (config.stats && config.stats.defense) || 0;
-            if (config.effect === 'power' || (config.stats && config.stats.power)) {
-                power += baseValue * cardData.count * multiplier;
-            } else if (config.effect === 'defense' || (config.stats && config.stats.defense)) {
-                defense += baseValue * cardData.count * multiplier;
+            const count = cardData.count || 1;
+            
+            // 兼容新版 stats 格式
+            if (config.stats) {
+                if (config.stats.power) {
+                    power += config.stats.power * count * multiplier;
+                }
+                if (config.stats.defense) {
+                    defense += config.stats.defense * count * multiplier;
+                }
+            } else if (config.basePower !== undefined && config.effect) {
+                // 旧版格式
+                if (config.effect === 'power') {
+                    power += config.basePower * count * multiplier;
+                } else if (config.effect === 'defense') {
+                    defense += config.basePower * count * multiplier;
+                }
             }
         }
         const setBonus = this._getSetBonus(gameState);

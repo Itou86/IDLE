@@ -19,14 +19,14 @@ const STAT_CONFIG = {
     baseStats: {
         power: 10,
         defense: 0,
-        hp: 100,
-        hpRegen: 0,
+        hp: 200,          // 增加基础HP
+        hpRegen: 50,      // 每关恢复50
         goldBonus: 0,
         ticketBonus: 0,
         dropRate: 0,
         critRate: 0,
         critDamage: 50,  // 基础暴击伤害 150%
-        speed: 0,
+        speed: 5,        // 基础速度
         expBonus: 0,
     },
 
@@ -46,5 +46,7 @@ const STAT_CONFIG = {
     }
 };
 
-// 全局暴露
-window.STAT_CONFIG = STAT_CONFIG;
+// 全局暴露（兼容浏览器和Node.js测试环境）
+if (typeof window !== 'undefined') {
+    window.STAT_CONFIG = STAT_CONFIG;
+}

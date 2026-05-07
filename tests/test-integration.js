@@ -185,8 +185,12 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
         }
 
         const unlocked = AchievementSystem.checkAll(state);
-        const ach = unlocked.find(a => a.id === 'num_021');
-        Assert.exists(ach, '赢10次应解锁"连胜新手"');
+        // num_020=首次胜利(1场), num_021=初露锋芒(5场), num_022=连胜新手(25场)
+        // 赢10次应解锁 num_020 和 num_021
+        const ach1 = unlocked.find(a => a.id === 'num_020');
+        const ach2 = unlocked.find(a => a.id === 'num_021');
+        Assert.exists(ach1, '赢10次应解锁"首次胜利"');
+        Assert.exists(ach2, '赢10次应解锁"初露锋芒"(5场)');
     });
 
     test('integration: 卡牌升级提升战力帮助通关', () => {

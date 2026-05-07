@@ -61,12 +61,36 @@ function loadJS(filePath) {
     const fullPath = path.join(__dirname, filePath);
     const code = fs.readFileSync(fullPath, 'utf8');
     vm.runInContext(code, context, { filename: filePath });
+    
+    // Node.js vm.runInContext 中 const 不会暴露到 context
+    // 需要手动将常用系统暴露到全局
+    const varName = path.basename(filePath, '.js');
+    if (context[varName]) {
+        // 已经暴露（文件末尾有 window.X = X）
+        return;
+    }
+    // 尝试从脚本内部获取变量名
+    // 简单启发式：const X = { ... } 或 const X = (function() {...})()
+    const match = code.match(/const\s+([A-Z][a-zA-Z0-9_]*)\s*=/);
+    if (match) {
+        const name = match[1];
+        // 在上下文中评估获取变量
+        try {
+            const value = vm.runInContext(name, context);
+            if (value) {
+                context[name] = value;
+            }
+        } catch (e) {
+            // 变量不存在，忽略
+        }
+    }
 }
 
 // ===== 加载游戏代码 =====
 loadJS('../js/config/cards.js');
 loadJS('../js/config/achievements.js');
 loadJS('../js/config/stages.js');
+loadJS('../js/config/stats.js');
 loadJS('../js/utils/formatter.js');
 loadJS('../js/systems/save.js');
 loadJS('../js/systems/gacha.js');
@@ -74,6 +98,7 @@ loadJS('../js/systems/battle.js');
 loadJS('../js/systems/achievement.js');
 loadJS('../js/systems/idle.js');
 loadJS('../js/systems/shop.js');
+loadJS('../js/systems/stats.js');
 
 // ===== 加载测试框架 =====
 loadJS('test-framework.js');

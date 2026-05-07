@@ -7,21 +7,11 @@ const AchievementSystem = {
             if (gameState.achievements[ach.id]) continue; // 已解锁
             if (this._checkCondition(ach.condition, gameState)) {
                 gameState.achievements[ach.id] = true;
+                this._grantReward(ach.reward, gameState);
                 unlocked.push(ach);
             }
         }
         return unlocked;
-    },
-
-    // 获取当前总战力加成百分比
-    getTotalPowerBonus: function(gameState) {
-        let totalBonus = 0;
-        for (const ach of ACHIEVEMENT_CONFIG.list) {
-            if (gameState.achievements[ach.id] && ach.reward.powerBonus) {
-                totalBonus += ach.reward.powerBonus;
-            }
-        }
-        return totalBonus;
     },
 
     // 内部：检查单个条件
@@ -55,25 +45,17 @@ const AchievementSystem = {
                 return CARD_CONFIG.sets.some(s =>
                     s.ids.every(id => gameState.cards[id] && gameState.cards[id].count > 0)
                 );
-            case 'set_active_count':
-                const activeCount = CARD_CONFIG.sets.filter(s =>
-                    s.ids.every(id => gameState.cards[id] && gameState.cards[id].count > 0)
-                ).length;
-                return activeCount >= condition.value;
-            case 'has_cards':
-                return condition.value.every(id => gameState.cards[id] && gameState.cards[id].count > 0);
-            case 'set_active_specific':
-                const targetSet = CARD_CONFIG.sets.find(s => s.name === condition.value);
-                if (!targetSet) return false;
-                return targetSet.ids.every(id => gameState.cards[id] && gameState.cards[id].count > 0);
             case 'gacha_streak_no_rare':
                 return stats.streakNoRare >= condition.value;
             case 'gacha_streak_no_ssr':
                 return stats.streakNoSSR >= condition.value;
             case 'gacha_single_ssr':
+                // 单抽获得SSR
                 return !!stats.gachaSingleSSR;
             case 'speedrun_stage5':
-                return false;
+                // 速通：创建后1小时内到达第5关
+                if (!stats.createTime || gameState.stage < 5) return false;
+                return (Date.now() - stats.createTime) < 3600000;
             case 'hoarder':
                 return gameState.gold >= condition.value && stats.gachaCount === 0;
             case 'gamble':
@@ -81,15 +63,13 @@ const AchievementSystem = {
             case 'lose_streak':
                 return stats.loseStreak >= condition.value;
             case 'underdog_win':
+                // 低战力获胜
                 return !!stats.underdogWin;
             case 'click_spam':
+                // 1分钟内点击30次
                 if (!stats.clickSpamStartTime || !stats.clickSpamCount) return false;
-                const clickNow = Date.now();
-                if (clickNow - stats.clickSpamStartTime > 60000) {
-                    stats.clickSpamCount = 0;
-                    return false;
-                }
-                return stats.clickSpamCount >= condition.value;
+                const elapsed = Date.now() - stats.clickSpamStartTime;
+                return elapsed < 60000 && stats.clickSpamCount >= 30;
             case 'midnight_login':
                 const hour = new Date().getHours();
                 return hour === 0;
@@ -98,11 +78,33 @@ const AchievementSystem = {
         }
     },
 
+    // 内部：发放奖励
+    _grantReward: function(reward, gameState) {
+        if (reward.gold) gameState.gold += reward.gold;
+        if (reward.tickets) gameState.tickets += reward.tickets;
+    },
+
     // 获取成就列表（用于UI显示）
     getList: function(gameState) {
         return ACHIEVEMENT_CONFIG.list.map(ach => ({
             ...ach,
             unlocked: !!gameState.achievements[ach.id]
         }));
+    },
+
+    // 计算总战力加成（来自已解锁成就）
+    getTotalPowerBonus: function(gameState) {
+        let bonus = 0;
+        for (const ach of ACHIEVEMENT_CONFIG.list) {
+            if (gameState.achievements[ach.id] && ach.reward && ach.reward.powerBonus) {
+                bonus += ach.reward.powerBonus;
+            }
+        }
+        return bonus;
     }
 };
+
+// 全局暴露（兼容浏览器和Node.js测试环境）
+if (typeof window !== 'undefined') {
+    window.AchievementSystem = AchievementSystem;
+}
