@@ -120,6 +120,13 @@ const GachaSystem = {
         power += setBonus.power || 0;
         defense += setBonus.defense || 0;
 
+        // 成就战力加成
+        const achBonus = AchievementSystem.getTotalPowerBonus(gameState);
+        if (achBonus > 0) {
+            power = power * (1 + achBonus / 100);
+            defense = defense * (1 + achBonus / 100);
+        }
+
         return { power: Math.floor(power), defense: Math.floor(defense) };
     },
 

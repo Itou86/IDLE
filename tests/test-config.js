@@ -151,7 +151,8 @@ TestRunner.suite('📦 配置数据 - Achievements', (test) => {
         const validTypes = [
             'gold_total', 'gacha_count', 'battle_win', 'stage',
             'card_count', 'card_unique', 'card_all', 'card_level',
-            'rarity_obtain', 'set_active',
+            'rarity_obtain', 'set_active', 'set_active_count',
+            'has_cards', 'set_active_specific',
             'gacha_streak_no_rare', 'gacha_streak_no_ssr', 'gacha_single_ssr',
             'speedrun_stage5', 'hoarder', 'gamble',
             'lose_streak', 'underdog_win', 'click_spam', 'midnight_login'
@@ -168,6 +169,9 @@ TestRunner.suite('📦 配置数据 - Achievements', (test) => {
             }
             if (ach.reward.tickets !== undefined) {
                 Assert.greaterThanOrEqual(ach.reward.tickets, 0, `${ach.id} 券奖励应非负`);
+            }
+            if (ach.reward.powerBonus !== undefined) {
+                Assert.greaterThanOrEqual(ach.reward.powerBonus, 0, `${ach.id} 战力加成应非负`);
             }
         }
     });

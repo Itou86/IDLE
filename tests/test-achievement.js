@@ -51,21 +51,21 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
 
     test('checkAll: 多个金币成就阶梯解锁', () => {
         const state = createState(100000);
-        state.stats.goldTotal = 10000; // 累计10000金币
+        state.stats.goldTotal = 2000; // 累计2000金币
         const unlocked = AchievementSystem.checkAll(state);
         const ids = unlocked.map(a => a.id);
         Assert.true(ids.includes('num_001'), '应解锁100金币成就');
-        Assert.true(ids.includes('num_002'), '应解锁1000金币成就');
-        Assert.true(ids.includes('num_003'), '应解锁10000金币成就');
-        Assert.false(ids.includes('num_004'), '不应解锁100万金币成就');
+        Assert.true(ids.includes('num_002'), '应解锁500金币成就');
+        Assert.true(ids.includes('num_003'), '应解锁2000金币成就');
+        Assert.false(ids.includes('num_004'), '不应解锁1万金币成就');
     });
 
-    test('checkAll: 成就奖励发放', () => {
+    test('checkAll: 成就战力加成计算', () => {
         const state = createState(0);
         state.stats.goldTotal = 100;
-        const beforeGold = state.gold;
         AchievementSystem.checkAll(state);
-        Assert.greaterThan(state.gold, beforeGold, '应获得成就奖励金币');
+        const bonus = AchievementSystem.getTotalPowerBonus(state);
+        Assert.greaterThan(bonus, 0, '应获得成就战力加成');
     });
 
     test('checkAll: 成就只解锁一次', () => {
@@ -251,21 +251,24 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
     });
 
     // --- 奖励测试 ---
-    test('checkAll: 奖励包含金币', () => {
+    test('checkAll: 战力加成奖励', () => {
         const state = createState(0);
         state.stats.goldTotal = 100;
-        const beforeGold = state.gold;
+        const beforeBonus = AchievementSystem.getTotalPowerBonus(state);
         AchievementSystem.checkAll(state);
-        Assert.greaterThan(state.gold, beforeGold, '应获得金币奖励');
+        const afterBonus = AchievementSystem.getTotalPowerBonus(state);
+        Assert.greaterThan(afterBonus, beforeBonus, '应获得战力加成奖励');
     });
 
-    test('checkAll: 奖励包含抽卡券', () => {
+    test('checkAll: 多个成就叠加战力加成', () => {
         const state = createState(0);
-        state.stats.goldTotal = 10000;
-        state.stats.gachaCount = 10;
-        const beforeTickets = state.tickets;
+        state.stats.goldTotal = 100;
+        state.stats.gachaCount = 1;
+        const beforeBonus = AchievementSystem.getTotalPowerBonus(state);
         AchievementSystem.checkAll(state);
-        Assert.greaterThan(state.tickets, beforeTickets, '应获得抽卡券奖励');
+        const afterBonus = AchievementSystem.getTotalPowerBonus(state);
+        Assert.greaterThan(afterBonus, beforeBonus, '应获得叠加战力加成');
+        Assert.greaterThan(afterBonus, 1, '至少2个成就应提供至少2%加成');
     });
 
     test('checkAll: 无奖励不报错', () => {

@@ -275,6 +275,13 @@ const Game = {
         // 成就列表
         this._renderAchievements();
 
+        // 成就战力加成显示
+        const achBonus = AchievementSystem.getTotalPowerBonus(this.state);
+        const achBonusEl = document.getElementById('achievement-bonus');
+        if (achBonusEl) {
+            achBonusEl.textContent = `+${achBonus}%`;
+        }
+
         // 生活面板 - 收益信息
         const idleInfo = IdleSystem.getInfo(this.state);
         const clickValEl = document.getElementById('click-value');
@@ -535,11 +542,17 @@ const Game = {
                 // 成就检测（可能触发成就解锁）
                 const newAchievements = AchievementSystem.checkAll(this.state);
                 if (newAchievements.length > 0) {
-                    // 有成就解锁时才更新成就列表
+                    // 有成就解锁时才更新成就列表和战力显示
                     this._renderAchievements();
+                    const achBonus = AchievementSystem.getTotalPowerBonus(this.state);
+                    const achBonusEl = document.getElementById('achievement-bonus');
+                    if (achBonusEl) {
+                        achBonusEl.textContent = `+${achBonus}%`;
+                    }
                     for (const ach of newAchievements) {
-                        this.showToast(`🏆 成就解锁: ${ach.name}`, 'achievement');
-                        this._log(`🏆 成就解锁: ${ach.name}`, 'achievement');
+                        const bonusText = ach.reward.powerBonus ? ` (+${ach.reward.powerBonus}%战力)` : '';
+                        this.showToast(`🏆 成就解锁: ${ach.name}${bonusText}`, 'achievement');
+                        this._log(`🏆 成就解锁: ${ach.name}${bonusText}`, 'achievement');
                     }
                 }
             }
@@ -574,12 +587,10 @@ const Game = {
         for (const ach of [...unlocked.slice(-5), ...locked]) {
             const el = document.createElement('div');
             el.className = `achievement ${ach.unlocked ? 'unlocked' : 'locked'}`;
-            const rewardText = [];
-            if (ach.reward.gold) rewardText.push(`💰${ach.reward.gold}`);
-            if (ach.reward.tickets) rewardText.push(`🎫${ach.reward.tickets}`);
+            const bonusText = ach.reward.powerBonus ? `⚔️+${ach.reward.powerBonus}%` : '';
             el.innerHTML = `
                 <span>${ach.unlocked ? '✅' : '🔒'} ${ach.name}</span>
-                <span class="reward">${rewardText.join(' ')}</span>
+                <span class="reward">${bonusText}</span>
             `;
             achDiv.appendChild(el);
         }

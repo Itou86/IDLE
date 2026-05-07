@@ -562,6 +562,18 @@ button:disabled::before {
     flex-shrink: 0;
 }
 
+.bonus-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
 /* ===== Toast Notifications ===== */
 #toast-container {
     position: fixed;
