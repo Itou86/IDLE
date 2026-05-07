@@ -515,6 +515,77 @@ button:disabled::before {
     margin-left: 2px;
 }
 
+/* ===== 角色属性面板样式 ===== */
+#stats-panel {
+    grid-column: 1 / -1;
+}
+
+#stats-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.stat-summary {
+    display: flex;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+    padding: var(--space-md);
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.stat-big {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text);
+}
+
+.stat-big span {
+    color: var(--accent);
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-sm);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    transition: all var(--transition-fast);
+    cursor: help;
+}
+
+.stat-item:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+}
+
+.stat-icon {
+    font-size: var(--text-lg);
+}
+
+.stat-name {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    flex: 1;
+}
+
+.stat-value {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--accent);
+}
+
 /* ===== Achievements Panel ===== */
 #achievements-list {
     max-height: 200px;

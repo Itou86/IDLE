@@ -272,6 +272,9 @@ const Game = {
         // 卡组图鉴
         this._renderCollection();
 
+        // 角色属性面板
+        this._renderStats();
+
         // 成就列表
         this._renderAchievements();
 
@@ -593,6 +596,56 @@ const Game = {
                 <span class="reward">${bonusText}</span>
             `;
             achDiv.appendChild(el);
+        }
+    },
+
+    _renderStats: function() {
+        if (!this.state) return;
+        const stats = StatSystem.getCharacterStats(this.state);
+        const breakdown = StatSystem.getStatBreakdown(this.state);
+
+        // 有效战力
+        const effPowerEl = document.getElementById('effective-power');
+        if (effPowerEl) effPowerEl.textContent = Formatter.number(stats.effectivePower);
+
+        // 生命
+        const hpEl = document.getElementById('hp-value');
+        const hpMaxEl = document.getElementById('hp-max');
+        if (hpEl) hpEl.textContent = stats.hp;
+        if (hpMaxEl) hpMaxEl.textContent = stats.hp;
+
+        // 属性网格
+        const gridEl = document.getElementById('stats-grid');
+        if (gridEl) {
+            let html = '';
+            for (const statKey of STAT_CONFIG.calcOrder) {
+                const def = STAT_CONFIG.definitions[statKey];
+                if (!def) continue;
+                const value = stats[statKey] || 0;
+                if (value === 0 && statKey !== 'power' && statKey !== 'defense') continue; // 隐藏0值属性，但保留核心属性
+                
+                const formatted = StatSystem.formatStat(statKey, value);
+                const baseVal = breakdown.base[statKey] || 0;
+                const cardVal = breakdown.cards[statKey] || 0;
+                const setVal = breakdown.sets[statKey] || 0;
+                const pct = breakdown.percent[statKey] || 0;
+                const ach = statKey === 'power' || statKey === 'defense' || statKey === 'hp' ? breakdown.achievement : 0;
+                
+                let tooltip = `基础: ${baseVal}`;
+                if (cardVal) tooltip += `\n卡牌: +${cardVal}`;
+                if (setVal) tooltip += `\n套装: +${setVal}`;
+                if (pct) tooltip += `\n百分比: +${pct}%`;
+                if (ach) tooltip += `\n成就: +${ach}%`;
+
+                html += `
+                    <div class="stat-item" title="${tooltip}">
+                        <span class="stat-icon">${def.icon}</span>
+                        <span class="stat-name">${def.name}</span>
+                        <span class="stat-value">${formatted}</span>
+                    </div>
+                `;
+            }
+            gridEl.innerHTML = html;
         }
     },
 

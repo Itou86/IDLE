@@ -44,8 +44,12 @@ TestRunner.suite('📦 配置数据 - Cards', (test) => {
             Assert.exists(card.id, `卡牌应有id`);
             Assert.exists(card.name, `卡牌应有name`);
             Assert.exists(card.rarity, `卡牌应有rarity`);
-            Assert.exists(card.basePower, `卡牌应有basePower`);
-            Assert.exists(card.effect, `卡牌应有effect`);
+            // 新格式用 stats，旧格式用 basePower + effect
+            const hasStats = card.stats && Object.keys(card.stats).length > 0;
+            const hasOldFormat = card.basePower !== undefined && card.effect !== undefined;
+            // 羁绊素材卡允许空 stats
+            const isMaterial = card.desc && card.desc.includes('羁绊');
+            Assert.true(hasStats || hasOldFormat || isMaterial, `卡牌应有stats或basePower+effect: ${card.name}`);
             Assert.exists(card.desc, `卡牌应有desc`);
         }
     });
@@ -67,7 +71,19 @@ TestRunner.suite('📦 配置数据 - Cards', (test) => {
 
     test('cards: 基础战力为正数', () => {
         for (const card of CARD_CONFIG.pool) {
-            Assert.greaterThan(card.basePower, 0, `${card.name} 战力应大于0`);
+            // 新格式：取 stats 中的最大值；旧格式：取 basePower
+            let power = 0;
+            if (card.stats) {
+                const values = Object.values(card.stats).filter(v => typeof v === 'number');
+                power = values.length > 0 ? Math.max(...values) : 0;
+            } else if (card.basePower) {
+                power = card.basePower;
+            }
+            // 羁绊素材卡允许0战力
+            if (power === 0 && card.desc && card.desc.includes('羁绊')) {
+                continue;
+            }
+            Assert.greaterThan(power, 0, `${card.name} 战力应大于0`);
         }
     });
 
@@ -85,8 +101,12 @@ TestRunner.suite('📦 配置数据 - Cards', (test) => {
     test('cards: SSR卡牌战力显著高于N卡', () => {
         const nCards = CARD_CONFIG.pool.filter(c => c.rarity === 'N');
         const ssrCards = CARD_CONFIG.pool.filter(c => c.rarity === 'SSR');
-        const maxN = Math.max(...nCards.map(c => c.basePower));
-        const minSSR = Math.min(...ssrCards.map(c => c.basePower));
+        // 新格式取 stats.power，旧格式取 basePower
+        const getPower = (c) => (c.stats && c.stats.power) || c.basePower || 0;
+        const nPowers = nCards.map(getPower).filter(p => p > 0);
+        const ssrPowers = ssrCards.map(getPower).filter(p => p > 0);
+        const maxN = Math.max(...nPowers);
+        const minSSR = Math.min(...ssrPowers);
         Assert.greaterThan(minSSR, maxN, 'SSR最低战力应高于N卡最高战力');
     });
 

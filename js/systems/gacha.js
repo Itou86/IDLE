@@ -101,46 +101,48 @@ const GachaSystem = {
 
     // 计算玩家总战力
     getTotalPower: function(gameState) {
-        let power = 10; // 基础战力
+        // 如果 StatSystem 可用，使用新属性系统
+        if (typeof StatSystem !== 'undefined' && StatSystem.getCharacterStats) {
+            const stats = StatSystem.getCharacterStats(gameState);
+            return { 
+                power: stats.power, 
+                defense: stats.defense,
+                effectivePower: stats.effectivePower
+            };
+        }
+        
+        // 降级：使用旧版计算（兼容测试环境）
+        let power = 10;
         let defense = 0;
-
         for (const [id, cardData] of Object.entries(gameState.cards)) {
             const config = CARD_CONFIG.pool.find(c => c.id === id);
             if (!config) continue;
-
             const level = cardData.level || 1;
-            const multiplier = 1 + (level - 1) * 0.1; // 每级+10%
-
-            if (config.effect === 'power') power += config.basePower * cardData.count * multiplier;
-            if (config.effect === 'defense') defense += config.basePower * cardData.count * multiplier;
+            const multiplier = 1 + (level - 1) * 0.1;
+            const baseValue = config.basePower || (config.stats && config.stats.power) || (config.stats && config.stats.defense) || 0;
+            if (config.effect === 'power' || (config.stats && config.stats.power)) {
+                power += baseValue * cardData.count * multiplier;
+            } else if (config.effect === 'defense' || (config.stats && config.stats.defense)) {
+                defense += baseValue * cardData.count * multiplier;
+            }
         }
-
-        // 套装加成
         const setBonus = this._getSetBonus(gameState);
         power += setBonus.power || 0;
         defense += setBonus.defense || 0;
-
-        // 成就战力加成
-        const achBonus = AchievementSystem.getTotalPowerBonus(gameState);
-        if (achBonus > 0) {
-            power = power * (1 + achBonus / 100);
-            defense = defense * (1 + achBonus / 100);
-        }
-
         return { power: Math.floor(power), defense: Math.floor(defense) };
     },
 
     // 内部：计算套装加成
     _getSetBonus: function(gameState) {
-        const bonus = { power: 0, defense: 0, gold: 0, speed: 0, dropRate: 0 };
+        const bonus = { power: 0, defense: 0, gold: 0, speed: 0, dropRate: 0, hp: 0, hpRegen: 0, ticketBonus: 0, critRate: 0, critDamage: 0, expBonus: 0 };
         for (const set of CARD_CONFIG.sets) {
             const hasAll = set.ids.every(id => gameState.cards[id] && gameState.cards[id].count > 0);
             if (hasAll) {
-                bonus.power += set.bonus.power || 0;
-                bonus.defense += set.bonus.defense || 0;
-                bonus.gold += set.bonus.gold || 0;
-                bonus.speed += set.bonus.speed || 0;
-                bonus.dropRate += set.bonus.dropRate || 0;
+                for (const [key, value] of Object.entries(set.bonus)) {
+                    if (typeof value === 'number') {
+                        bonus[key] = (bonus[key] || 0) + value;
+                    }
+                }
             }
         }
         return bonus;

@@ -46,6 +46,18 @@
                 <div id="cards-list"></div>
             </section>
 
+            <section id="stats-panel">
+                <h2>📊 角色属性</h2>
+                <div id="stats-content">
+                    <div class="stat-summary">
+                        <div class="stat-big">⚔️ 有效战力: <span id="effective-power">10</span></div>
+                        <div class="stat-big">❤️ 生命: <span id="hp-value">100</span> / <span id="hp-max">100</span></div>
+                    </div>
+                    <div class="stat-grid" id="stats-grid"></div>
+                    <div class="stat-sources" id="stat-sources"></div>
+                </div>
+            </section>
+
             <section id="achievements-panel">
                 <h2>🏆 成就 <small id="achievement-bonus" class="bonus-badge">+0%</small></h2>
                 <div id="achievements-list"></div>
@@ -126,6 +138,7 @@
     <script src="js/config/cards.js"></script>
     <script src="js/config/achievements.js"></script>
     <script src="js/config/stages.js"></script>
+    <script src="js/config/stats.js"></script>
 
     <!-- 工具 -->
     <script src="js/utils/formatter.js"></script>
@@ -137,6 +150,7 @@
     <script src="js/systems/achievement.js"></script>
     <script src="js/systems/idle.js"></script>
     <script src="js/systems/shop.js"></script>
+    <script src="js/systems/stats.js"></script>
 
     <!-- 入口 -->
     <script src="js/main.js"></script>
