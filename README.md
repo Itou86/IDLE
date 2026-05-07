@@ -45,6 +45,38 @@
    npx serve .
    ```
 
+### 运行测试
+
+```bash
+cd /mnt/d/Work/IDLE/tests && node run-node.js
+```
+
+### Git 推送（WSL 环境）
+
+WSL 内直接 `git push` 可能因网络问题失败。使用 Windows 的 Git 可解决：
+
+```bash
+# 方案：使用 Windows 的 git.exe 推送
+cd /mnt/d/Work/IDLE
+/mnt/d/Git/cmd/git.exe push origin main
+```
+
+或者配置 Git alias：
+
+```bash
+git config --global alias.wpush '!/mnt/d/Git/cmd/git.exe push'
+# 以后使用：git wpush origin main
+```
+
+### Windows 一键推送脚本
+
+项目根目录有 `push.bat`，在 Windows CMD 中运行：
+
+```batch
+cd D:\Work\IDLE
+push.bat "提交信息"
+```
+
 ## 🌐 部署到 GitHub Pages
 
 ### 方式一：GitHub 网页界面（推荐新手）
