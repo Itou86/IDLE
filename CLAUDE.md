@@ -48,13 +48,11 @@ IDLE/
 │   ├── test-*.js           # 各系统测试文件（10个，192用例）
 │   └── run-node.js         # Node.js 运行测试（可选）
 ├── docs/
-│   └── PLAYER_GUIDE.md     # 玩家手册（玩法、图鉴、成就）
+│   ├── roadmap.md          # 开发计划：版本历史、任务、待办队列
+│   ├── design.md           # 设计指南：规范、流程、部署
+│   └── codemap.md          # 代码地图：模块职责、函数索引
 ├── CLAUDE.md               # 本文档（AI 开发脚手架 + 设计意图）
-├── CHANGELOG.md            # 开发日志与版本历史
-├── TODO.md                 # 当前任务与待办事项
 ├── README.md               # 项目说明与快速开始
-├── DEPLOY.md               # 部署指南
-├── CONTRIBUTING.md         # 贡献指南
 └── .github/workflows/      # CI/CD
 ```
 
@@ -288,18 +286,18 @@ return { success: true, card: card };
 1. 在 `js/config/cards.js` 的 `pool` 数组中添加卡牌对象
 2. 确保 `id` 唯一，格式为 `{rarity}_###`
 3. 在 `tests/test-config.js` 中验证卡牌字段完整性
-4. 更新 `docs/PLAYER_GUIDE.md` 卡牌列表
+4. 更新 `docs/codemap.md` 中的函数/配置索引
 
 ### 添加新成就
 1. 在 `js/config/achievements.js` 的 `list` 数组中添加成就对象
 2. 在 `js/systems/achievement.js` 的 `_checkCondition` 中添加检测逻辑
 3. 在 `tests/test-achievement.js` 中添加测试用例
-4. 更新 `docs/PLAYER_GUIDE.md` 成就列表
+4. 更新 `docs/roadmap.md` 中的里程碑进度
 
 ### 修改数值公式
 1. 修改 `js/systems/*.js` 中的公式
 2. 同步修改 `tests/test-*.js` 中的期望值
-3. 更新 `docs/PLAYER_GUIDE.md` 数值参考章节
+3. 更新 `docs/design.md` 中的设计说明
 4. 运行测试验证
 
 ### 添加新系统模块
@@ -378,15 +376,13 @@ type: 简短描述
 
 | 文档 | 用途 |
 |------|------|
-| `docs/PLAYER_GUIDE.md` | 玩家手册（玩法、图鉴、成就列表） |
-| `CHANGELOG.md` | 开发日志与版本历史 |
-| `TODO.md` | 当前任务与待办事项 |
+| `docs/roadmap.md` | 开发计划：版本历史、当前任务、待办队列 |
+| `docs/design.md` | 设计指南：规范、流程、部署、贡献流程 |
+| `docs/codemap.md` | 代码地图：模块职责、函数索引、依赖关系 |
 | `README.md` | 项目说明与快速开始 |
-| `DEPLOY.md` | 部署指南 |
-| `CONTRIBUTING.md` | 贡献指南 |
 | 本文档 | AI 开发脚手架（怎么做）+ 设计意图（做什么） |
 
 ---
 
 *本文档遵循 Hermes Agent 准则编写*
-*版本: 1.2.0 | 更新: 2026-06-03 | AGENTS.md 已合并*
+*版本: 1.3.0 | 更新: 2026-06-03 | 外部文档已重构为 docs/roadmap+design+codemap*
