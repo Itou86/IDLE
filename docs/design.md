@@ -126,15 +126,30 @@ const SystemName = {
 
 ### 错误处理
 
+#### 命令方法（修改状态）
+
+所有会修改 `gameState` 的方法（抽卡、战斗、购买等）返回统一结构：
+
 ```javascript
-// 所有系统方法返回统一结构
 { success: boolean, reason?: string, ...data }
 
-// 示例
+// 示例：抽卡失败
 if (gameState.tickets < this.COST.tickets) {
     return { success: false, reason: '抽卡券不足' };
 }
-return { success: true, card: card };
+// 示例：抽卡成功
+return { success: true, cards: cards, count: count };
+```
+
+#### 查询方法（只读）
+
+只读取数据、不修改状态的方法返回纯数据对象或值，**不需要** `success` 字段：
+
+```javascript
+// 查询方法示例
+getTotalPower(gameState) { return { power, defense }; }
+getItems(gameState) { return items; }
+getDodgeRate(gameState) { return 5; }
 ```
 
 ### 状态结构稳定性

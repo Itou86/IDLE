@@ -41,7 +41,7 @@ const GachaSystem = {
         return { success: true, cards: cards, count: count };
     },
 
-    // 稀有度保底概率提升（十连时SR/SSR概率提升，第10张保底SR）
+    // 内部：稀有度保底概率提升（十连时SR/SSR概率提升，第10张保底SR）
     // rarityUp: 命运骰子效果，稀有度+1
     _rollCard: function(gameState, isTenPull, isLastOfTen, rarityUp) {
         // 获取当前世界的卡池

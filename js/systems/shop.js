@@ -5,7 +5,7 @@ const ShopSystem = {
     CARD_COST: 300,          // N卡价格
     REFRESH_INTERVAL: 20 * 60 * 1000,  // 20分钟刷新（毫秒）
 
-    // 获取商店当前商品
+    // 公共方法：获取商店当前商品
     getItems: function(gameState) {
         // 确保商店数据存在
         if (!gameState.shop) {
@@ -55,7 +55,7 @@ const ShopSystem = {
         return items;
     },
 
-    // 购买商品
+    // 公共方法：购买商品
     buy: function(gameState, itemId) {
         // 先检查库存（不触发刷新）
         if (!gameState.shop) {
@@ -109,14 +109,14 @@ const ShopSystem = {
         return { success: true, item: { id: itemId, name: config.name, type: 'card', cost: this.CARD_COST }, received: card.name };
     },
 
-    // 刷新商店
+    // 公共方法：刷新商店
     refresh: function(gameState) {
         // 手动刷新不消耗，只是重置时间
         this._refresh(gameState);
         return { success: true };
     },
 
-    // 获取下次刷新时间
+    // 公共方法：获取下次刷新时间
     getNextRefreshTime: function(gameState) {
         if (!gameState.shop) return 0;
         const next = gameState.shop.lastRefresh + this.REFRESH_INTERVAL;

@@ -53,8 +53,10 @@ tests/
 | `pool` | 全部 23 张卡牌定义 |
 | `sets` | 兼容性套装定义 |
 | `getWorldCards(worldId)` | 获取指定世界的卡牌 |
+| `getWorldSets(worldId)` | 获取指定世界的套装 |
 | `getCurrentPool(gameState)` | 获取当前世界卡池 |
 | `getCurrentSets(gameState)` | 获取当前世界套装 |
+| `getWorldCardsByRarity(worldId, rarity)` | 按稀有度获取世界卡牌 |
 | `addWorld(config)` | 动态添加新世界 |
 
 ### STAT_CONFIG（`js/config/stats.js`）
@@ -70,14 +72,29 @@ tests/
 
 | 成员 | 说明 |
 |------|------|
-| `getStage(world, subStage)` | 生成关卡敌人属性 |
+| `SUB_STAGES_PER_WORLD` | 每个世界的子关卡数 |
+| `BOSS_STAGE` | Boss 关卡编号 |
+| `UNLOCK_NEXT_WORLD_AT` | 解锁下一世界所需条件 |
+| `BASE_POWER` | 敌人基础攻击力 |
+| `GROWTH_RATE` | 敌人属性成长率 |
+| `BOSS_MULTIPLIER` | Boss 攻击倍率 |
+| `BOSS_HP_MULTIPLIER` | Boss 生命倍率 |
+| `BASE_GOLD` | 基础金币奖励 |
+| `BASE_TICKETS` | 基础抽卡券奖励 |
+| `preset` | 预设关卡配置（向后兼容） |
+| `generate(world, subStage)` | 生成关卡敌人属性 |
 | `getWorldName(world)` | 获取世界名称 |
+| `getStage(gameState)` | 获取当前关卡敌人属性 |
+| `getCurrentStageInfo(gameState)` | 获取当前关卡信息 |
+| `canUnlockNextWorld(gameState)` | 判断是否可解锁下一世界 |
+| `isStageUnlocked(gameState, world, subStage)` | 判断指定关卡是否已解锁 |
 | `getTotalStage(gameState)` | 计算总关卡数 |
 
 ### ACHIEVEMENT_CONFIG（`js/config/achievements.js`）
 
 | 成员 | 说明 |
 |------|------|
+| `powerBonusPerAchievement` | 每个成就提供的战力加成百分比 |
 | `list` | 68 个成就定义数组 |
 
 ---
@@ -92,9 +109,14 @@ tests/
 |------|------|------|
 | `draw(gameState, count)` | `{success, cards}` | 单抽/十连，消耗抽卡券 |
 | `getTotalPower(gameState)` | `{power, defense}` | 计算玩家总战力 |
+| `getActiveSets(gameState)` | `sets[]` | 获取已激活的套装列表 |
+| `getCollectionProgress(gameState)` | `{total, owned, percent}` | 获取卡牌收集进度 |
 | `upgradeCard(gameState, cardId)` | `{success, newLevel}` | 2合1升级卡牌 |
+| `upgradeCardBatch(gameState)` | `{upgraded, details}` | 批量升级所有可合成卡牌 |
 | `_rollCard(worldPool, rarity)` | `card` | 内部：从卡池抽一张卡 |
 | `_addCard(gameState, card)` | — | 内部：添加卡牌到库存 |
+| `_updateStreaks(gameState, rarity)` | — | 内部：更新抽卡连抽统计 |
+| `_getSetBonus(gameState, setId)` | `bonus` | 内部：获取套装加成效果 |
 
 ### BattleSystem（`js/systems/battle.js`）
 
@@ -103,9 +125,16 @@ tests/
 | 函数 | 返回 | 说明 |
 |------|------|------|
 | `fight(gameState)` | `{win, gold, tickets, log}` | 进行一场战斗 |
+| `getCurrentStageInfo(gameState)` | `{world, subStage, isBoss}` | 获取当前关卡信息 |
+| `getStageInfo(gameState, world, subStage)` | `{enemy, rewards}` | 获取指定关卡信息 |
+| `healAfterBattle(gameState)` | — | 战斗结束后回复生命值 |
 | `_calcEnemyStats(world, subStage)` | `{power, defense, hp, speed}` | 生成敌人属性 |
 | `_calcDamage(attacker, defender, isCrit)` | `number` | 计算单次伤害 |
+| `_calcBossSpecial(gameState, enemy)` | `effect` | 内部：计算 Boss 特殊攻击 |
+| `_handleWin(gameState, result)` | — | 内部：处理胜利奖励与进度 |
+| `_handleLoss(gameState, result)` | — | 内部：处理失败逻辑 |
 | `_dropCard(gameState)` | `card` | 战斗胜利后掉落卡牌 |
+| `_getPlayerStats(gameState)` | `stats` | 内部：获取玩家战斗属性 |
 
 ### AchievementSystem（`js/systems/achievement.js`）
 
@@ -141,12 +170,17 @@ tests/
 
 | 函数 | 返回 | 说明 |
 |------|------|------|
-| `getClickGold(gameState)` | `number` | 单次点击获得金币 |
-| `getAutoGold(gameState)` | `number` | 每秒自动收益 |
-| `calcOffline(gameState)` | `{seconds, gold}` | 计算离线收益 |
-| `applyOffline(gameState)` | `{success, gold}` | 应用离线收益到状态 |
-| `buyUpgrade(gameState, type)` | `{success, newLevel}` | 购买点击/自动升级 |
+| `click(gameState)` | `{gold, total}` | 处理一次点击，增加金币 |
+| `getAutoGoldPerSecond(gameState)` | `number` | 每秒自动收益 |
+| `calculateOfflineGold(gameState)` | `{seconds, gold}` | 计算离线收益 |
+| `applyOfflineGold(gameState)` | `{success, gold}` | 应用离线收益到状态 |
+| `getClickUpgradeCost(gameState)` | `number` | 获取点击升级当前价格 |
+| `getAutoUpgradeCost(gameState)` | `number` | 获取自动升级当前价格 |
+| `buyClickUpgrade(gameState)` | `{success, newLevel}` | 购买点击升级 |
+| `buyAutoUpgrade(gameState)` | `{success, newLevel}` | 购买自动升级 |
 | `getInfo(gameState)` | `{click, auto, prices}` | 获取升级信息 |
+| `_getCardGoldBonus(gameState)` | `multiplier` | 内部：计算卡牌金币加成倍数 |
+| `_getOfflineBonusPercent(gameState)` | `percent` | 内部：计算离线收益加成百分比 |
 
 ### ShopSystem（`js/systems/shop.js`）
 
@@ -158,11 +192,12 @@ tests/
 | `buy(gameState, itemId)` | `{success, item}` | 购买商品 |
 | `refresh(gameState)` | `{success, items}` | 手动刷新商店 |
 | `getNextRefreshTime(gameState)` | `timestamp` | 获取下次刷新时间 |
-| `_ensureShopState(gameState)` | — | 内部：初始化商店状态 |
+| `_refresh(gameState)` | — | 内部：执行刷新逻辑 |
+| `_getRarityIcon(rarity)` | `string` | 内部：获取稀有度图标 |
 
 ### SaveSystem（`js/systems/save.js`）
 
-**职责**：存档读写、导出导入
+**职责**：存档读写、导出导入、版本迁移
 
 | 函数 | 返回 | 说明 |
 |------|------|------|
@@ -171,6 +206,7 @@ tests/
 | `reset()` | — | 删除存档 |
 | `export(gameState)` | `base64` | 导出为 Base64 字符串 |
 | `import(base64)` | `gameState \| null` | 从 Base64 导入 |
+| `_migrate(gameState)` | `gameState` | 内部：旧存档版本迁移 |
 
 ### Formatter（`js/utils/formatter.js`）
 
@@ -193,14 +229,36 @@ tests/
 
 | 函数 | 说明 |
 |------|------|
+| `Game.init()` | 初始化游戏（加载存档、启动定时器） |
 | `Game.reset()` | 重置游戏状态 |
+| `Game.save()` | 手动触发存档 |
+| `Game.load()` | 手动触发读档 |
 | `Game.gacha(count)` | 触发抽卡，更新 UI |
-| `Game.battle()` | 触发战斗，更新 UI |
+| `Game.battle()` | 触发当前关卡战斗 |
+| `Game.battleAt(world, subStage)` | 挑战指定关卡 |
 | `Game.render()` | 渲染主界面 |
-| `Game.renderCollection()` | 渲染卡牌图鉴 |
-| `Game.renderStats()` | 渲染属性面板 |
-| `Game.renderAchievements()` | 渲染成就列表 |
-| `Game.renderBattleLog()` | 渲染战斗日志 |
+| `Game.switchTab(tabName)` | 切换标签页 |
+| `Game.showToast(message, type)` | 显示提示消息 |
+| `Game.click()` | 处理点击收益 |
+| `Game.buyClickUpgrade()` | 购买点击升级 |
+| `Game.buyAutoUpgrade()` | 购买自动升级 |
+| `Game.refreshShop()` | 刷新商店 |
+| `Game.buyShopItem(itemId)` | 购买商店商品 |
+| `Game.nextWorld()` | 进入下一世界 |
+| `_handleBattleResult(result)` | 内部：处理战斗结果回调 |
+| `_renderShop()` | 内部：渲染商店面板 |
+| `_checkAchievements()` | 内部：检测并提示新成就 |
+| `_createToastContainer()` | 内部：创建提示容器 |
+| `_initMobileTabs()` | 内部：初始化移动端标签 |
+| `_log(message, type)` | 内部：添加战斗日志 |
+| `_showClickFloat(amount)` | 内部：点击浮动数字 |
+| `_calcOfflineEarnings()` | 内部：计算并应用离线收益 |
+| `_startAutoTick()` | 内部：启动自动收益定时器 |
+| `_startShopTimer()` | 内部：启动商店刷新定时器 |
+| `_renderShopTimer()` | 内部：渲染商店倒计时 |
+| `_renderAchievements()` | 内部：渲染成就列表 |
+| `_renderStats()` | 内部：渲染属性面板 |
+| `_renderCollection()` | 内部：渲染卡牌图鉴 |
 
 ---
 
@@ -290,7 +348,8 @@ game.state                          // 当前游戏状态
 GachaSystem.getTotalPower(game.state)   // 查看战力
 StatSystem.getCharacterStats(game.state) // 查看属性面板
 AchievementSystem.checkAll(game.state)   // 手动检测成就
-STAGE_CONFIG.getStage(1, 1)         // 查看第1世界第1关敌人
+BattleSystem.getStageInfo(game.state, 1, 1)  // 查看第1世界第1关敌人信息
+STAGE_CONFIG.getWorldName(1)        // 获取第1世界名称
 ```
 
 ---

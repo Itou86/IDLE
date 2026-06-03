@@ -3,7 +3,7 @@ const SaveSystem = {
     KEY: 'idle_game_save_v2',
     OLD_KEY: 'idle_game_save', // 旧版存档key（兼容迁移）
 
-    // 保存游戏状态
+    // 公共方法：保存游戏状态
     save: function(state) {
         try {
             const data = JSON.stringify(state);
@@ -15,7 +15,7 @@ const SaveSystem = {
         }
     },
 
-    // 读取游戏状态
+    // 公共方法：读取游戏状态
     load: function() {
         try {
             // 先尝试读取新版存档
@@ -64,18 +64,18 @@ const SaveSystem = {
         return newState;
     },
 
-    // 删除存档
+    // 公共方法：删除存档
     reset: function() {
         localStorage.removeItem(this.KEY);
         localStorage.removeItem(this.OLD_KEY);
     },
 
-    // 导出存档（用于备份）
+    // 公共方法：导出存档（用于备份）
     export: function(state) {
         return btoa(JSON.stringify(state));
     },
 
-    // 导入存档
+    // 公共方法：导入存档
     import: function(base64) {
         try {
             return JSON.parse(atob(base64));

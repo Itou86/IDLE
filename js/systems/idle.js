@@ -17,7 +17,7 @@ const IdleSystem = {
         valuePerLevel: 1,     // 每级增加每秒收益
     },
 
-    // 计算来自卡牌的金币加成
+    // 内部：计算来自卡牌的金币加成
     _getCardGoldBonus: function(gameState) {
         let bonus = 0;
         for (const [id, cardData] of Object.entries(gameState.cards || {})) {
@@ -35,7 +35,7 @@ const IdleSystem = {
         return bonus;
     },
 
-    // 计算来自卡牌的离线收益加成百分比
+    // 内部：计算来自卡牌的离线收益加成百分比
     _getOfflineBonusPercent: function(gameState) {
         // sr_004 时空沙漏: 离线收益+50%
         const hasTimeHourglass = gameState.cards['sr_004'] && gameState.cards['sr_004'].count > 0;

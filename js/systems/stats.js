@@ -50,7 +50,7 @@ const StatSystem = {
         return result;
     },
 
-    // 获取属性来源明细（用于属性界面展示）
+    // 公共方法：获取属性来源明细（用于属性界面展示）
     getStatBreakdown: function(gameState) {
         const breakdown = {
             base: { ...STAT_CONFIG.baseStats },
@@ -165,7 +165,7 @@ const StatSystem = {
         return cardStats;
     },
 
-    // 获取玩家闪避率（用于 BattleSystem）
+    // 公共方法：获取玩家闪避率（用于 BattleSystem）
     getDodgeRate: function(gameState) {
         const bonuses = this._getCardFlatBonuses(gameState);
         return bonuses.dodgeRate || 0;
@@ -218,7 +218,7 @@ const StatSystem = {
         return Math.floor(power);
     },
 
-    // 格式化属性值显示
+    // 公共方法：格式化属性值显示
     formatStat: function(statKey, value) {
         const def = STAT_CONFIG.definitions[statKey];
         if (!def) return value;
