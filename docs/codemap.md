@@ -14,6 +14,7 @@ js/
 │   ├── stages.js    # 关卡生成规则
 │   └── stats.js     # 属性定义
 ├── systems/         # 业务逻辑系统
+│   ├── effect-registry.js  # 效果注册中心（卡牌特殊效果）
 │   ├── gacha.js     # 抽卡、战力、升级
 │   ├── battle.js    # 回合制战斗
 │   ├── achievement.js  # 成就检测
@@ -22,7 +23,8 @@ js/
 │   ├── stats.js     # 角色属性计算
 │   └── save.js      # 存档读写
 ├── utils/
-│   └── formatter.js # 数字/时间格式化、深拷贝
+│   ├── formatter.js # 数字/时间格式化、深拷贝
+│   └── game-utils.js # 游戏通用工具（hasCard/addCardToInventory）
 └── main.js          # 游戏入口、UI渲染、事件绑定
 
 tests/
@@ -50,7 +52,7 @@ tests/
 | `rates` | 稀有度概率 {N,R,SR,SSR} |
 | `rarityStyle` | 稀有度颜色/名称映射 |
 | `worlds` | 无限流世界配置（卡牌ID列表、套装） |
-| `pool` | 全部 23 张卡牌定义 |
+| `pool` | 全部 23 张卡牌定义（无限流作品来源） |
 | `sets` | 兼容性套装定义 |
 | `getWorldCards(worldId)` | 获取指定世界的卡牌 |
 | `getWorldSets(worldId)` | 获取指定世界的套装 |
@@ -79,8 +81,8 @@ tests/
 | `GROWTH_RATE` | 敌人属性成长率 |
 | `BOSS_MULTIPLIER` | Boss 攻击倍率 |
 | `BOSS_HP_MULTIPLIER` | Boss 生命倍率 |
-| `BASE_GOLD` | 基础金币奖励 |
-| `BASE_TICKETS` | 基础抽卡券奖励 |
+| `BASE_POINTS` | 基础系统点奖励 |
+| `BASE_SHARDS` | 基础世界碎片奖励 |
 | `preset` | 预设关卡配置（向后兼容） |
 | `generate(world, subStage)` | 生成关卡敌人属性 |
 | `getWorldName(world)` | 获取世界名称 |
@@ -95,7 +97,7 @@ tests/
 | 成员 | 说明 |
 |------|------|
 | `powerBonusPerAchievement` | 每个成就提供的战力加成百分比 |
-| `list` | 68 个成就定义数组 |
+| `list` | 108 个成就定义数组 |
 
 ---
 
@@ -107,7 +109,7 @@ tests/
 
 | 函数 | 返回 | 说明 |
 |------|------|------|
-| `draw(gameState, count)` | `{success, cards}` | 单抽/十连，消耗抽卡券 |
+| `draw(gameState, count)` | `{success, cards}` | 单抽/十连，消耗世界碎片 |
 | `getTotalPower(gameState)` | `{power, defense}` | 计算玩家总战力 |
 | `getActiveSets(gameState)` | `sets[]` | 获取已激活的套装列表 |
 | `getCollectionProgress(gameState)` | `{total, owned, percent}` | 获取卡牌收集进度 |
@@ -124,7 +126,7 @@ tests/
 
 | 函数 | 返回 | 说明 |
 |------|------|------|
-| `fight(gameState)` | `{win, gold, tickets, log}` | 进行一场战斗 |
+| `fight(gameState)` | `{win, points, shards, log}` | 进行一场战斗 |
 | `getCurrentStageInfo(gameState)` | `{world, subStage, isBoss}` | 获取当前关卡信息 |
 | `getStageInfo(gameState, world, subStage)` | `{enemy, rewards}` | 获取指定关卡信息 |
 | `healAfterBattle(gameState)` | — | 战斗结束后回复生命值 |
@@ -170,16 +172,16 @@ tests/
 
 | 函数 | 返回 | 说明 |
 |------|------|------|
-| `click(gameState)` | `{gold, total}` | 处理一次点击，增加金币 |
-| `getAutoGoldPerSecond(gameState)` | `number` | 每秒自动收益 |
-| `calculateOfflineGold(gameState)` | `{seconds, gold}` | 计算离线收益 |
-| `applyOfflineGold(gameState)` | `{success, gold}` | 应用离线收益到状态 |
+| `click(gameState)` | `{points, total}` | 处理一次点击，增加系统点 |
+| `getAutoPointsPerSecond(gameState)` | `number` | 每秒自动收益 |
+| `calculateOfflinePoints(gameState)` | `{seconds, points}` | 计算离线收益 |
+| `applyOfflinePoints(gameState)` | `{success, points}` | 应用离线收益到状态 |
 | `getClickUpgradeCost(gameState)` | `number` | 获取点击升级当前价格 |
 | `getAutoUpgradeCost(gameState)` | `number` | 获取自动升级当前价格 |
 | `buyClickUpgrade(gameState)` | `{success, newLevel}` | 购买点击升级 |
 | `buyAutoUpgrade(gameState)` | `{success, newLevel}` | 购买自动升级 |
 | `getInfo(gameState)` | `{click, auto, prices}` | 获取升级信息 |
-| `_getCardGoldBonus(gameState)` | `multiplier` | 内部：计算卡牌金币加成倍数 |
+| `_getCardPointsBonus(gameState)` | `multiplier` | 内部：计算卡牌系统点加成倍数 |
 | `_getOfflineBonusPercent(gameState)` | `percent` | 内部：计算离线收益加成百分比 |
 
 ### ShopSystem（`js/systems/shop.js`）
@@ -195,6 +197,18 @@ tests/
 | `_refresh(gameState)` | — | 内部：执行刷新逻辑 |
 | `_getRarityIcon(rarity)` | `string` | 内部：获取稀有度图标 |
 
+### EffectRegistry（`js/systems/effect-registry.js`）
+
+**职责**：卡牌特殊效果的注册、触发和分发。解耦系统逻辑与卡牌效果。
+
+| 函数 | 返回 | 说明 |
+|------|------|------|
+| `register(trigger, handler)` | — | 注册效果处理器到指定 trigger |
+| `trigger(trigger, gameState, context)` | `context` | 触发所有已注册的效果处理器 |
+| `init()` | — | 扫描 CARD_CONFIG 中所有卡牌的 effects 字段并自动注册 |
+| `_registerCardEffect(cardId, effect)` | — | 内部：包装卡牌效果为 handler |
+| `_executeEffect(effect, gameState, context)` | — | 内部：按 effect.type 分发执行 |
+
 ### SaveSystem（`js/systems/save.js`）
 
 **职责**：存档读写、导出导入、版本迁移
@@ -207,6 +221,17 @@ tests/
 | `export(gameState)` | `base64` | 导出为 Base64 字符串 |
 | `import(base64)` | `gameState \| null` | 从 Base64 导入 |
 | `_migrate(gameState)` | `gameState` | 内部：旧存档版本迁移 |
+
+### GameUtils（`js/utils/game-utils.js`）
+
+**职责**：游戏通用工具函数，消除各系统中的重复代码
+
+| 函数 | 返回 | 说明 |
+|------|------|------|
+| `hasCard(gameState, cardId)` | `boolean` | 检查玩家是否拥有某卡牌 |
+| `addCardToInventory(gameState, cardConfig)` | `uid` | 统一添加卡牌到库存 |
+| `getLevelMultiplier(level)` | `number` | 获取卡牌等级倍率 |
+| `getCardConfig(cardId)` | `cardConfig` | 获取卡牌配置 |
 
 ### Formatter（`js/utils/formatter.js`）
 
@@ -265,13 +290,14 @@ tests/
 ## 🔗 依赖关系
 
 ```
-GachaSystem ← CARD_CONFIG, Formatter
-BattleSystem ← STAGE_CONFIG, StatSystem
-StatSystem ← STAT_CONFIG, CARD_CONFIG, AchievementSystem
-AchievementSystem ← ACHIEVEMENT_CONFIG, CARD_CONFIG
-ShopSystem ← CARD_CONFIG, Formatter
-IdleSystem ← 无外部依赖
+GachaSystem ← CARD_CONFIG, Formatter, GameUtils, EffectRegistry
+BattleSystem ← STAGE_CONFIG, StatSystem, GameUtils, EffectRegistry
+StatSystem ← STAT_CONFIG, CARD_CONFIG, AchievementSystem, GameUtils, EffectRegistry
+AchievementSystem ← ACHIEVEMENT_CONFIG, CARD_CONFIG, GameUtils
+ShopSystem ← CARD_CONFIG, Formatter, GameUtils
+IdleSystem ← EffectRegistry, GameUtils
 SaveSystem ← 无外部依赖
+EffectRegistry ← CARD_CONFIG, GameUtils
 Game.main ← 所有系统
 ```
 
@@ -296,11 +322,12 @@ Game.main ← 所有系统
 | `STAGE_CONFIG` (stages.js) | BattleSystem | — | test-battle.js + test-integration.js |
 | `ACHIEVEMENT_CONFIG` | AchievementSystem | StatSystem（战力加成变化）, BattleSystem（战力变化） | test-achievement.js + test-stats.js + test-integration.js |
 | `GachaSystem` | gameState.cards | StatSystem（战力重算）, BattleSystem（战力变化）, AchievementSystem（卡牌收集成就） | test-gacha.js + test-stats.js + test-integration.js |
-| `BattleSystem` | gameState.stats.battleWin/Lose, gold, tickets | AchievementSystem（胜利/失败成就）, IdleSystem（金币变化影响升级） | test-battle.js + test-achievement.js + test-integration.js |
+| `BattleSystem` | gameState.stats.battleWin/Lose, points, shards | AchievementSystem（胜利/失败成就）, IdleSystem（系统点变化影响升级） | test-battle.js + test-achievement.js + test-integration.js |
 | `StatSystem` | gameState 显示的属性 | BattleSystem（属性变化）, main.js（UI渲染） | test-stats.js + test-battle.js |
 | `AchievementSystem` | gameState.achievements | StatSystem（战力加成重算）, BattleSystem | test-achievement.js + test-stats.js + test-integration.js |
-| `IdleSystem` | gameState.gold, gameState.idle | ShopSystem（金币变化影响购买）, main.js（UI渲染） | test-idle.js + test-shop.js + test-integration.js |
-| `ShopSystem` | gameState.cards, gameState.gold | GachaSystem（卡牌变化）, StatSystem（战力变化） | test-shop.js + test-gacha.js + test-stats.js + test-integration.js |
+| `IdleSystem` | gameState.points, gameState.idle | ShopSystem（系统点变化影响购买）, main.js（UI渲染） | test-idle.js + test-shop.js + test-integration.js |
+| `ShopSystem` | gameState.cards, gameState.points | GachaSystem（卡牌变化）, StatSystem（战力变化） | test-shop.js + test-gacha.js + test-stats.js + test-integration.js |
+| `EffectRegistry` | 效果注册表 | GachaSystem, BattleSystem, StatSystem, IdleSystem, AchievementSystem | test-effect-registry.js + 所有相关测试 |
 | `SaveSystem` | gameState 持久化 | 全部系统（加载后恢复） | test-save.js + test-integration.js |
 | `Formatter` | 所有使用 Formatter 的系统 | — | test-formatter.js + 所有相关测试 |
 | `main.js` | UI 渲染, 事件绑定, gameState 初始化 | 全部系统 | test-integration.js + test-save.js |
