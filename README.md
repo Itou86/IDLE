@@ -1,128 +1,45 @@
 # IDLE - 网页放置游戏
 
-一款围绕「抽卡→竞技→获得奖励→再抽卡」循环的网页放置游戏。
+一款围绕「抽卡 → 竞技 → 获得奖励 → 再抽卡」循环的网页放置游戏。
+纯前端实现，无需安装，打开即玩。
 
 ## 🎮 在线游玩
 
-👉 **[点击这里开始游戏](https://你的用户名.github.io/IDLE/)**
+👉 **[点击开始游戏](https://itou86.github.io/IDLE/)**
 
-## 📁 项目结构
+## ✨ 核心玩法
 
-```
-.
-├── index.html              # 入口页面
-├── css/
-│   └── style.css           # 全局样式
-├── js/
-│   ├── main.js             # 入口逻辑、游戏循环
-│   ├── config/             # 配置数据
-│   │   ├── cards.js        # 卡牌定义
-│   │   ├── achievements.js # 成就定义
-│   │   ├── stages.js       # 竞技关卡
-│   │   └── stats.js        # 属性系统配置
-│   ├── systems/            # 系统模块
-│   │   ├── gacha.js        # 抽卡逻辑
-│   │   ├── battle.js       # 回合制战斗
-│   │   ├── achievement.js  # 成就检测
-│   │   ├── idle.js         # 放置收益
-│   │   ├── shop.js         # 商店系统
-│   │   ├── stats.js        # 角色属性计算
-│   │   └── save.js         # 存档读写
-│   └── utils/
-│       └── formatter.js    # 工具函数
-├── AGENTS.md               # 项目设计文档
-├── CHANGELOG.md            # 开发日志与版本历史
-├── CLAUDE.md               # AI 开发脚手架
-├── GAME_MANUAL.md          # 完整公式与数据手册
-├── TODO.md                 # 当前任务与待办事项
-├── DEPLOY.md               # 部署指南
-├── CONTRIBUTING.md         # 贡献指南
-├── LICENSE                 # MIT 许可证
-├── package.json            # 项目元数据
-└── README.md               # 本文件
-```
+- **🎲 抽卡系统** — 单抽/十连，N/R/SR/SSR 四档稀有度，十连第10张保底 SR+
+- **⚔️ 回合制竞技** — 先攻/暴击/闪避/HP 机制，策略搭配卡组挑战关卡
+- **🏆 成就收集** — 68 个成就（含 9 个隐藏成就），解锁后提供永久战力加成
+- **💰 放置收益** — 点击赚金币、自动收益、离线收益（上限 8 小时）
+- **🃏 卡牌养成** — 23 张卡牌 + 4 套套装羁绊，2 合 1 升级，等级越高加成越强
 
-## 🚀 本地开发
+## 🚀 快速开始
 
-本项目是纯前端项目，无需构建工具：
-
-1. 克隆仓库
-2. 直接用浏览器打开 `index.html`
-3. 或使用任意静态服务器：
+1. 用浏览器打开 [`index.html`](index.html) 即可游玩
+2. 或启动本地服务器：
    ```bash
-   # Python 3
    python -m http.server 8000
-   
-   # Node.js
-   npx serve .
    ```
 
-### 运行测试
+## 📚 文档
+
+| 文档 | 说明 |
+|------|------|
+| [🎮 玩家手册](docs/PLAYER_GUIDE.md) | 玩法详解、卡牌图鉴、成就列表、数值参考 |
+| [🔧 开发文档](CLAUDE.md) | 项目结构、开发规范、系统交互图 |
+| [📝 更新日志](CHANGELOG.md) | 版本历史与变更记录 |
+| [🤝 贡献指南](CONTRIBUTING.md) | 如何参与开发 |
+| [🚀 部署指南](DEPLOY.md) | GitHub Pages 自动部署 |
+
+## 🧪 测试
 
 ```bash
-cd /mnt/d/Work/IDLE/tests && node run-node.js
+npm test
+# 或浏览器打开 tests/index.html
 ```
-
-### Git 推送（WSL 环境）
-
-WSL 内直接 `git push` 可能因网络问题失败。使用 Windows 的 Git 可解决：
-
-```bash
-# 方案：使用 Windows 的 git.exe 推送
-cd /mnt/d/Work/IDLE
-/mnt/d/Git/cmd/git.exe push origin main
-```
-
-或者配置 Git alias：
-
-```bash
-git config --global alias.wpush '!/mnt/d/Git/cmd/git.exe push'
-# 以后使用：git wpush origin main
-```
-
-### Windows 一键推送脚本
-
-项目根目录有 `push.bat`，在 Windows CMD 中运行：
-
-```batch
-cd D:\Work\IDLE
-push.bat "提交信息"
-```
-
-## 🌐 部署到 GitHub Pages
-
-### 方式一：GitHub 网页界面（推荐新手）
-
-1. 在 GitHub 创建仓库，上传代码
-2. 进入仓库 → **Settings** → **Pages**
-3. **Source** 选择 `Deploy from a branch`
-4. **Branch** 选择 `main` / `root`，点击 **Save**
-5. 等待几分钟，访问 `https://你的用户名.github.io/IDLE/`
-
-### 方式二：GitHub Actions 自动部署
-
-项目已配置 `.github/workflows/deploy.yml`，push 到 main 分支后自动部署。
-
-## 💾 存档说明
-
-- 使用浏览器 `localStorage` 本地存档
-- 支持手动保存/读取
-- 支持离线收益（最多计算8小时）
-
-## 📝 开发计划
-
-- [x] 核心循环 Demo（抽卡、竞技、奖励）
-- [x] 基础卡牌系统（N/R/SR/SSR，23张卡）
-- [x] 成就系统（68个成就，含隐藏成就）
-- [x] 离线收益
-- [x] 卡牌升级/进化系统（2合1升1级）
-- [x] 套装羁绊系统（4套）
-- [x] 回合制战斗系统
-- [x] 角色属性系统（11种属性）
-- [ ] 数值平衡调优
-- [ ] 主题与世界观
-- [ ] 音效与动画
 
 ## 📄 协议
 
-MIT License
+[MIT License](LICENSE)
