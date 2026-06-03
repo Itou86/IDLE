@@ -175,7 +175,11 @@ TestRunner.suite('📦 配置数据 - Achievements', (test) => {
             'has_cards', 'set_active_specific',
             'gacha_streak_no_rare', 'gacha_streak_no_ssr', 'gacha_single_ssr',
             'speedrun_stage5', 'hoarder', 'gamble',
-            'lose_streak', 'underdog_win', 'click_spam', 'midnight_login'
+            'lose_streak', 'underdog_win', 'click_spam', 'midnight_login',
+            'win_streak', 'world_unlock', 'battle_drop_ssr', 'gacha_single_streak',
+            'gacha_total_no_ssr', 'has_all_rarity', 'exact_points',
+            'no_gacha_hour', 'first_battle_lose', 'exact_power_win',
+            'low_power_stage10', 'unlucky_time'
         ];
         for (const ach of ACHIEVEMENT_CONFIG.list) {
             Assert.includes(validTypes, ach.condition.type, `${ach.id} 的条件类型应合法`);

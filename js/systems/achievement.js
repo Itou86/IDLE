@@ -86,13 +86,42 @@ const AchievementSystem = {
                 // 低战力获胜
                 return !!stats.underdogWin;
             case 'click_spam':
-                // 1分钟内点击30次
+                // 1分钟内点击N次（支持30次和60次两个阈值）
                 if (!stats.clickSpamStartTime || !stats.clickSpamCount) return false;
                 const elapsed = Date.now() - stats.clickSpamStartTime;
-                return elapsed < 60000 && stats.clickSpamCount >= 30;
+                return elapsed < 60000 && stats.clickSpamCount >= condition.value;
             case 'midnight_login':
                 const hour = new Date().getHours();
                 return hour === 0;
+            case 'win_streak':
+                return (stats.winStreak || 0) >= condition.value;
+            case 'world_unlock':
+                return (gameState.world || 1) > condition.value;
+            case 'battle_drop_ssr':
+                return !!stats.battleDropSSR;
+            case 'gacha_single_streak':
+                return (stats.gachaSingleStreak || 0) >= condition.value;
+            case 'gacha_total_no_ssr':
+                return (stats.gachaTotalNoSSR || 0) >= condition.value;
+            case 'has_all_rarity':
+                const allCardsOfRarity = CARD_CONFIG.pool.filter(c => c.rarity === condition.value);
+                return allCardsOfRarity.length > 0 && allCardsOfRarity.every(c =>
+                    gameState.cards[c.id] && gameState.cards[c.id].count > 0
+                );
+            case 'exact_points':
+                return gameState.points === condition.value;
+            case 'no_gacha_hour':
+                if (!stats.lastGachaTime) return false;
+                return (Date.now() - stats.lastGachaTime) >= 3600000;
+            case 'first_battle_lose':
+                return stats.battleLose >= 1 && stats.battleWin === 0;
+            case 'exact_power_win':
+                return !!stats.exactPowerWin;
+            case 'low_power_stage10':
+                return !!stats.lowPowerStage10;
+            case 'unlucky_time':
+                const now = new Date();
+                return now.getHours() === 13 && now.getMinutes() === 13;
             default:
                 return false;
         }

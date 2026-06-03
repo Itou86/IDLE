@@ -48,7 +48,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.pointsTotal = 100; // 累计100金币
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'num_001');
-        Assert.exists(found, '应解锁"初出茅庐"成就');
+        Assert.exists(found, '应解锁"初入轮回"成就');
     });
 
     test('checkAll: 多个金币成就阶梯解锁', () => {
@@ -85,7 +85,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.gachaCount = 10;
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'num_011');
-        Assert.exists(found, '应解锁"抽卡爱好者"成就');
+        Assert.exists(found, '应解锁"次元漫步者"成就');
     });
 
     test('checkAll: 竞技胜利成就', () => {
@@ -93,7 +93,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.battleWin = 1;
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'num_020');
-        Assert.exists(found, '应解锁"首次胜利"成就');
+        Assert.exists(found, '应解锁"首次位面通关"成就');
     });
 
     test('checkAll: 关卡成就', () => {
@@ -116,7 +116,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         };
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'sys_001');
-        Assert.exists(found, '应解锁"第一张卡"成就');
+        Assert.exists(found, '应解锁"第一件遗物"成就');
     });
 
     test('checkAll: 稀有度获得成就', () => {
@@ -144,7 +144,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.streakNoRare = 10;
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'hid_001');
-        Assert.exists(found, '应解锁"十连保底"隐藏成就');
+        Assert.exists(found, '应解锁"次元裂缝保底"隐藏成就');
     });
 
     test('checkAll: 连抽无SSR成就', () => {
@@ -152,7 +152,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.streakNoSSR = 100;
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'hid_003');
-        Assert.exists(found, '应解锁"非酋之王"隐藏成就');
+        Assert.exists(found, '应解锁"被系统针对的可怜人"隐藏成就');
     });
 
     test('checkAll: 连败成就', () => {
@@ -160,7 +160,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.loseStreak = 10;
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'hid_007');
-        Assert.exists(found, '应解锁"连败者"隐藏成就');
+        Assert.exists(found, '应解锁"被位面碾压"隐藏成就');
     });
 
     test('checkAll: 守财奴成就', () => {
@@ -168,7 +168,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.gachaCount = 0; // 从未抽卡
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'hid_005');
-        Assert.exists(found, '应解锁"守财奴"隐藏成就');
+        Assert.exists(found, '应解锁"囤积10万系统点的主神空间异类"隐藏成就');
     });
 
     test('checkAll: 赌徒成就', () => {
@@ -176,7 +176,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.gachaCount = 1; // 抽过卡
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'hid_006');
-        Assert.exists(found, '应解锁"赌徒"隐藏成就');
+        Assert.exists(found, '应解锁"系统点为0时强行抽取的赌徒"隐藏成就');
     });
 
     test('checkAll: 午夜登录成就', () => {
@@ -198,7 +198,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.gachaSingleSSR = true;
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'hid_002');
-        Assert.exists(found, '应解锁"欧皇附体"隐藏成就');
+        Assert.exists(found, '应解锁"天命之子"隐藏成就');
     });
 
     test('checkAll: 绝地反击成就 - 低战力获胜', () => {
@@ -206,7 +206,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.underdogWin = true;
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'hid_008');
-        Assert.exists(found, '应解锁"绝地反击"隐藏成就');
+        Assert.exists(found, '应解锁"以弱胜强"隐藏成就');
     });
 
     test('checkAll: 点击狂魔成就 - 1分钟30次点击', () => {
@@ -215,7 +215,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.clickSpamCount = 30;
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'hid_009');
-        Assert.exists(found, '应解锁"点击狂魔"隐藏成就');
+        Assert.exists(found, '应解锁"系统点收割机"隐藏成就');
     });
 
     test('checkAll: 点击狂魔成就 - 超过1分钟应重置', () => {
@@ -318,7 +318,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         };
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'sys_011');
-        Assert.exists(found, '应解锁"卡牌大师"成就');
+        Assert.exists(found, '应解锁"遗物强化"成就');
     });
 
     test('checkAll: 全图鉴成就', () => {
@@ -329,6 +329,6 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         }
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'sys_004');
-        Assert.exists(found, '应解锁"全图鉴"成就');
+        Assert.exists(found, '应解锁"遗物成型"成就');
     });
 });
