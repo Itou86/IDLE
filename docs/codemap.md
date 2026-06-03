@@ -225,6 +225,49 @@ Game.main ← 所有系统
 
 ---
 
+## ⚠️ 影响分析矩阵
+
+> 修改某系统时，必须检查对其下游依赖的影响。
+
+### 系统变更影响范围
+
+| 修改系统 | 直接影响 | 间接影响 | 必须检查 |
+|---------|---------|---------|---------|
+| `CARD_CONFIG` (cards.js) | GachaSystem, ShopSystem, StatSystem, AchievementSystem | BattleSystem（战力变化影响战斗）, IdleSystem（卡牌金币加成） | 所有测试 |
+| `STAT_CONFIG` (stats.js) | StatSystem | BattleSystem（属性变化影响战斗）, GachaSystem（战力显示） | test-stats.js + test-battle.js + test-integration.js |
+| `STAGE_CONFIG` (stages.js) | BattleSystem | — | test-battle.js + test-integration.js |
+| `ACHIEVEMENT_CONFIG` | AchievementSystem | StatSystem（战力加成变化）, BattleSystem（战力变化） | test-achievement.js + test-stats.js + test-integration.js |
+| `GachaSystem` | gameState.cards | StatSystem（战力重算）, BattleSystem（战力变化）, AchievementSystem（卡牌收集成就） | test-gacha.js + test-stats.js + test-integration.js |
+| `BattleSystem` | gameState.stats.battleWin/Lose, gold, tickets | AchievementSystem（胜利/失败成就）, IdleSystem（金币变化影响升级） | test-battle.js + test-achievement.js + test-integration.js |
+| `StatSystem` | gameState 显示的属性 | BattleSystem（属性变化）, main.js（UI渲染） | test-stats.js + test-battle.js |
+| `AchievementSystem` | gameState.achievements | StatSystem（战力加成重算）, BattleSystem | test-achievement.js + test-stats.js + test-integration.js |
+| `IdleSystem` | gameState.gold, gameState.idle | ShopSystem（金币变化影响购买）, main.js（UI渲染） | test-idle.js + test-shop.js + test-integration.js |
+| `ShopSystem` | gameState.cards, gameState.gold | GachaSystem（卡牌变化）, StatSystem（战力变化） | test-shop.js + test-gacha.js + test-stats.js + test-integration.js |
+| `SaveSystem` | gameState 持久化 | 全部系统（加载后恢复） | test-save.js + test-integration.js |
+| `Formatter` | 所有使用 Formatter 的系统 | — | test-formatter.js + 所有相关测试 |
+| `main.js` | UI 渲染, 事件绑定, gameState 初始化 | 全部系统 | test-integration.js + test-save.js |
+
+### 修改检查流程
+
+修改某系统后，按以下顺序检查：
+
+1. **直接下游** — 读取依赖此系统的所有模块（看上表「直接影响」列）
+2. **间接下游** — 检查间接依赖（看上表「间接影响」列）
+3. **测试覆盖** — 运行上表「必须检查」列中的测试文件
+4. **存档兼容** — 如果修改了 `gameState` 结构，检查 `SaveSystem` 和 `reset()`
+
+### 高风险修改
+
+以下修改类型需要特别谨慎：
+
+- **修改 `gameState` 结构** — 影响 SaveSystem、所有测试的 `createState`、旧存档兼容
+- **修改战力计算公式** — 影响 StatSystem、BattleSystem、GachaSystem.getTotalPower
+- **修改卡牌数据结构** — 影响 GachaSystem、StatSystem、SaveSystem、BattleSystem._dropCard
+- **修改成就条件类型** — 影响 AchievementSystem._checkCondition、所有使用该条件的测试
+- **修改稀有度概率** — 影响 GachaSystem、测试期望值、游戏平衡
+
+---
+
 ## 🧪 测试速查
 
 | 想测试... | 打开... |

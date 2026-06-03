@@ -69,6 +69,31 @@ git commit -m "feat: 添加xxx功能
 
 类型：`feat` / `fix` / `docs` / `refactor` / `test` / `chore`
 
+### 5. 自检清单（提交前必做）
+
+```bash
+# 一键验证（推荐）
+bash scripts/verify.sh
+
+# 或手动逐项检查：
+npm test                          # 1. 测试全部通过
+```
+
+- [ ] **没有硬编码数值** — 使用 `*_CONFIG`，参见 `docs/errata.md` 模式1
+- [ ] **index.html 引用完整** — 新增 JS 文件已引入
+- [ ] **tests/index.html 引用完整** — 新增测试已引入
+- [ ] **gameState 有默认值** — `main.js` 的 `reset()` 已更新
+- [ ] **docs/codemap.md 已更新** — 新增模块/函数已索引
+- [ ] **命名符合约定** — 配置 `SCREAMING_SNAKE_CASE`、系统 `PascalCase`、私有 `_camelCase`
+- [ ] **注释风格正确** — 公共方法 `// 公共方法:`、私有 `// 内部:`
+- [ ] **测试期望值同步** — 如修改公式，测试断言已更新
+- [ ] **成就检测逻辑** — 如新增成就，`_checkCondition` 已添加分支
+- [ ] **npm test 全部通过** — 192/192
+
+常见错误修复参见 `docs/errata.md`。
+代码生成模板参见 `docs/templates.md`。
+测试映射参见 `docs/testmap.md`。
+
 ---
 
 ## 🗂️ 文件结构（AI 必须熟知）
@@ -430,7 +455,10 @@ type: 简短描述
 |------|------|
 | `docs/roadmap.md` | 开发计划：版本历史、当前任务、待办队列 |
 | `docs/design.md` | 设计指南：规范、流程、部署、贡献流程 |
-| `docs/codemap.md` | 代码地图：模块职责、函数索引、依赖关系 |
+| `docs/codemap.md` | 代码地图：模块职责、函数索引、依赖关系、影响分析 |
+| `docs/testmap.md` | 测试映射：文件变更 → 必须测试清单 |
+| `docs/errata.md` | 错误模式库：常见 AI 错误 + 检测 + 修复 |
+| `docs/templates.md` | 代码生成模板：新系统/卡牌/成就/测试标准结构 |
 | `README.md` | 项目说明与快速开始 |
 | 本文档 | AI 开发脚手架（怎么做）+ 设计意图（做什么） |
 
