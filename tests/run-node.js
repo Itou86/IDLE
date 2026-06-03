@@ -92,6 +92,7 @@ loadJS('../js/config/achievements.js');
 loadJS('../js/config/stages.js');
 loadJS('../js/config/stats.js');
 loadJS('../js/utils/formatter.js');
+loadJS('../js/utils/game-utils.js');
 loadJS('../js/systems/save.js');
 loadJS('../js/systems/gacha.js');
 loadJS('../js/systems/battle.js');

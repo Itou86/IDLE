@@ -95,16 +95,7 @@ const ShopSystem = {
         card.uid = Formatter.uid();
         card.level = 1;
 
-        if (!gameState.cards[itemId]) {
-            gameState.cards[itemId] = { count: 0, level: 1, instances: [] };
-        }
-        gameState.cards[itemId].count++;
-        gameState.cards[itemId].instances.push(card.uid);
-
-        // 记录稀有度获得
-        if (!gameState.stats.rarityObtained[card.rarity]) {
-            gameState.stats.rarityObtained[card.rarity] = true;
-        }
+        GameUtils.addCardToInventory(gameState, card);
 
         return { success: true, item: { id: itemId, name: config.name, type: 'card', cost: this.CARD_COST }, received: card.name };
     },

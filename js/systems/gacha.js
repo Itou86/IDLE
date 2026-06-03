@@ -19,7 +19,7 @@ const GachaSystem = {
         gameState.stats.gachaCount += count;
 
         const cards = [];
-        const hasDice = gameState.cards['ssr_003'] && gameState.cards['ssr_003'].count > 0;
+        const hasDice = GameUtils.hasCard(gameState, 'ssr_003');
 
         for (let i = 0; i < count; i++) {
             const isLastOfTen = (count === 10 && i === 9);
@@ -127,16 +127,7 @@ const GachaSystem = {
 
     // 内部：添加卡牌到玩家库存
     _addCard: function(gameState, card) {
-        if (!gameState.cards[card.id]) {
-            gameState.cards[card.id] = { count: 0, level: 1, instances: [] };
-        }
-        gameState.cards[card.id].count++;
-        gameState.cards[card.id].instances.push(card.uid);
-
-        // 记录稀有度获得
-        if (!gameState.stats.rarityObtained[card.rarity]) {
-            gameState.stats.rarityObtained[card.rarity] = true;
-        }
+        GameUtils.addCardToInventory(gameState, card);
     },
 
     // 内部：更新连抽统计
@@ -172,7 +163,7 @@ const GachaSystem = {
             const config = CARD_CONFIG.pool.find(c => c.id === id);
             if (!config) continue;
             const level = cardData.level || 1;
-            const multiplier = 1 + (level - 1) * 0.1;
+            const multiplier = GameUtils.getLevelMultiplier(level);
             const count = cardData.count || 1;
 
             // 兼容新版 stats 格式

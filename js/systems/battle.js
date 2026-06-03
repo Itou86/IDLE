@@ -291,16 +291,7 @@ const BattleSystem = {
         card.level = 1;
 
         // 添加到玩家库存
-        if (!gameState.cards[card.id]) {
-            gameState.cards[card.id] = { count: 0, level: 1, instances: [] };
-        }
-        gameState.cards[card.id].count++;
-        gameState.cards[card.id].instances.push(card.uid);
-
-        // 记录稀有度获得
-        if (!gameState.stats.rarityObtained[card.rarity]) {
-            gameState.stats.rarityObtained[card.rarity] = true;
-        }
+        GameUtils.addCardToInventory(gameState, card);
 
         return card;
     },
