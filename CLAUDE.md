@@ -19,6 +19,58 @@
 
 ---
 
+## 🚀 快速开始（AI）
+
+> 每次开发会话的标准流程。新接手项目的 AI 从这里开始。
+
+### 1. 读取上下文（必读）
+
+按顺序阅读：
+1. **本文档**（CLAUDE.md）— 项目结构、代码规范、设计意图
+2. **docs/roadmap.md** — 当前任务、优先级、已知问题
+3. **docs/codemap.md** — 定位相关代码模块和函数
+
+### 2. 开发流程（RED → GREEN → REFACTOR）
+
+```
+读取配置(js/config/*.js) → 读取系统(js/systems/*.js) → 读取测试(tests/test-*.js)
+    ↓
+写/更新测试用例 → 运行测试确认失败(RED)
+    ↓
+修改代码 → 运行测试确认通过(GREEN)
+    ↓
+考虑重构 → 运行全部测试 npm test
+```
+
+### 3. 文档同步规则
+
+| 修改内容 | 必须同步更新 |
+|---------|------------|
+| 新增/删除卡牌 | `cards.js` + `test-config.js` + `docs/codemap.md` |
+| 新增/删除成就 | `achievements.js` + `test-achievement.js` + `docs/codemap.md` + `docs/roadmap.md` |
+| 修改数值公式 | `system.js` + `test-*.js` + `docs/design.md` + `docs/codemap.md` |
+| 新增系统模块 | `newsystem.js` + `test-newsystem.js` + `index.html` + `docs/codemap.md` |
+| 修改存档结构 | `save.js` + `test-save.js` + `main.js reset()` + `CLAUDE.md`（状态结构说明） |
+| 修改 UI/入口 | `main.js` + 必要时更新 `css/style.css` |
+| 修改设计决策 | `docs/design.md` |
+| 完成任务/里程碑 | `docs/roadmap.md` |
+
+### 4. 提交规范
+
+```bash
+# 类型: 简短描述（包含测试状态）
+git commit -m "feat: 添加xxx功能
+
+- 具体变更点1
+- 具体变更点2
+
+测试: 192/192全部通过"
+```
+
+类型：`feat` / `fix` / `docs` / `refactor` / `test` / `chore`
+
+---
+
 ## 🗂️ 文件结构（AI 必须熟知）
 
 ```
