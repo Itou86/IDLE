@@ -92,11 +92,11 @@
 > **为什么必须在主题化之前做**：EffectRegistry 是基础设施。当前 11 张特殊卡牌的效果硬编码在 5 个文件中，主题化改名时（如"创世之刃"改名）需要同时改配置和硬编码位置，极易遗漏。先解耦，后改名，风险最小。
 
 按批次执行，每批独立测试保护：
-- [ ] **批次0：GameUtils 提取** — `hasCard` + `addCardToInventory` 统一工具函数，消除 DRY 违规
-- [ ] **批次1：EffectRegistry 骨架** — 新增 `effect-registry.js`，定义 `register` / `trigger` / `init` 接口
-- [ ] **批次2：PoC 验证** — 迁移命运骰子（抽卡效果）+ 火焰宝石（战斗效果）验证方案
-- [ ] **批次3：全量迁移** — 剩余 9 张特殊卡牌效果全部迁移到 EffectRegistry
-- [ ] **批次4：系统清理** — 删除各系统中的硬编码效果代码，确认无遗漏
+- [x] **批次0：GameUtils 提取** — `hasCard` + `addCardToInventory` 统一工具函数，消除 DRY 违规
+- [x] **批次1：EffectRegistry 骨架** — 新增 `effect-registry.js`，定义 `register` / `trigger` / `init` 接口
+- [x] **批次2：PoC 验证** — 迁移命运骰子（抽卡效果）+ 火焰宝石（战斗效果）验证方案
+- [x] **批次3：全量迁移** — 剩余 9 张特殊卡牌效果全部迁移到 EffectRegistry
+- [x] **批次4：系统清理** — 删除各系统中的硬编码效果代码，确认无遗漏
 - [ ] **批次5（可选）：拆分 main.js** — 提取 `ui/renderer.js` + `ui/components.js`
 - [ ] **批次6（可选）：测试升级** — 断言从中文文本改为 `errorCode`
 
