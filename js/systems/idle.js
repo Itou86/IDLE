@@ -37,9 +37,9 @@ const IdleSystem = {
 
     // 内部：计算来自卡牌的离线收益加成百分比
     _getOfflineBonusPercent: function(gameState) {
-        // sr_004 时空沙漏: 离线收益+50%
-        const hasTimeHourglass = gameState.cards['sr_004'] && gameState.cards['sr_004'].count > 0;
-        return hasTimeHourglass ? 50 : 0;
+        // 触发 offline_calc 效果（如时空沙漏+50%离线收益）
+        const context = EffectRegistry.trigger('offline_calc', gameState, {});
+        return context.offlineBonus || 0;
     },
 
     // 公共方法：点击赚钱

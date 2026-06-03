@@ -139,7 +139,8 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         const result = GachaSystem.draw(state, 10);
         Assert.true(result.success, '应有足够券十连');
         Assert.equal(state.tickets, 5, '应消耗10张券');
-        Assert.equal(result.cards.length, 10, '应返回10张卡');
+        // 十连抽过程中若抽到命运骰子(ssr_003)可能触发额外抽卡，所以cards.length可能>=10
+        Assert.greaterThanOrEqual(result.cards.length, 10, '应返回至少10张卡');
         Assert.equal(result.count, 10, 'count应为10');
     });
 

@@ -51,7 +51,9 @@ const EffectRegistry = {
             if (!GameUtils.hasCard(gameState, cardId)) {
                 return context;
             }
-            return this._executeEffect(effect, gameState, context);
+            // 将卡牌ID注入effect，供_synergy_bonus等需要知道来源卡的场景使用
+            const effectWithCardId = { ...effect, _cardId: cardId };
+            return this._executeEffect(effectWithCardId, gameState, context);
         };
 
         this.register(trigger, handler);
@@ -117,8 +119,11 @@ const EffectRegistry = {
 
             // 联动加成（与指定卡牌同时装备时生效）
             case 'synergy_bonus':
-                if (effect.withCard && GameUtils.hasCard(gameState, effect.withCard)) {
-                    ctx.synergyBonus = (ctx.synergyBonus || 0) + (effect.value || 0);
+                const pairCardId = effect.pairCardId || effect.withCard;
+                if (pairCardId && GameUtils.hasCard(gameState, pairCardId)) {
+                    if (!ctx.synergyBonuses) ctx.synergyBonuses = {};
+                    const cardId = effect._cardId || 'unknown';
+                    ctx.synergyBonuses[cardId] = (effect.value || 0);
                 }
                 break;
 

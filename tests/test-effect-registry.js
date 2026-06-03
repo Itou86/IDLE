@@ -121,15 +121,15 @@ TestRunner.suite('EffectRegistry - _executeEffect 各类型', (test) => {
 
     test('synergy_bonus: 无联动卡时不加成', () => {
         const gs = createEffectState();
-        const ctx = EffectRegistry._executeEffect({ type: 'synergy_bonus', withCard: 'sr_002', value: 0.5 }, gs, {});
-        Assert.equal(ctx.synergyBonus, undefined, '无联动卡时应无 synergyBonus');
+        const ctx = EffectRegistry._executeEffect({ type: 'synergy_bonus', pairCardId: 'sr_002', value: 0.5, _cardId: 'sr_001' }, gs, {});
+        Assert.equal(ctx.synergyBonuses, undefined, '无联动卡时应无 synergyBonuses');
     });
 
     test('synergy_bonus: 有联动卡时加成', () => {
         const gs = createEffectState();
         gs.cards['sr_002'] = { count: 1, level: 1 };
-        const ctx = EffectRegistry._executeEffect({ type: 'synergy_bonus', withCard: 'sr_002', value: 0.5 }, gs, {});
-        Assert.equal(ctx.synergyBonus, 0.5, '有联动卡时 synergyBonus 应为 0.5');
+        const ctx = EffectRegistry._executeEffect({ type: 'synergy_bonus', pairCardId: 'sr_002', value: 0.5, _cardId: 'sr_001' }, gs, {});
+        Assert.equal(ctx.synergyBonuses['sr_001'], 0.5, '有联动卡时 synergyBonuses[sr_001] 应为 0.5');
     });
 
     test('flat_stat_bonus: 累加固定属性', () => {

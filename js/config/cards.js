@@ -58,19 +58,19 @@ const CARD_CONFIG = {
         { id: 'r_002', name: '骑士盾', rarity: 'R', basePower: 10, effect: 'defense', desc: '防御力 +10' },
         { id: 'r_003', name: '幸运金币', rarity: 'R', basePower: 5, effect: 'gold', desc: '金币产出 +5，抽卡券产出 +1' },
         { id: 'r_004', name: '火焰宝石', rarity: 'R', basePower: 15, effect: 'power', desc: '攻击力 +15，对BOSS伤害+20%', effects: [{ type: 'boss_damage_bonus', value: 0.2, trigger: 'on_damage_calc' }] },
-        { id: 'r_005', name: '疾风靴', rarity: 'R', basePower: 8, effect: 'speed', desc: '先攻+1，闪避+5%' },
-        { id: 'r_006', name: '生命护符', rarity: 'R', basePower: 8, effect: 'heal', desc: '每关恢复 +8，生命上限+20' },
+        { id: 'r_005', name: '疾风靴', rarity: 'R', basePower: 8, effect: 'speed', desc: '先攻+1，闪避+5%', effects: [{ type: 'dodge_rate_bonus', value: 5, trigger: 'stat_calc' }] },
+        { id: 'r_006', name: '生命护符', rarity: 'R', basePower: 8, effect: 'heal', desc: '每关恢复 +8，生命上限+20', effects: [{ type: 'flat_stat_bonus', stat: 'hp', value: 20, trigger: 'stat_calc' }] },
 
         // SR 卡 - 有联动
-        { id: 'sr_001', name: '龙血剑', rarity: 'SR', basePower: 30, effect: 'power', desc: '攻击力 +30，与"龙鳞甲"同时装备时+50%' },
-        { id: 'sr_002', name: '龙鳞甲', rarity: 'SR', basePower: 25, effect: 'defense', desc: '防御力 +25，与"龙血剑"同时装备时+50%' },
-        { id: 'sr_003', name: '聚宝盆', rarity: 'SR', basePower: 15, effect: 'gold', desc: '金币产出 +15，每10关额外获得抽卡券' },
-        { id: 'sr_004', name: '时空沙漏', rarity: 'SR', basePower: 12, effect: 'utility', desc: '离线收益+50%，在线时每分钟额外+1金币' },
-        { id: 'sr_005', name: '灵魂契约', rarity: 'SR', basePower: 20, effect: 'power', desc: '攻击力 +20，击败敌人时20%概率再抽1次' },
+        { id: 'sr_001', name: '龙血剑', rarity: 'SR', basePower: 30, effect: 'power', desc: '攻击力 +30，与"龙鳞甲"同时装备时+50%', effects: [{ type: 'synergy_bonus', pairCardId: 'sr_002', value: 0.5, trigger: 'stat_calc' }] },
+        { id: 'sr_002', name: '龙鳞甲', rarity: 'SR', basePower: 25, effect: 'defense', desc: '防御力 +25，与"龙血剑"同时装备时+50%', effects: [{ type: 'synergy_bonus', pairCardId: 'sr_001', value: 0.5, trigger: 'stat_calc' }] },
+        { id: 'sr_003', name: '聚宝盆', rarity: 'SR', basePower: 15, effect: 'gold', desc: '金币产出 +15，每10关额外获得抽卡券', effects: [{ type: 'stage_ticket_bonus', interval: 10, value: 1, trigger: 'on_kill' }] },
+        { id: 'sr_004', name: '时空沙漏', rarity: 'SR', basePower: 12, effect: 'utility', desc: '离线收益+50%，在线时每分钟额外+1金币', effects: [{ type: 'offline_bonus', value: 50, trigger: 'offline_calc' }] },
+        { id: 'sr_005', name: '灵魂契约', rarity: 'SR', basePower: 20, effect: 'power', desc: '攻击力 +20，击败敌人时20%概率再抽1次', effects: [{ type: 'kill_extra_drop', chance: 0.2, trigger: 'on_kill' }] },
 
         // SSR 卡 - 核心驱动
-        { id: 'ssr_001', name: '创世之刃', rarity: 'SSR', basePower: 80, effect: 'power', desc: '攻击力 +80，所有N卡效果翻倍' },
-        { id: 'ssr_002', name: '永恒王冠', rarity: 'SSR', basePower: 50, effect: 'gold', desc: '金币产出 +50，成就奖励+30%' },
+        { id: 'ssr_001', name: '创世之刃', rarity: 'SSR', basePower: 80, effect: 'power', desc: '攻击力 +80，所有N卡效果翻倍', effects: [{ type: 'n_card_multiplier', value: 2, trigger: 'stat_calc' }] },
+        { id: 'ssr_002', name: '永恒王冠', rarity: 'SSR', basePower: 50, effect: 'gold', desc: '金币产出 +50，成就奖励+30%', effects: [{ type: 'achievement_bonus', value: 1.3, trigger: 'achievement_calc' }] },
         { id: 'ssr_003', name: '命运骰子', rarity: 'SSR', basePower: 30, effect: 'utility', desc: '抽卡时10%概率额外抽1张，且稀有度+1', effects: [{ type: 'extra_draw', chance: 0.1, trigger: 'on_gacha_end', rarityUp: true }] },
         { id: 'ssr_004', name: '虚空之眼', rarity: 'SSR', basePower: 60, effect: 'power', desc: '攻击力 +60，可看到隐藏成就的提示' },
     ],

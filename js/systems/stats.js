@@ -67,14 +67,9 @@ const StatSystem = {
         const bonuses = {};
         const cards = gameState.cards || {};
 
-        // 检查是否有N卡翻倍效果（ssr_001 创世之刃）
-        const hasCreationBlade = cards['ssr_001'] && cards['ssr_001'].count > 0;
-        const nCardMultiplier = hasCreationBlade ? 2 : 1;
-
-        // 检查是否有联动效果（sr_001 + sr_002）
-        const hasDragonSword = cards['sr_001'] && cards['sr_001'].count > 0;
-        const hasDragonArmor = cards['sr_002'] && cards['sr_002'].count > 0;
-        const dragonSynergy = hasDragonSword && hasDragonArmor;
+        // 触发 stat_calc 效果，获取N卡倍率、闪避加成、生命加成、联动加成等
+        const context = EffectRegistry.trigger('stat_calc', gameState, {});
+        const nCardMultiplier = context.nCardMultiplier || 1;
 
         for (const [id, cardData] of Object.entries(cards)) {
             const config = CARD_CONFIG.pool.find(c => c.id === id);
@@ -98,31 +93,27 @@ const StatSystem = {
                 bonuses[stat] = (bonuses[stat] || 0) + totalValue;
             }
 
-            // ===== 特殊卡牌效果 =====
-
-            // r_006 生命护符: 生命上限+20
-            if (id === 'r_006') {
-                const hpBonus = 20 * count * levelMultiplier;
-                bonuses.hp = (bonuses.hp || 0) + hpBonus;
+            // 联动加成（来自 EffectRegistry 的 synergy_bonus）
+            if (context.synergyBonuses && context.synergyBonuses[id]) {
+                const synergyPct = context.synergyBonuses[id];
+                const synergyBonus = config.basePower * synergyPct * count * levelMultiplier;
+                // 龙血剑(effect='power')联动加power，龙鳞甲(effect='defense')联动加defense
+                const targetStat = config.effect === 'power' ? 'power' :
+                                   config.effect === 'defense' ? 'defense' : 'power';
+                bonuses[targetStat] = (bonuses[targetStat] || 0) + synergyBonus;
             }
+        }
 
-            // r_005 疾风靴: 闪避+5%
-            if (id === 'r_005') {
-                const dodgeBonus = 5 * count * levelMultiplier;
-                bonuses.dodgeRate = (bonuses.dodgeRate || 0) + dodgeBonus;
+        // 应用 flat_stat_bonus（如生命护符+20HP）
+        if (context.flatStatBonus) {
+            for (const [stat, value] of Object.entries(context.flatStatBonus)) {
+                bonuses[stat] = (bonuses[stat] || 0) + value;
             }
+        }
 
-            // sr_001 龙血剑: 与龙鳞甲同时装备时+50%攻击力
-            if (id === 'sr_001' && dragonSynergy) {
-                const synergyBonus = config.basePower * 0.5 * count * levelMultiplier;
-                bonuses.power = (bonuses.power || 0) + synergyBonus;
-            }
-
-            // sr_002 龙鳞甲: 与龙血剑同时装备时+50%防御力
-            if (id === 'sr_002' && dragonSynergy) {
-                const synergyBonus = config.basePower * 0.5 * count * levelMultiplier;
-                bonuses.defense = (bonuses.defense || 0) + synergyBonus;
-            }
+        // 应用 dodge_rate_bonus（如疾风靴+5%闪避）
+        if (context.dodgeRateBonus) {
+            bonuses.dodgeRate = (bonuses.dodgeRate || 0) + context.dodgeRateBonus;
         }
 
         return bonuses;

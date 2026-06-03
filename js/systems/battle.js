@@ -210,19 +210,25 @@ const BattleSystem = {
         // 战斗掉落卡牌
         const droppedCard = this._dropCard(gameState, stage.world);
 
-        // sr_005 灵魂契约: 击败敌人时20%概率再抽1次
+        // 触发 on_kill 效果（灵魂契约、聚宝盆等）
+        const killContext = EffectRegistry.trigger('on_kill', gameState, {
+            world: stage.world,
+            totalStage: stage.totalStage
+        });
+
+        // 灵魂契约: 击败敌人时概率再抽1次
         let extraDraw = null;
-        const hasSoulContract = gameState.cards['sr_005'] && gameState.cards['sr_005'].count > 0;
-        if (hasSoulContract && Math.random() < 0.2) {
+        if (killContext.killExtraDropChance > 0 && Math.random() < killContext.killExtraDropChance) {
             extraDraw = this._dropCard(gameState, stage.world);
         }
 
-        // sr_003 聚宝盆: 每10关额外获得抽卡券
+        // 聚宝盆: 每N关额外获得抽卡券
         let extraTickets = 0;
-        const hasTreasureBowl = gameState.cards['sr_003'] && gameState.cards['sr_003'].count > 0;
-        if (hasTreasureBowl && stage.totalStage % 10 === 0) {
-            extraTickets = 1;
-            gameState.tickets += extraTickets;
+        if (killContext.stageTicketBonus > 0 && killContext.stageTicketInterval > 0) {
+            if (stage.totalStage % killContext.stageTicketInterval === 0) {
+                extraTickets = killContext.stageTicketBonus;
+                gameState.tickets += extraTickets;
+            }
         }
 
         // 记录绝地反击（hid_008）

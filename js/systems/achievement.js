@@ -123,11 +123,10 @@ const AchievementSystem = {
             }
         }
 
-        // ssr_002 永恒王冠: 成就奖励+30%
-        const hasEternalCrown = gameState.cards && gameState.cards['ssr_002']
-            && gameState.cards['ssr_002'].count > 0;
-        if (hasEternalCrown) {
-            bonus = Math.floor(bonus * 1.3);
+        // 触发 achievement_calc 效果（如永恒王冠+30%）
+        const context = EffectRegistry.trigger('achievement_calc', gameState, {});
+        if (context.achievementBonus && context.achievementBonus > 0) {
+            bonus = Math.floor(bonus * context.achievementBonus);
         }
 
         return bonus;
