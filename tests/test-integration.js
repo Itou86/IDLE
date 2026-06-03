@@ -5,7 +5,9 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
         return {
             gold: 100,
             tickets: 10,
-            stage: 1,
+            world: 1,
+            subStage: 1,
+            worldProgress: {},
             cards: {},
             achievements: {},
             stats: {
@@ -42,7 +44,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
     test('integration: 抽卡后竞技变强', () => {
         const state = createFreshGame();
         state.tickets = 100; // 给足够券
-        state.stage = 5;
+        state.subStage = 5;
 
         // 先不抽卡，记录战力
         const weakInfo = BattleSystem.getCurrentStageInfo(state);
@@ -123,7 +125,8 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
         // 验证所有字段
         Assert.equal(loaded.gold, state.gold, '金币应一致');
         Assert.equal(loaded.tickets, state.tickets, '券应一致');
-        Assert.equal(loaded.stage, state.stage, '关卡应一致');
+        Assert.equal(loaded.world, state.world, '世界应一致');
+        Assert.equal(loaded.subStage, state.subStage, '子关卡应一致');
         Assert.equal(
             Object.keys(loaded.cards).length,
             Object.keys(state.cards).length,
@@ -175,7 +178,8 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 成就系统与竞技联动', () => {
         const state = createFreshGame();
-        state.stage = 1;
+        state.world = 1;
+        state.subStage = 1;
         // 足够强的装备确保10场全胜
         state.cards['ssr_001'] = { count: 10, level: 10, instances: Array(10).fill('x') };
 
@@ -195,7 +199,8 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 卡牌升级提升战力帮助通关', () => {
         const state = createFreshGame();
-        state.stage = 2; // 较简单的关卡
+        state.world = 1;
+        state.subStage = 2; // 较简单的关卡
         // 需要足够多的卡确保升级后战力提升
         // 升级消耗1张，等级+1，倍率+10%
         // 战力 = 10 + count * basePower * (1 + (level-1)*0.1)
@@ -228,7 +233,8 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 连败后抽卡变强再胜利', () => {
         const state = createFreshGame();
-        state.stage = 5; // 中等难度
+        state.world = 1;
+        state.subStage = 5; // 中等难度
 
         // 连败几次
         let loses = 0;
@@ -265,7 +271,8 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
         const imported = SaveSystem.import(exported);
 
         Assert.equal(imported.gold, state.gold, '导入后金币应一致');
-        Assert.equal(imported.stage, state.stage, '导入后关卡应一致');
+        Assert.equal(imported.world, state.world, '导入后世界应一致');
+        Assert.equal(imported.subStage, state.subStage, '导入后子关卡应一致');
         Assert.equal(
             Object.keys(imported.cards).length,
             Object.keys(state.cards).length,
@@ -286,11 +293,12 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
         state.cards['n_002'] = { count: 15, level: 1, instances: Array(15).fill('y') };
         state.cards['ssr_001'] = { count: 5, level: 5, instances: Array(5).fill('z') };
 
-        // 目标是到达第10关
+        // 目标是到达第2世界第4关（约等于原第10关）
         let rounds = 0;
         const maxRounds = 100;
+        const targetTotalStage = 10;
 
-        while (state.stage < 10 && rounds < maxRounds) {
+        while (STAGE_CONFIG.getTotalStage(state) < targetTotalStage && rounds < maxRounds) {
             rounds++;
 
             // 抽卡增强
@@ -301,12 +309,19 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
             // 挑战
             BattleSystem.fight(state);
 
+            // 如果通关了第5关，进入下一世界（跳过可选BOSS）
+            if (STAGE_CONFIG.canUnlockNextWorld(state) && state.subStage > 5) {
+                state.world++;
+                state.subStage = 1;
+            }
+
             // 检查成就
             AchievementSystem.checkAll(state);
         }
 
-        Assert.greaterThanOrEqual(state.stage, 10,
-            `应在${maxRounds}轮内到达第10关，实际用了${rounds}轮到达第${state.stage}关`);
+        const finalTotalStage = STAGE_CONFIG.getTotalStage(state);
+        Assert.greaterThanOrEqual(finalTotalStage, targetTotalStage,
+            `应在${maxRounds}轮内到达第${targetTotalStage}关，实际用了${rounds}轮到达第${finalTotalStage}关`);
     });
 
     // --- 清理 ---

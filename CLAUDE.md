@@ -28,15 +28,17 @@ IDLE/
 ├── js/
 │   ├── main.js             # 游戏主入口、UI渲染、事件绑定
 │   ├── config/
-│   │   ├── cards.js        # CARD_CONFIG：40张卡 + 15套装
-│   │   ├── achievements.js # ACHIEVEMENT_CONFIG：38个成就定义
-│   │   └── stages.js       # STAGE_CONFIG：关卡生成规则
+│   │   ├── cards.js        # CARD_CONFIG：23张卡 + 4套装
+│   │   ├── achievements.js # ACHIEVEMENT_CONFIG：70个成就定义
+│   │   ├── stages.js       # STAGE_CONFIG：关卡生成规则
+│   │   └── stats.js        # STAT_CONFIG：11种属性定义
 │   ├── systems/
 │   │   ├── gacha.js        # GachaSystem：抽卡、战力计算、升级
-│   │   ├── battle.js       # BattleSystem：竞技、胜负判定
+│   │   ├── battle.js       # BattleSystem：回合制战斗、胜负判定
 │   │   ├── achievement.js  # AchievementSystem：成就检测与奖励
 │   │   ├── idle.js         # IdleSystem：点击/自动/离线收益
 │   │   ├── shop.js         # ShopSystem：商店购买
+│   │   ├── stats.js        # StatSystem：角色属性计算
 │   │   └── save.js         # SaveSystem：存档读写
 │   └── utils/
 │       └── formatter.js    # Formatter：数字/时间格式化、深拷贝
@@ -133,25 +135,26 @@ power += config.basePower * count * multiplier;  // 从配置读取
     ▼
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
 │  GachaSystem │◀───▶│ BattleSystem│◀───▶│Achievement  │
-│  (抽卡/战力) │     │  (竞技/奖励) │     │  (成就检测)  │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │                   │                   │
-       ▼                   ▼                   ▼
+│  (抽卡/战力) │     │ (回合制战斗) │     │  (成就检测)  │
+└──────┬──────┘     └─────────────┘     └─────────────┘
+       │                                    │
+       ▼                                    ▼
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
 │  CARD_CONFIG │     │ STAGE_CONFIG│     │ACHIEVEMENT_ │
 │  (卡池配置)  │     │ (关卡配置)  │     │  CONFIG     │
 └─────────────┘     └─────────────┘     └─────────────┘
-       ▲
-       │
-┌─────────────┐     ┌─────────────┐
-│  IdleSystem  │     │  ShopSystem  │
-│ (放置收益)   │     │  (商店购买)  │
-└─────────────┘     └─────────────┘
+       ▲                                    ▲
+       │                                    │
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  StatSystem  │     │  IdleSystem  │     │  ShopSystem  │
+│ (属性计算)   │     │ (放置收益)   │     │  (商店购买)  │
+└─────────────┘     └─────────────┘     └─────────────┘
 ```
 
 **依赖关系**：
 - `GachaSystem` 依赖 `CARD_CONFIG`、`Formatter`
-- `BattleSystem` 依赖 `STAGE_CONFIG`、`GachaSystem`
+- `BattleSystem` 依赖 `STAGE_CONFIG`、`StatSystem`
+- `StatSystem` 依赖 `STAT_CONFIG`、`CARD_CONFIG`、`AchievementSystem`
 - `AchievementSystem` 依赖 `ACHIEVEMENT_CONFIG`、`CARD_CONFIG`
 - `ShopSystem` 依赖 `CARD_CONFIG`、`Formatter`
 - `IdleSystem` 无外部依赖（纯数值系统）
@@ -297,4 +300,4 @@ type: 简短描述
 ---
 
 *本文档遵循 Hermes Agent 准则编写*
-*版本: 1.0.0 | 更新: 2026-05-06*
+*版本: 1.1.0 | 更新: 2026-06-03*

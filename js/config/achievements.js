@@ -23,7 +23,7 @@ const ACHIEVEMENT_CONFIG = {
         { id: 'num_013', name: '抽卡常客', desc: '累计抽卡50次', condition: { type: 'gacha_count', value: 50 }, reward: { powerBonus: 1 }, hidden: false },
         { id: 'num_014', name: '抽卡狂魔', desc: '累计抽卡100次', condition: { type: 'gacha_count', value: 100 }, reward: { powerBonus: 2 }, hidden: false },
         { id: 'num_015', name: '抽卡大师', desc: '累计抽卡500次', condition: { type: 'gacha_count', value: 500 }, reward: { powerBonus: 2 }, hidden: false },
-        { id: 'num_016', name: '抽卡之神', desc: '累计抽卡2000次', condition: { type: 'gacha_count', value: 2000 }, reward: { powerBonus: 3 }, hidden: false },
+        { id: 'num_016', name: '抽卡之神', desc: '累计抽卡2,000次', condition: { type: 'gacha_count', value: 2000 }, reward: { powerBonus: 3 }, hidden: false },
         { id: 'num_017', name: '无限抽卡', desc: '累计抽卡1万次', condition: { type: 'gacha_count', value: 10000 }, reward: { powerBonus: 5 }, hidden: false },
 
         // === 数值成就：竞技胜利 ===
@@ -32,7 +32,7 @@ const ACHIEVEMENT_CONFIG = {
         { id: 'num_022', name: '连胜新手', desc: '累计获胜25场', condition: { type: 'battle_win', value: 25 }, reward: { powerBonus: 1 }, hidden: false },
         { id: 'num_023', name: '竞技场常客', desc: '累计获胜100场', condition: { type: 'battle_win', value: 100 }, reward: { powerBonus: 2 }, hidden: false },
         { id: 'num_024', name: '竞技高手', desc: '累计获胜500场', condition: { type: 'battle_win', value: 500 }, reward: { powerBonus: 2 }, hidden: false },
-        { id: 'num_025', name: '不败传说', desc: '累计获胜2000场', condition: { type: 'battle_win', value: 2000 }, reward: { powerBonus: 3 }, hidden: false },
+        { id: 'num_025', name: '不败传说', desc: '累计获胜2,000场', condition: { type: 'battle_win', value: 2000 }, reward: { powerBonus: 3 }, hidden: false },
         { id: 'num_026', name: '战神', desc: '累计获胜1万场', condition: { type: 'battle_win', value: 10000 }, reward: { powerBonus: 5 }, hidden: false },
 
         // === 数值成就：关卡进度 ===
@@ -44,7 +44,7 @@ const ACHIEVEMENT_CONFIG = {
         { id: 'num_035', name: '百层突破', desc: '通过第100关', condition: { type: 'stage', value: 100 }, reward: { powerBonus: 2 }, hidden: false },
         { id: 'num_036', name: '深渊行者', desc: '通过第250关', condition: { type: 'stage', value: 250 }, reward: { powerBonus: 3 }, hidden: false },
         { id: 'num_037', name: '巅峰之上', desc: '通过第500关', condition: { type: 'stage', value: 500 }, reward: { powerBonus: 3 }, hidden: false },
-        { id: 'num_038', name: '传说之路', desc: '通过第1000关', condition: { type: 'stage', value: 1000 }, reward: { powerBonus: 5 }, hidden: false },
+        { id: 'num_038', name: '传说之路', desc: '通过第1,000关', condition: { type: 'stage', value: 1000 }, reward: { powerBonus: 5 }, hidden: false },
 
         // === 系统成就：卡牌收集 ===
         { id: 'sys_001', name: '第一张卡', desc: '获得第一张卡牌', condition: { type: 'card_count', value: 1 }, reward: { powerBonus: 1 }, hidden: false },
@@ -69,23 +69,21 @@ const ACHIEVEMENT_CONFIG = {
 
         // === 系统成就：套装羁绊 ===
         { id: 'sys_030', name: '套装新手', desc: '激活第一个套装羁绊', condition: { type: 'set_active', value: 1 }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'sys_031', name: '套装收集者', desc: '激活5个套装羁绊', condition: { type: 'set_active_count', value: 5 }, reward: { powerBonus: 2 }, hidden: false },
-        { id: 'sys_032', name: '套装大师', desc: '激活10个套装羁绊', condition: { type: 'set_active_count', value: 10 }, reward: { powerBonus: 2 }, hidden: false },
+        { id: 'sys_031', name: '套装收集者', desc: '激活2个套装羁绊', condition: { type: 'set_active_count', value: 2 }, reward: { powerBonus: 2 }, hidden: false },
+        { id: 'sys_032', name: '套装大师', desc: '激活3个套装羁绊', condition: { type: 'set_active_count', value: 3 }, reward: { powerBonus: 2 }, hidden: false },
         { id: 'sys_033', name: '套装之王', desc: '激活所有套装羁绊', condition: { type: 'set_active', value: 0 }, reward: { powerBonus: 5 }, hidden: false },
 
         // === 组合成就：同时拥有特定卡牌 ===
-        { id: 'combo_001', name: '攻守兼备', desc: '同时拥有骑士之剑和骑士之盾', condition: { type: 'has_cards', value: ['n_001', 'n_002'] }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_002', name: '元素亲和', desc: '同时拥有火焰宝石和冰霜之心', condition: { type: 'has_cards', value: ['r_004', 'r_005'] }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_003', name: '自然之力', desc: '同时拥有森林之息和大地之核', condition: { type: 'has_cards', value: ['n_007', 'n_008'] }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_004', name: '光暗平衡', desc: '同时拥有光明圣徽和暗影之刃', condition: { type: 'has_cards', value: ['sr_001', 'sr_002'] }, reward: { powerBonus: 2 }, hidden: false },
-        { id: 'combo_005', name: '创世之力', desc: '同时拥有创世之刃和创世之盾', condition: { type: 'has_cards', value: ['ssr_001', 'ssr_002'] }, reward: { powerBonus: 3 }, hidden: false },
+        { id: 'combo_001', name: '攻守兼备', desc: '同时拥有生锈的剑和破木盾', condition: { type: 'has_cards', value: ['n_001', 'n_002'] }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'combo_002', name: '元素亲和', desc: '同时拥有火焰宝石和疾风靴', condition: { type: 'has_cards', value: ['r_004', 'r_005'] }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'combo_003', name: '自然之力', desc: '同时拥有铁箭头和麻绳', condition: { type: 'has_cards', value: ['n_007', 'n_008'] }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'combo_004', name: '光暗平衡', desc: '同时拥有龙血剑和龙鳞甲', condition: { type: 'has_cards', value: ['sr_001', 'sr_002'] }, reward: { powerBonus: 2 }, hidden: false },
+        { id: 'combo_005', name: '创世之力', desc: '同时拥有创世之刃和永恒王冠', condition: { type: 'has_cards', value: ['ssr_001', 'ssr_002'] }, reward: { powerBonus: 3 }, hidden: false },
 
         // === 组合成就：激活特定套装 ===
         { id: 'combo_010', name: '骑士荣耀', desc: '激活骑士套装', condition: { type: 'set_active_specific', value: '骑士套装' }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_011', name: '元素掌控', desc: '激活元素使套装', condition: { type: 'set_active_specific', value: '元素使套装' }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_012', name: '自然守护', desc: '激活自然之力套装', condition: { type: 'set_active_specific', value: '自然之力套装' }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_013', name: '光暗交织', desc: '激活光暗双生套装', condition: { type: 'set_active_specific', value: '光暗双生套装' }, reward: { powerBonus: 2 }, hidden: false },
-        { id: 'combo_014', name: '传说勇者', desc: '激活传说勇者套装', condition: { type: 'set_active_specific', value: '传说勇者套装' }, reward: { powerBonus: 3 }, hidden: false },
+        { id: 'combo_011', name: '屠龙传说', desc: '激活屠龙套装', condition: { type: 'set_active_specific', value: '屠龙套装' }, reward: { powerBonus: 2 }, hidden: false },
+        { id: 'combo_012', name: '神王降临', desc: '激活神王套装', condition: { type: 'set_active_specific', value: '神王套装' }, reward: { powerBonus: 3 }, hidden: false },
 
         // === 隐藏成就（搞怪/探索，但都可解锁） ===
         { id: 'hid_001', name: '十连保底', desc: '连续10次抽卡没有R以上', condition: { type: 'gacha_streak_no_rare', value: 10 }, reward: { powerBonus: 1 }, hidden: true },
@@ -95,7 +93,7 @@ const ACHIEVEMENT_CONFIG = {
         { id: 'hid_006', name: '赌徒', desc: '金币为0时进行抽卡', condition: { type: 'gamble', value: 0 }, reward: { powerBonus: 1 }, hidden: true },
         { id: 'hid_007', name: '连败者', desc: '连续失败10场竞技', condition: { type: 'lose_streak', value: 10 }, reward: { powerBonus: 1 }, hidden: true },
         { id: 'hid_008', name: '绝地反击', desc: '战力低于敌人10%时获胜', condition: { type: 'underdog_win', value: 0.9 }, reward: { powerBonus: 2 }, hidden: true },
-        { id: 'hid_009', name: '点击狂魔', desc: '1分钟内点击抽卡按钮超过30次', condition: { type: 'click_spam', value: 30 }, reward: { powerBonus: 1 }, hidden: true },
+        { id: 'hid_009', name: '点击狂魔', desc: '1分钟内点击赚金币按钮超过30次', condition: { type: 'click_spam', value: 30 }, reward: { powerBonus: 1 }, hidden: true },
         { id: 'hid_010', name: '午夜玩家', desc: '在0:00-1:00之间登录游戏', condition: { type: 'midnight_login', value: 1 }, reward: { powerBonus: 1 }, hidden: true },
     ]
 };

@@ -1,11 +1,13 @@
 /* ===== 成就系统测试 ===== */
 TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
 
-    function createState(gold = 100, tickets = 10, stage = 1, cards = {}, achievements = {}, stats = {}) {
+    function createState(gold = 100, tickets = 10, world = 1, subStage = 1, cards = {}, achievements = {}, stats = {}) {
         return {
             gold: gold,
             tickets: tickets,
-            stage: stage,
+            world: world,
+            subStage: subStage,
+            worldProgress: {},
             cards: cards,
             achievements: achievements,
             stats: {
@@ -96,10 +98,13 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
 
     test('checkAll: 关卡成就', () => {
         const state = createState();
-        state.stage = 11; // 已通过第10关，当前在第11关
+        // 通过第2世界第5关 = 总第11关 (> 10)
+        state.world = 2;
+        state.subStage = 5;
+        state.worldProgress = { '1': 6, '2': 5 };
         const unlocked = AchievementSystem.checkAll(state);
-        const found = unlocked.find(a => a.id === 'num_030');
-        Assert.exists(found, '应解锁"突破第一层"成就');
+        const found = unlocked.find(a => a.id === 'num_032');
+        Assert.exists(found, '应解锁"突破第一层"成就(通过第10关)');
     });
 
     test('checkAll: 卡牌收集成就', () => {
@@ -300,7 +305,8 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         state.stats.goldTotal = 999999999;
         state.stats.gachaCount = 9999;
         state.stats.battleWin = 9999;
-        state.stage = 999;
+        state.world = 167;
+        state.subStage = 3;
         const unlocked = AchievementSystem.checkAll(state);
         Assert.greaterThan(unlocked.length, 5, '极端数值应解锁多个成就');
     });

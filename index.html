@@ -28,11 +28,15 @@
 
             <section id="battle-panel">
                 <h2>⚔️ 竞技</h2>
-                <div id="stage-info">
-                    <span>当前关卡: <span id="current-stage">1</span></span>
-                    <span>敌人战力: <span id="enemy-power">100</span></span>
+                <div id="world-info">
+                    <div>当前世界: <span id="current-world">世界1</span></div>
+                    <div>关卡: <span id="current-stage">世界1 · 第1关</span></div>
+                    <div>敌人战力: <span id="enemy-power">100</span></div>
                 </div>
-                <button id="battle-btn" onclick="game.battle()">挑战</button>
+                <div class="battle-actions">
+                    <button id="battle-btn" onclick="game.battle()">挑战当前关卡</button>
+                    <button id="next-world-btn" onclick="game.nextWorld()" style="display:none;">🌍 进入下一世界</button>
+                </div>
                 <div id="battle-result"></div>
             </section>
 

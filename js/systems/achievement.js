@@ -25,7 +25,14 @@ const AchievementSystem = {
             case 'battle_win':
                 return stats.battleWin >= condition.value;
             case 'stage':
-                return gameState.stage > condition.value;
+                // 使用总关卡数计算
+                const totalStage = STAGE_CONFIG.getTotalStage(gameState);
+                return totalStage > condition.value;
+            case 'world_stage':
+                // 指定世界的关卡进度
+                const worldProgress = gameState.worldProgress || {};
+                const worldNum = condition.world || 1;
+                return (worldProgress[worldNum] || 0) >= condition.value;
             case 'card_count':
                 return Object.keys(gameState.cards).length >= condition.value;
             case 'card_unique':
@@ -38,13 +45,25 @@ const AchievementSystem = {
                 return !!stats.rarityObtained[condition.value];
             case 'set_active':
                 if (condition.value === 0) {
-                    return CARD_CONFIG.sets.every(s =>
+                    return CARD_CONFIG.getCurrentSets(gameState).every(s =>
                         s.ids.every(id => gameState.cards[id] && gameState.cards[id].count > 0)
                     );
                 }
-                return CARD_CONFIG.sets.some(s =>
+                return CARD_CONFIG.getCurrentSets(gameState).some(s =>
                     s.ids.every(id => gameState.cards[id] && gameState.cards[id].count > 0)
                 );
+            case 'set_active_count':
+                const activeSets = GachaSystem.getActiveSets(gameState);
+                return activeSets.filter(s => s.isComplete).length >= condition.value;
+            case 'set_active_specific':
+                const sets = CARD_CONFIG.getCurrentSets(gameState);
+                return sets.some(s =>
+                    s.name === condition.value &&
+                    s.ids.every(id => gameState.cards[id] && gameState.cards[id].count > 0)
+                );
+            case 'has_cards':
+                const requiredCards = condition.value || [];
+                return requiredCards.every(id => gameState.cards[id] && gameState.cards[id].count > 0);
             case 'gacha_streak_no_rare':
                 return stats.streakNoRare >= condition.value;
             case 'gacha_streak_no_ssr':
@@ -54,8 +73,9 @@ const AchievementSystem = {
                 return !!stats.gachaSingleSSR;
             case 'speedrun_stage5':
                 // 速通：创建后1小时内到达第5关
-                if (!stats.createTime || gameState.stage < 5) return false;
-                return (Date.now() - stats.createTime) < 3600000;
+                if (!stats.createTime) return false;
+                const worldProgress5 = gameState.worldProgress || {};
+                return (worldProgress5[1] || 0) >= 5 && (Date.now() - stats.createTime) < 3600000;
             case 'hoarder':
                 return gameState.gold >= condition.value && stats.gachaCount === 0;
             case 'gamble':
@@ -100,6 +120,14 @@ const AchievementSystem = {
                 bonus += ach.reward.powerBonus;
             }
         }
+
+        // ssr_002 永恒王冠: 成就奖励+30%
+        const hasEternalCrown = gameState.cards && gameState.cards['ssr_002']
+            && gameState.cards['ssr_002'].count > 0;
+        if (hasEternalCrown) {
+            bonus = Math.floor(bonus * 1.3);
+        }
+
         return bonus;
     }
 };

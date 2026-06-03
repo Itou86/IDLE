@@ -16,7 +16,32 @@ const CARD_CONFIG = {
         SSR: { color: '#ffd54f', name: '传说' }
     },
 
-    // 基础卡牌池
+    // ===== 世界配置 =====
+    // 无限流世界观：每个世界有独属卡牌组
+    // 世界1为当前23张卡的占位，后续替换为实际作品主题
+    worlds: [
+        {
+            id: 1,
+            name: '世界1',
+            description: '待填充：替换为实际作品主题',
+            // 该世界可掉落/可抽取的卡牌ID列表
+            cardIds: [
+                'n_001', 'n_002', 'n_003', 'n_004', 'n_005', 'n_006', 'n_007', 'n_008',
+                'r_001', 'r_002', 'r_003', 'r_004', 'r_005', 'r_006',
+                'sr_001', 'sr_002', 'sr_003', 'sr_004', 'sr_005',
+                'ssr_001', 'ssr_002', 'ssr_003', 'ssr_004'
+            ],
+            sets: [
+                { ids: ['n_001', 'n_002'], name: '新手套装', bonus: { power: 5 } },
+                { ids: ['r_001', 'r_002'], name: '骑士套装', bonus: { power: 15, defense: 10 } },
+                { ids: ['sr_001', 'sr_002'], name: '屠龙套装', bonus: { power: 50, defense: 30 } },
+                { ids: ['ssr_001', 'ssr_002'], name: '神王套装', bonus: { power: 100, gold: 30 } },
+            ]
+        }
+        // 世界2、世界3... 后续由用户填充
+    ],
+
+    // 基础卡牌池（所有可用卡牌，保持兼容）
     pool: [
         // N 卡 - 基础数值卡
         { id: 'n_001', name: '生锈的剑', rarity: 'N', basePower: 5, effect: 'power', desc: '攻击力 +5' },
@@ -50,11 +75,63 @@ const CARD_CONFIG = {
         { id: 'ssr_004', name: '虚空之眼', rarity: 'SSR', basePower: 60, effect: 'power', desc: '攻击力 +60，可看到隐藏成就的提示' },
     ],
 
-    // 卡组收集奖励（羁绊）
+    // 卡组收集奖励（羁绊）- 兼容旧代码，实际由各世界的 sets 决定
     sets: [
         { ids: ['n_001', 'n_002'], name: '新手套装', bonus: { power: 5 } },
         { ids: ['r_001', 'r_002'], name: '骑士套装', bonus: { power: 15, defense: 10 } },
         { ids: ['sr_001', 'sr_002'], name: '屠龙套装', bonus: { power: 50, defense: 30 } },
         { ids: ['ssr_001', 'ssr_002'], name: '神王套装', bonus: { power: 100, gold: 30 } },
-    ]
+    ],
+
+    // ===== 世界相关方法 =====
+
+    // 获取指定世界的卡牌列表
+    getWorldCards: function(worldId) {
+        const world = this.worlds.find(w => w.id === worldId);
+        if (!world) return [];
+        return this.pool.filter(c => world.cardIds.includes(c.id));
+    },
+
+    // 获取指定世界的套装列表
+    getWorldSets: function(worldId) {
+        const world = this.worlds.find(w => w.id === worldId);
+        if (!world) return this.sets;
+        return world.sets || this.sets;
+    },
+
+    // 获取当前世界的卡池（用于抽卡和战斗掉落）
+    getCurrentPool: function(gameState) {
+        const worldId = gameState.world || 1;
+        return this.getWorldCards(worldId);
+    },
+
+    // 获取当前世界的套装
+    getCurrentSets: function(gameState) {
+        const worldId = gameState.world || 1;
+        return this.getWorldSets(worldId);
+    },
+
+    // 按稀有度筛选指定世界的卡牌
+    getWorldCardsByRarity: function(worldId, rarity) {
+        return this.getWorldCards(worldId).filter(c => c.rarity === rarity);
+    },
+
+    // 添加新世界（供后续扩展使用）
+    addWorld: function(worldConfig) {
+        const id = this.worlds.length > 0 ? Math.max(...this.worlds.map(w => w.id)) + 1 : 1;
+        this.worlds.push({
+            id: id,
+            name: worldConfig.name || `世界${id}`,
+            description: worldConfig.description || '',
+            cardIds: worldConfig.cardIds || [],
+            sets: worldConfig.sets || []
+        });
+        // 将新世界卡牌加入总池（去重）
+        for (const card of worldConfig.cards || []) {
+            if (!this.pool.find(c => c.id === card.id)) {
+                this.pool.push(card);
+            }
+        }
+        return id;
+    }
 };

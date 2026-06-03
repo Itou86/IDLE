@@ -29,11 +29,15 @@ open http://localhost:8000
 │   ├── config/         # 配置文件
 │   │   ├── cards.js        # 卡牌定义
 │   │   ├── achievements.js # 成就定义
-│   │   └── stages.js       # 关卡配置
+│   │   ├── stages.js       # 关卡配置
+│   │   └── stats.js        # 属性系统配置
 │   ├── systems/        # 游戏系统
 │   │   ├── gacha.js        # 抽卡
-│   │   ├── battle.js       # 竞技
+│   │   ├── battle.js       # 回合制战斗
 │   │   ├── achievement.js  # 成就
+│   │   ├── idle.js         # 放置收益
+│   │   ├── shop.js         # 商店
+│   │   ├── stats.js        # 角色属性计算
 │   │   └── save.js         # 存档
 │   └── utils/
 │       └── formatter.js    # 工具函数

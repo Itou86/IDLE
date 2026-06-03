@@ -29,7 +29,9 @@ const Game = {
         this.state = {
             gold: 50,            // 初始金币(原100，降低因为点击收益高了)
             tickets: 20,         // 初始抽卡券(原10，让玩家能抽20次)
-            stage: 1,            // 当前关卡
+            world: 1,            // 当前世界
+            subStage: 1,          // 当前世界内的子关卡
+            worldProgress: {},    // 各世界最高通关进度 { "1": 5 }
             cards: {},           // 拥有的卡牌
             achievements: {},    // 已解锁成就
             idle: {              // 初始放置等级
@@ -180,41 +182,71 @@ const Game = {
         this.render();
     },
 
-    // 竞技
+    // 竞技（挑战当前进度关卡）
     battle: function() {
         const result = BattleSystem.fight(this.state);
+        this._handleBattleResult(result);
+    },
+
+    // 挑战指定关卡（用于重复挑战或打BOSS）
+    battleAt: function(world, subStage) {
+        const result = BattleSystem.fight(this.state, world, subStage);
+        this._handleBattleResult(result);
+    },
+
+    // 处理战斗结果
+    _handleBattleResult: function(result) {
         const resultDiv = document.getElementById('battle-result');
 
         if (result.win) {
-            let msg = `✅ 胜利！通过第 ${result.stage} 关`;
+            let msg = `✅ 胜利！${CARD_CONFIG.getWorldName(result.world)} · 第 ${result.subStage} 关`;
             msg += `<br>获得 💰${result.reward.gold}`;
             if (result.reward.tickets > 0) msg += ` 🎫${result.reward.tickets}`;
+            if (result.droppedCard) {
+                const rStyle = CARD_CONFIG.rarityStyle[result.droppedCard.rarity];
+                msg += `<br>🎁 掉落: <span style="color:${rStyle.color}">${result.droppedCard.name}</span> (${rStyle.name})`;
+            }
             if (result.isBoss) msg += `<br>🎉 BOSS击破！`;
             resultDiv.innerHTML = `<div class="battle-win">${msg}</div>`;
-            
+
             // 记录绝地反击（hid_008）
             if (result.playerPower < result.enemyPower * 0.9) {
                 this.state.stats.underdogWin = true;
             }
-            
+
             // 记录日志
-            let logMsg = `⚔️ 通过第 ${result.stage} 关`;
+            let logMsg = `⚔️ ${CARD_CONFIG.getWorldName(result.world)} · 第 ${result.subStage} 关 胜利`;
             if (result.isBoss) logMsg += ' (BOSS)';
             logMsg += `, 获得 💰${result.reward.gold}`;
             if (result.reward.tickets > 0) logMsg += ` 🎫${result.reward.tickets}`;
+            if (result.droppedCard) logMsg += ` [掉落: ${result.droppedCard.name}]`;
             this._log(logMsg, 'battle-win');
         } else {
             resultDiv.innerHTML = `
                 <div class="battle-lose">
                     ❌ 失败<br>
+                    ${CARD_CONFIG.getWorldName(result.world)} · 第 ${result.subStage} 关<br>
                     敌人战力: ${Formatter.number(result.enemyPower)}<br>
                     你的战力: ${Formatter.number(result.playerPower)}
                 </div>
             `;
-            this._log(`⚔️ 第 ${result.stage} 关失败 (敌人${Formatter.number(result.enemyPower)} vs 我方${Formatter.number(result.playerPower)})`, 'battle-lose');
+            this._log(`⚔️ ${CARD_CONFIG.getWorldName(result.world)} · 第 ${result.subStage} 关失败`, 'battle-lose');
         }
 
         this._checkAchievements();
+        this.render();
+    },
+
+    // 进入下一世界
+    nextWorld: function() {
+        if (!STAGE_CONFIG.canUnlockNextWorld(this.state)) {
+            this.showToast('需要先通关当前世界第5关', 'error');
+            return;
+        }
+        this.state.world++;
+        this.state.subStage = 1;
+        this.showToast(`进入 ${CARD_CONFIG.getWorldName(this.state.world)}！`, 'achievement');
+        this._log(`🌍 进入新世界: ${CARD_CONFIG.getWorldName(this.state.world)}`, 'achievement');
         this.render();
     },
 
@@ -227,10 +259,30 @@ const Game = {
         document.getElementById('gold').textContent = Formatter.number(this.state.gold);
         document.getElementById('tickets').textContent = this.state.tickets;
 
-        // 关卡
+        // 世界/关卡信息
         const stageInfo = BattleSystem.getCurrentStageInfo(this.state);
-        document.getElementById('current-stage').textContent = this.state.stage;
-        document.getElementById('enemy-power').textContent = Formatter.number(stageInfo.enemyPower);
+        const worldName = CARD_CONFIG.getWorldName(this.state.world);
+        const currentStageEl = document.getElementById('current-stage');
+        if (currentStageEl) {
+            currentStageEl.textContent = `${worldName} · 第${this.state.subStage}关`;
+        }
+        const enemyPowerEl = document.getElementById('enemy-power');
+        if (enemyPowerEl) {
+            enemyPowerEl.textContent = Formatter.number(stageInfo.enemyPower);
+        }
+
+        // 世界名称显示
+        const worldEl = document.getElementById('current-world');
+        if (worldEl) {
+            worldEl.textContent = worldName;
+        }
+
+        // 下一世界按钮状态
+        const nextWorldBtn = document.getElementById('next-world-btn');
+        if (nextWorldBtn) {
+            const canNext = STAGE_CONFIG.canUnlockNextWorld(this.state);
+            nextWorldBtn.style.display = canNext ? 'inline-block' : 'none';
+        }
 
         // 按钮状态 - 抽卡
         const gachaBtn = document.getElementById('gacha-btn');

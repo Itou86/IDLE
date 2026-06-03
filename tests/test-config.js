@@ -224,52 +224,31 @@ TestRunner.suite('📦 配置数据 - Stages', (test) => {
         Assert.exists(STAGE_CONFIG, 'STAGE_CONFIG 应存在');
     });
 
-    test('stages: 有预设关卡', () => {
-        Assert.exists(STAGE_CONFIG.preset, 'preset 应存在');
-        Assert.greaterThan(STAGE_CONFIG.preset.length, 0, '应有预设关卡');
+    test('stages: 世界配置正确', () => {
+        Assert.equal(STAGE_CONFIG.SUB_STAGES_PER_WORLD, 6, '每个世界应有6关');
+        Assert.equal(STAGE_CONFIG.BOSS_STAGE, 6, '第6关应为BOSS');
+        Assert.exists(STAGE_CONFIG.getWorldName, '应有getWorldName方法');
     });
 
-    test('stages: 预设关卡字段完整', () => {
-        for (const stage of STAGE_CONFIG.preset) {
-            Assert.exists(stage.stage, '关卡应有stage编号');
-            Assert.exists(stage.enemyPower, '关卡应有enemyPower');
-            Assert.exists(stage.reward, '关卡应有reward');
-            Assert.exists(stage.reward.gold, '奖励应有gold');
-        }
+    test('stages: 世界内敌人战力递增', () => {
+        const w1s1 = STAGE_CONFIG.generate(1, 1);
+        const w1s2 = STAGE_CONFIG.generate(1, 2);
+        const w1s3 = STAGE_CONFIG.generate(1, 3);
+        Assert.greaterThan(w1s2.enemyPower, w1s1.enemyPower, '同世界内战力应递增');
+        Assert.greaterThan(w1s3.enemyPower, w1s2.enemyPower, '同世界内战力应递增');
     });
 
-    test('stages: 预设关卡编号连续', () => {
-        for (let i = 0; i < STAGE_CONFIG.preset.length; i++) {
-            Assert.equal(STAGE_CONFIG.preset[i].stage, i + 1, `预设关卡应连续编号`);
-        }
-    });
-
-    test('stages: 敌人战力递增', () => {
-        for (let i = 1; i < STAGE_CONFIG.preset.length; i++) {
-            Assert.greaterThan(
-                STAGE_CONFIG.preset[i].enemyPower,
-                STAGE_CONFIG.preset[i-1].enemyPower,
-                '敌人战力应递增'
-            );
-        }
-    });
-
-    test('stages: 奖励递增', () => {
-        for (let i = 1; i < STAGE_CONFIG.preset.length; i++) {
-            Assert.greaterThanOrEqual(
-                STAGE_CONFIG.preset[i].reward.gold,
-                STAGE_CONFIG.preset[i-1].reward.gold,
-                '金币奖励应递增'
-            );
-        }
+    test('stages: 世界内奖励递增', () => {
+        const s1 = STAGE_CONFIG.generate(1, 1);
+        const s2 = STAGE_CONFIG.generate(1, 2);
+        Assert.greaterThanOrEqual(s2.reward.gold, s1.reward.gold, '金币奖励应递增');
     });
 
     test('stages: BOSS关卡配置正确', () => {
-        const bossStages = STAGE_CONFIG.preset.filter(s => s.isBoss);
-        for (const boss of bossStages) {
-            Assert.exists(boss.bossMultiplier, 'BOSS关卡应有bossMultiplier');
-            Assert.greaterThan(boss.bossMultiplier, 1.0, 'BOSS倍率应大于1');
-        }
+        const boss = STAGE_CONFIG.generate(1, 6);
+        Assert.equal(boss.isBoss, true, '第6关应为BOSS');
+        Assert.exists(boss.bossMultiplier, 'BOSS关卡应有bossMultiplier');
+        Assert.greaterThan(boss.bossMultiplier, 1.0, 'BOSS倍率应大于1');
     });
 
     test('stages: 生成函数存在', () => {
@@ -277,26 +256,30 @@ TestRunner.suite('📦 配置数据 - Stages', (test) => {
     });
 
     test('stages: 生成关卡战力合理', () => {
-        const stage50 = STAGE_CONFIG.generate(50);
-        Assert.exists(stage50.stage, '生成关卡应有编号');
-        Assert.exists(stage50.enemyPower, '生成关卡应有enemyPower');
-        Assert.greaterThan(stage50.enemyPower, 0, '敌人战力应大于0');
+        const stage = STAGE_CONFIG.generate(1, 3);
+        Assert.exists(stage.world, '生成关卡应有world');
+        Assert.exists(stage.subStage, '生成关卡应有subStage');
+        Assert.exists(stage.enemyPower, '生成关卡应有enemyPower');
+        Assert.greaterThan(stage.enemyPower, 0, '敌人战力应大于0');
     });
 
-    test('stages: getStage函数统一访问', () => {
-        const preset = STAGE_CONFIG.getStage(1);
-        Assert.equal(preset.stage, 1, 'getStage(1)应返回第1关');
-
-        const generated = STAGE_CONFIG.getStage(100);
-        Assert.equal(generated.stage, 100, 'getStage(100)应返回第100关');
-        Assert.greaterThan(generated.enemyPower, 0, '第100关应有敌人战力');
+    test('stages: 跨世界难度衔接合理', () => {
+        const w1s4 = STAGE_CONFIG.generate(1, 4);
+        const w2s1 = STAGE_CONFIG.generate(2, 1);
+        // 世界2第1关 ≈ 世界1第4关
+        const ratio = Math.max(w2s1.enemyPower, w1s4.enemyPower) / Math.min(w2s1.enemyPower, w1s4.enemyPower);
+        Assert.lessThan(ratio, 2.0, '相邻世界难度衔接不应跳跃过大');
     });
 
     test('stages: 高关卡战力增长合理', () => {
-        const s100 = STAGE_CONFIG.getStage(100);
-        const s200 = STAGE_CONFIG.getStage(200);
-        Assert.greaterThan(s200.enemyPower, s100.enemyPower, '第200关应强于第100关');
-        // 增长不应过于夸张 - 1.15^100 ≈ 1000倍，所以放宽到2000000倍
-        Assert.lessThan(s200.enemyPower / s100.enemyPower, 2000000, '200关战力不应超过100关2000000倍');
+        const s50 = STAGE_CONFIG.generate(9, 2);  // 约等于原第50关
+        const s100 = STAGE_CONFIG.generate(17, 4); // 约等于原第100关
+        Assert.greaterThan(s100.enemyPower, s50.enemyPower, '高关卡应更强');
+    });
+
+    test('stages: 世界解锁条件', () => {
+        Assert.equal(STAGE_CONFIG.UNLOCK_NEXT_WORLD_AT, 5, '通关第5关可进入下一世界');
+        Assert.equal(STAGE_CONFIG.canUnlockNextWorld({ world: 1, subStage: 1, worldProgress: { '1': 3 } }), false, '第3关不能解锁');
+        Assert.equal(STAGE_CONFIG.canUnlockNextWorld({ world: 1, subStage: 1, worldProgress: { '1': 5 } }), true, '第5关可解锁');
     });
 });
