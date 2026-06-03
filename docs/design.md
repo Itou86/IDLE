@@ -177,6 +177,414 @@ Demo 阶段优先功能可用，UI 整洁即可。不必追求完美美术，可
 
 ---
 
+## 🏛️ 架构设计：EffectRegistry 效果注册层
+
+> **状态**：设计文档阶段，待代码实现。
+> **背景**：代码评审发现，当前按"功能领域"划分的模块（GachaSystem / BattleSystem / StatSystem 等）导致**卡牌特殊效果散落在 5 个文件中**。新增一张有特殊效果的卡需要改 N 个文件，这是最大的设计债。
+
+### 问题：当前模块划分的根因
+
+当前划分是**横向切分**（按功能领域）：
+
+```
+GachaSystem ── 抽卡流程 + 命运骰子硬编码
+BattleSystem ── 战斗流程 + 火焰宝石/灵魂契约/聚宝盆硬编码
+StatSystem ── 属性计算 + 创世之刃/龙血剑/龙鳞甲硬编码
+IdleSystem ── 收益计算 + 时空沙漏硬编码
+AchievementSystem ── 成就检测 + 永恒王冠硬编码
+```
+
+**根因**：一张卡牌的特殊效果被**纵向切碎**散落在多个系统中。
+
+| 当前散落位置 | 涉及卡牌数 | 影响 |
+|-------------|-----------|------|
+| `GachaSystem.draw` | 1（命运骰子） | 改抽卡概率逻辑 |
+| `BattleSystem._calcDamage` | 1（火焰宝石） | 改伤害计算 |
+| `BattleSystem._handleWin` | 2（灵魂契约、聚宝盆） | 改胜利奖励 |
+| `StatSystem._getCardFlatBonuses` | 5（创世之刃、龙血剑、龙鳞甲、疾风靴、生命护符） | 改属性计算 |
+| `IdleSystem._getOfflineBonusPercent` | 1（时空沙漏） | 改离线收益 |
+| `AchievementSystem.getTotalPowerBonus` | 1（永恒王冠） | 改成就加成 |
+
+**结论**：按"功能领域"划分模块，与"卡牌效果跨领域"的本质矛盾。需要引入**效果注册层**解耦。
+
+---
+
+### 方案：EffectRegistry 效果注册层
+
+#### 核心思想
+
+把当前散落在 5 个文件中的 **11 张特殊卡牌效果**全部收拢到一处：
+
+- **配置层**：卡牌定义时声明 `effects` 数组，说明有什么效果、什么时机触发
+- **注册层**：`EffectRegistry` 在初始化时扫描所有卡牌，将效果注册到对应 trigger
+- **系统层**：各系统只负责**流程**，在特定 hook 点调用 `EffectRegistry.trigger(trigger, gameState, context)`，不再硬编码任何卡牌 ID
+
+**结果**：新增/修改一张有特殊效果的卡 → 只需要改 `cards.js`。
+
+---
+
+#### 卡牌配置新格式
+
+在 `cards.js` 的卡牌定义中新增 `effects` 字段：
+
+```javascript
+{
+    id: 'ssr_001',
+    name: '创世之刃',
+    rarity: 'SSR',
+    basePower: 80,
+    effect: 'power',  // 保留：基础效果类型（兼容旧代码）
+    effects: [        // 新增：特殊效果声明
+        { type: 'n_card_multiplier', value: 2, trigger: 'stat_calc' }
+    ]
+},
+{
+    id: 'ssr_003',
+    name: '命运骰子',
+    rarity: 'SSR',
+    basePower: 30,
+    effects: [
+        { type: 'extra_draw', chance: 0.1, trigger: 'on_gacha_end', rarityUp: true }
+    ]
+},
+{
+    id: 'r_004',
+    name: '火焰宝石',
+    rarity: 'R',
+    basePower: 15,
+    effects: [
+        { type: 'boss_damage_bonus', value: 0.2, trigger: 'on_damage_calc' }
+    ]
+}
+```
+
+**原则**：`effects` 中只声明"有什么效果"，不声明"怎么实现"。实现逻辑在 `EffectRegistry` 中按 `type` 分发。
+
+---
+
+#### EffectRegistry 接口规范
+
+```javascript
+// js/systems/effect-registry.js
+const EffectRegistry = {
+    // ===== 注册表 =====
+    // trigger → handler[] 的映射
+    _handlers: {},
+
+    // ===== 公共方法：注册效果处理器 =====
+    // 由各系统在初始化时调用，注册自己关心的 trigger
+    register: function(trigger, handler) {
+        if (!this._handlers[trigger]) this._handlers[trigger] = [];
+        this._handlers[trigger].push(handler);
+    },
+
+    // ===== 公共方法：触发效果 =====
+    // 各系统在流程的 hook 点调用
+    // context 是可读写的上下文对象，效果处理器可以修改它
+    trigger: function(trigger, gameState, context) {
+        const handlers = this._handlers[trigger] || [];
+        for (const h of handlers) {
+            h(gameState, context);
+        }
+        return context;
+    },
+
+    // ===== 公共方法：从卡牌配置自动扫描注册 =====
+    // 在游戏初始化时调用一次
+    init: function() {
+        for (const card of CARD_CONFIG.pool) {
+            if (!card.effects) continue;
+            for (const effect of card.effects) {
+                this._registerCardEffect(card.id, effect);
+            }
+        }
+    },
+
+    // ===== 内部：把卡牌效果包装为 handler =====
+    _registerCardEffect: function(cardId, effect) {
+        const handler = (gameState, context) => {
+            // 统一检查：玩家是否拥有此卡
+            if (!GameUtils.hasCard(gameState, cardId)) return;
+            // 执行效果
+            this._executeEffect(effect, gameState, context);
+        };
+        this.register(effect.trigger, handler);
+    },
+
+    // ===== 内部：按 effect.type 分发执行 =====
+    _executeEffect: function(effect, gameState, context) {
+        switch (effect.type) {
+            case 'extra_draw':
+                if (Math.random() < effect.chance) {
+                    context.extraDraws = context.extraDraws || [];
+                    context.extraDraws.push({ rarityUp: effect.rarityUp });
+                }
+                break;
+            case 'boss_damage_bonus':
+                if (context.isBoss && context.isPlayer) {
+                    context.damage = Math.floor(context.damage * (1 + effect.value));
+                }
+                break;
+            case 'n_card_multiplier':
+                context.nCardMultiplier = effect.value;
+                break;
+            case 'offline_bonus':
+                context.offlineBonusPercent = (context.offlineBonusPercent || 0) + effect.value;
+                break;
+            case 'achievement_bonus':
+                context.achievementMultiplier = (context.achievementMultiplier || 0) + effect.value;
+                break;
+            case 'kill_extra_drop':
+                if (Math.random() < effect.chance) {
+                    context.extraDrop = true;
+                }
+                break;
+            case 'stage_ticket_bonus':
+                if (context.totalStage % effect.interval === 0) {
+                    context.extraTickets = (context.extraTickets || 0) + effect.value;
+                }
+                break;
+            case 'synergy_bonus':
+                // 联动效果：检查是否同时拥有配对卡牌
+                if (GameUtils.hasCard(gameState, effect.pairCardId)) {
+                    const bonus = effect.value * context.baseValue;
+                    context.synergyBonus = (context.synergyBonus || 0) + bonus;
+                }
+                break;
+            case 'flat_stat_bonus':
+                // 固定属性加成（如生命护符+20生命）
+                context.flatBonuses = context.flatBonuses || {};
+                context.flatBonuses[effect.stat] = (context.flatBonuses[effect.stat] || 0) + effect.value;
+                break;
+            case 'dodge_rate_bonus':
+                context.dodgeRate = (context.dodgeRate || 0) + effect.value;
+                break;
+            default:
+                // 未知效果类型：静默忽略或警告
+                console.warn(`未知效果类型: ${effect.type}`);
+                break;
+        }
+    }
+};
+```
+
+---
+
+#### Trigger（钩子点）清单
+
+各系统在以下时机触发效果：
+
+| Trigger | 触发系统 | Context 内容 | 示例效果 |
+|---------|---------|-------------|---------|
+| `on_gacha_end` | `GachaSystem.draw` | `{ cards, count, extraDraws }` | 命运骰子额外抽卡 |
+| `on_damage_calc` | `BattleSystem._calcDamage` | `{ damage, isPlayer, isBoss }` | 火焰宝石对BOSS增伤 |
+| `stat_calc` | `StatSystem.getCharacterStats` | `{ nCardMultiplier, synergyBonus, flatBonuses }` | 创世之刃N卡翻倍 |
+| `on_kill` | `BattleSystem._handleWin` | `{ totalStage, extraDrop, extraTickets }` | 灵魂契约击杀再抽、聚宝盆每10关奖励 |
+| `offline_calc` | `IdleSystem.calculateOfflineGold` | `{ offlineBonusPercent }` | 时空沙漏离线加成 |
+| `achievement_calc` | `AchievementSystem.getTotalPowerBonus` | `{ achievementMultiplier }` | 永恒王冠成就加成 |
+| `on_battle_start` | `BattleSystem.fight` | `{ playerStats, enemy }` | 未来扩展：战前buff |
+| `on_round_end` | `BattleSystem.fight` | `{ round, playerHP, enemyHP }` | 未来扩展：回合恢复 |
+
+---
+
+#### 系统改造示例
+
+**GachaSystem.draw** 改造后：
+
+```javascript
+draw: function(gameState, count) {
+    count = parseInt(count, 10) || 1;
+    const cost = count >= 10 ? this.COST_10.tickets : this.COST.tickets * count;
+    if (gameState.tickets < cost) {
+        return { success: false, errorCode: 'NOT_ENOUGH_SHARDS', reason: '世界碎片不足' };
+    }
+
+    gameState.tickets -= cost;
+    gameState.stats.gachaCount += count;
+
+    const cards = [];
+    for (let i = 0; i < count; i++) {
+        const isLastOfTen = (count === 10 && i === 9);
+        const card = this._rollCard(gameState, count === 10, isLastOfTen);
+        GameUtils.addCardToInventory(gameState, card);  // 统一工具
+        cards.push(card);
+        this._updateStreaks(gameState, card.rarity);
+    }
+
+    // 触发效果（命运骰子等）
+    const context = { cards, count };
+    EffectRegistry.trigger('on_gacha_end', gameState, context);
+
+    // 处理额外抽卡
+    for (const extra of context.extraDraws || []) {
+        const extraCard = this._rollCard(gameState, false, false, extra.rarityUp);
+        GameUtils.addCardToInventory(gameState, extraCard);
+        cards.push(extraCard);
+        this._updateStreaks(gameState, extraCard.rarity);
+    }
+
+    return { success: true, cards: context.cards, count };
+}
+```
+
+**BattleSystem._calcDamage** 改造后：
+
+```javascript
+_calcDamage: function(attacker, defender, isPlayer, gameState, stage) {
+    let damage = Math.max(1, attacker.power - defender.defense * 0.5);
+
+    // 触发伤害计算效果
+    const context = { damage, isPlayer, isBoss: stage?.isBoss };
+    EffectRegistry.trigger('on_damage_calc', gameState, context);
+    damage = context.damage;
+
+    // 暴击判定...
+    // 闪避判定...
+
+    return { damage: Math.floor(damage), isCrit, isMiss };
+}
+```
+
+---
+
+### 新的模块划分
+
+重构后的文件结构：
+
+```
+js/
+├── config/
+│   ├── cards.js          # 卡牌定义 + effects 声明
+│   ├── achievements.js   # 成就定义
+│   ├── stages.js         # 关卡配置
+│   └── stats.js          # 属性定义
+├── systems/
+│   ├── effect-registry.js    # 新增：效果注册中心
+│   ├── gacha.js              # 抽卡流程（无硬编码效果）
+│   ├── battle.js             # 战斗流程（无硬编码效果）
+│   ├── achievement.js        # 成就检测（无硬编码效果）
+│   ├── idle.js               # 收益计算（无硬编码效果）
+│   ├── shop.js               # 商店
+│   ├── stats.js              # 属性汇总（调用 EffectRegistry）
+│   └── save.js               # 存档
+├── ui/                           # 新增/拆分
+│   ├── renderer.js               # 所有 DOM 渲染方法
+│   └── components.js             # 可复用组件（toast、浮动数字）
+├── utils/
+│   ├── formatter.js          # 格式化工具
+│   └── game-utils.js         # 新增：游戏通用操作
+└── main.js                   # 精简：初始化 + 事件绑定
+```
+
+**依赖关系**：
+
+```
+Game.main → 所有系统
+GachaSystem → EffectRegistry, GameUtils
+BattleSystem → EffectRegistry, GameUtils, StatSystem
+StatSystem → EffectRegistry, GameUtils, AchievementSystem
+AchievementSystem → GameUtils
+IdleSystem → EffectRegistry, GameUtils
+ShopSystem → GameUtils
+SaveSystem → 无外部依赖
+EffectRegistry → CARD_CONFIG, GameUtils
+```
+
+---
+
+### 配套改进
+
+#### 1. GameUtils 通用工具（新增 `js/utils/game-utils.js`）
+
+解决当前"检查是否拥有卡牌"和"添加卡牌到库存"代码重复的问题：
+
+```javascript
+const GameUtils = {
+    // 检查玩家是否拥有某卡牌
+    hasCard: function(gameState, cardId) {
+        return gameState.cards[cardId]?.count > 0;
+    },
+
+    // 统一添加卡牌到库存（当前在 gacha.js/shop.js/battle.js 中重复）
+    addCardToInventory: function(gameState, cardConfig) {
+        if (!gameState.cards[cardConfig.id]) {
+            gameState.cards[cardConfig.id] = { count: 0, level: 1, instances: [] };
+        }
+        gameState.cards[cardConfig.id].count++;
+        const uid = Formatter.uid();
+        gameState.cards[cardConfig.id].instances.push(uid);
+
+        // 记录稀有度获得
+        if (!gameState.stats.rarityObtained[cardConfig.rarity]) {
+            gameState.stats.rarityObtained[cardConfig.rarity] = true;
+        }
+        return uid;
+    },
+
+    // 获取卡牌等级倍率
+    getLevelMultiplier: function(level) {
+        return 1 + (level - 1) * 0.1;
+    },
+
+    // 获取卡牌配置
+    getCardConfig: function(cardId) {
+        return CARD_CONFIG.pool.find(c => c.id === cardId);
+    }
+};
+```
+
+#### 2. main.js 拆分
+
+当前 `main.js` 796 行，混合了状态管理、业务调度、DOM 渲染、事件绑定、动画效果。
+
+**拆分后**：
+
+| 文件 | 职责 | 从 main.js 提取 |
+|------|------|----------------|
+| `js/main.js` | 游戏初始化、状态管理、事件绑定 | `init`, `reset`, `save`, `load`, `state`, 事件回调 |
+| `js/ui/renderer.js` | 所有 DOM 渲染逻辑 | `render`, `_renderShop`, `_renderStats`, `_renderAchievements`, `_renderCollection`, `_renderShopTimer` |
+| `js/ui/components.js` | 可复用 UI 组件 | `_createToastContainer`, `showToast`, `_showClickFloat`, `_log` |
+| `js/ui/mobile.js` | 移动端标签 | `_initMobileTabs`, `switchTab`, `TAB_PANELS` |
+
+---
+
+### 重构批次计划
+
+重构按批次执行，每批独立测试保护：
+
+| 批次 | 内容 | 涉及文件 | 测试影响 |
+|------|------|---------|---------|
+| **批次0** | 新增 `GameUtils`（`hasCard` + `addCardToInventory`），在各系统中替换重复代码 | `utils/game-utils.js`, `gacha.js`, `shop.js`, `battle.js` | 小：行为不变，只是提取公共逻辑 |
+| **批次1** | 新增 `EffectRegistry` 骨架 + `init` / `register` / `trigger` 接口 | `systems/effect-registry.js` | 小：新增文件，不影响现有逻辑 |
+| **批次2** | PoC：迁移 2 张效果最复杂的卡（命运骰子 + 火焰宝石）到 EffectRegistry | `cards.js`, `effect-registry.js`, `gacha.js`, `battle.js` | 中：验证方案可行性 |
+| **批次3** | 全量迁移：剩余 9 张特殊卡牌效果 | `cards.js`, `effect-registry.js`, 各系统文件 | 中：清理所有硬编码 |
+| **批次4** | 系统清理：确认无遗留硬编码，删除已迁移的冗余代码 | 各系统文件 | 小：删除死代码 |
+| **批次5** | 拆分 `main.js` → `main.js` + `ui/*.js` | `main.js`, 新增 `ui/` 目录 | 中：UI 渲染逻辑迁移 |
+| **批次6** | 测试升级：测试中增加 `errorCode` 断言，减少中文文本依赖 | `tests/test-*.js` | 中：断言方式升级 |
+
+**批次 0-4 必须在主题化代码迁移（gold→points 等）之前完成**，因为 EffectRegistry 是基础设施。批次 5-6 可延后。
+
+---
+
+### 当前 11 张特殊卡牌的效果映射
+
+| 卡牌ID | 名称 | 当前硬编码位置 | 迁移后 effect.type | 迁移后 trigger |
+|--------|------|---------------|-------------------|---------------|
+| `ssr_001` | 创世之刃 | `StatSystem._getCardFlatBonuses` | `n_card_multiplier` | `stat_calc` |
+| `ssr_002` | 永恒王冠 | `AchievementSystem.getTotalPowerBonus` | `achievement_bonus` | `achievement_calc` |
+| `ssr_003` | 命运骰子 | `GachaSystem.draw` | `extra_draw` | `on_gacha_end` |
+| `ssr_004` | 虚空之眼 | ❌ 未实现 | `visible_hidden_achievements` | `ui_achievement` |
+| `sr_001` | 龙血剑 | `StatSystem._getCardFlatBonuses` | `synergy_bonus` | `stat_calc` |
+| `sr_002` | 龙鳞甲 | `StatSystem._getCardFlatBonuses` | `synergy_bonus` | `stat_calc` |
+| `sr_003` | 聚宝盆 | `BattleSystem._handleWin` | `stage_ticket_bonus` | `on_kill` |
+| `sr_004` | 时空沙漏 | `IdleSystem._getOfflineBonusPercent` | `offline_bonus` | `offline_calc` |
+| `sr_005` | 灵魂契约 | `BattleSystem._handleWin` | `kill_extra_drop` | `on_kill` |
+| `r_004` | 火焰宝石 | `BattleSystem._calcDamage` | `boss_damage_bonus` | `on_damage_calc` |
+| `r_005` | 疾风靴 | `StatSystem._getCardFlatBonuses` | `dodge_rate_bonus` | `stat_calc` |
+| `r_006` | 生命护符 | `StatSystem._getCardFlatBonuses` | `flat_stat_bonus` | `stat_calc` |
+
+---
+
 ## 📝 开发规范
 
 ### 命名约定
