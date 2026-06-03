@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IDLE - 网页放置游戏</title>
+    <title>INFINITE — 无限流放置</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="app">
         <header>
-            <h1>IDLE</h1>
+            <h1>INFINITE</h1>
             <div id="resources">
                 <span>💰 <span id="gold">0</span> 系统点</span>
                 <span>🎫 <span id="tickets">0</span> 世界碎片</span>
@@ -18,7 +18,7 @@
 
         <main>
             <section id="gacha-panel">
-                <h2>🎲 抽卡</h2>
+                <h2>🎲 次元抽取</h2>
                 <div class="gacha-buttons">
                     <button id="gacha-btn" onclick="game.gacha(1)">单抽 (1 🎫)</button>
                     <button id="gacha-10-btn" onclick="game.gacha(10)">十连抽 (10 🎫)</button>
@@ -27,7 +27,7 @@
             </section>
 
             <section id="battle-panel">
-                <h2>⚔️ 竞技</h2>
+                <h2>⚔️ 位面征战</h2>
                 <div id="world-info">
                     <div>当前世界: <span id="current-world">世界1</span></div>
                     <div>关卡: <span id="current-stage">世界1 · 第1关</span></div>
@@ -46,12 +46,12 @@
             </section>
 
             <section id="cards-panel">
-                <h2>🃏 我的卡牌</h2>
+                <h2>🃏 遗物背包</h2>
                 <div id="cards-list"></div>
             </section>
 
             <section id="stats-panel">
-                <h2>📊 角色属性</h2>
+                <h2>📊 轮回者属性</h2>
                 <div id="stats-content">
                     <div class="stat-summary">
                         <div class="stat-big">⚔️ 有效战力: <span id="effective-power">10</span></div>
@@ -63,12 +63,12 @@
             </section>
 
             <section id="achievements-panel">
-                <h2>🏆 成就 <small id="achievement-bonus" class="bonus-badge">+0%</small></h2>
+                <h2>🏆 轮回成就 <small id="achievement-bonus" class="bonus-badge">+0%</small></h2>
                 <div id="achievements-list"></div>
             </section>
 
             <section id="life-panel">
-                <h2>🏠 生活</h2>
+                <h2>🏠 系统收益</h2>
                 <div id="life-content">
                     <div id="click-section">
                         <button id="click-btn" onclick="game.click()">💰 赚系统点</button>
@@ -95,7 +95,7 @@
             </section>
 
             <section id="shop-panel">
-                <h2>🛒 商店</h2>
+                <h2>🛒 系统商城</h2>
                 <div id="shop-content">
                     <div id="shop-timer">下次刷新: <span id="refresh-timer">20:00</span></div>
                     <div id="shop-items"></div>
@@ -103,7 +103,7 @@
                 </div>
             </section>
             <section id="log-panel">
-                <h2>📜 日志</h2>
+                <h2>📜 位面日志</h2>
                 <div id="log-list"></div>
             </section>
         </main>
@@ -117,19 +117,19 @@
         <nav class="mobile-tabs" id="mobile-tabs">
             <button class="mobile-tab active" data-tab="gacha" onclick="game.switchTab('gacha')">
                 <span class="tab-icon">🎲</span>
-                <span>抽卡</span>
+                <span>抽取</span>
             </button>
             <button class="mobile-tab" data-tab="battle" onclick="game.switchTab('battle')">
                 <span class="tab-icon">⚔️</span>
-                <span>战斗</span>
+                <span>征战</span>
             </button>
             <button class="mobile-tab" data-tab="cards" onclick="game.switchTab('cards')">
                 <span class="tab-icon">🃏</span>
-                <span>卡牌</span>
+                <span>背包</span>
             </button>
             <button class="mobile-tab" data-tab="life" onclick="game.switchTab('life')">
                 <span class="tab-icon">🏠</span>
-                <span>生活</span>
+                <span>收益</span>
             </button>
             <button class="mobile-tab" data-tab="log" onclick="game.switchTab('log')">
                 <span class="tab-icon">📜</span>

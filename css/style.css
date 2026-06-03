@@ -1,62 +1,60 @@
-/* ===== IDLE Game - Modern Dark Theme ===== */
-/* Design: Glassmorphism cards, gradient accents, rarity glows */
+/* ===== INFINITE — 科幻终端主题 ===== */
+/* Design: Sci-fi terminal, dark backgrounds, cyan glows, monospace accents */
 
 /* ===== CSS Variables ===== */
 :root {
-    /* Backgrounds */
-    --bg: #0b0b14;
-    --bg-gradient-start: #0f0c29;
-    --bg-gradient-mid: #302b63;
-    --bg-gradient-end: #24243e;
-    --bg-panel: rgba(255, 255, 255, 0.04);
-    --bg-panel-hover: rgba(255, 255, 255, 0.07);
-    --bg-card: rgba(255, 255, 255, 0.06);
-    --bg-card-hover: rgba(255, 255, 255, 0.1);
-    --bg-elevated: rgba(255, 255, 255, 0.08);
-    --bg-input: rgba(0, 0, 0, 0.25);
+    /* Backgrounds — 深蓝黑终端风 */
+    --bg: #0a0a1a;
+    --bg-panel: #161b22;
+    --bg-panel-hover: #1c2128;
+    --bg-card: #1a1a2e;
+    --bg-card-hover: #1f1f35;
+    --bg-elevated: #21262d;
+    --bg-input: #0d1117;
 
-    /* Accents */
-    --accent: #ff6b9d;
-    --accent-rgb: 255, 107, 157;
-    --accent2: #c44569;
-    --accent-gradient: linear-gradient(135deg, #ff6b9d, #c44569);
+    /* Accents — 荧光蓝 */
+    --accent: #00d4ff;
+    --accent-rgb: 0, 212, 255;
+    --accent2: #58a6ff;
+    --accent-dim: rgba(0, 212, 255, 0.15);
+    --accent-glow: 0 0 10px rgba(0, 212, 255, 0.4);
 
     /* Text */
-    --text: #e8e8f0;
-    --text-dim: #9ca3af;
-    --text-muted: #6b7280;
-    --text-inverse: #0b0b14;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --text-muted: #6e7681;
+    --text-inverse: #0a0a1a;
 
-    /* Rarity Colors */
+    /* Rarity Colors — 保持原有 */
     --rarity-n: #8b92a8;
-    --rarity-r: #4ecdc4;
-    --rarity-sr: #a855f7;
-    --rarity-ssr: #ffd700;
+    --rarity-r: #4fc3f7;
+    --rarity-sr: #ba68c8;
+    --rarity-ssr: #ffd54f;
     --rarity-n-glow: rgba(139, 146, 168, 0.3);
-    --rarity-r-glow: rgba(78, 205, 196, 0.35);
-    --rarity-sr-glow: rgba(168, 85, 247, 0.4);
-    --rarity-ssr-glow: rgba(255, 215, 0, 0.5);
+    --rarity-r-glow: rgba(79, 195, 247, 0.35);
+    --rarity-sr-glow: rgba(186, 104, 200, 0.4);
+    --rarity-ssr-glow: rgba(255, 213, 79, 0.5);
 
     /* Semantic */
     --success: #00d2a0;
     --success-dim: rgba(0, 210, 160, 0.15);
     --danger: #ff4757;
     --danger-dim: rgba(255, 71, 87, 0.15);
-    --warning: #ffd700;
-    --warning-dim: rgba(255, 215, 0, 0.15);
-    --info: #4ecdc4;
+    --warning: #ffd54f;
+    --warning-dim: rgba(255, 213, 79, 0.15);
+    --info: #58a6ff;
 
     /* Borders & Shadows */
-    --border: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.15);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 20px rgba(var(--accent-rgb), 0.3);
-    --radius-sm: 6px;
-    --radius: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
+    --border: #30363d;
+    --border-strong: #484f58;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+    --shadow-glow: 0 0 20px rgba(var(--accent-rgb), 0.2);
+    --radius-sm: 4px;
+    --radius: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
 
     /* Spacing */
     --space-xs: 4px;
@@ -68,7 +66,7 @@
 
     /* Typography */
     --font-sans: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    --font-mono: 'SF Mono', 'Fira Code', 'Consolas', 'Courier New', monospace;
     --text-xs: 0.7rem;
     --text-sm: 0.8rem;
     --text-base: 0.95rem;
@@ -103,9 +101,8 @@ html {
 body {
     background: var(--bg);
     background-image:
-        radial-gradient(ellipse at 20% 20%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(78, 205, 196, 0.04) 0%, transparent 60%);
+        radial-gradient(ellipse at 20% 0%, rgba(0, 212, 255, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(88, 166, 255, 0.03) 0%, transparent 50%);
     color: var(--text);
     font-family: var(--font-sans);
     font-size: var(--text-base);
@@ -130,8 +127,6 @@ header {
     align-items: center;
     padding: var(--space-md) var(--space-lg);
     background: var(--bg-panel);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     margin-bottom: var(--space-lg);
@@ -139,22 +134,21 @@ header {
     position: sticky;
     top: var(--space-sm);
     z-index: 50;
-    transition: box-shadow var(--transition-base);
+    transition: box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
 header:hover {
-    box-shadow: var(--shadow-md), 0 0 30px rgba(var(--accent-rgb), 0.1);
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
 header h1 {
     font-size: var(--text-2xl);
     font-weight: 800;
-    background: var(--accent-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.5px;
-    text-shadow: none;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
+    font-family: var(--font-mono);
 }
 
 #resources {
@@ -172,6 +166,7 @@ header h1 {
     background: var(--bg-card);
     border-radius: var(--radius-sm);
     border: 1px solid var(--border);
+    font-family: var(--font-mono);
 }
 
 #resources span span {
@@ -196,8 +191,6 @@ main {
 /* ===== Sections / Panels ===== */
 section {
     background: var(--bg-panel);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
@@ -220,59 +213,44 @@ section h2 {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
+    font-family: var(--font-mono);
 }
 
-/* ===== Buttons ===== */
+/* ===== Buttons — 科幻终端风 ===== */
 button {
-    background: var(--accent-gradient);
-    color: #fff;
-    border: none;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
     padding: 12px 24px;
     border-radius: var(--radius);
     cursor: pointer;
     font-size: var(--text-base);
     font-weight: 600;
-    font-family: inherit;
+    font-family: var(--font-mono);
     transition: all var(--transition-fast);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.25);
-}
-
-button::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-    opacity: 0;
-    transition: opacity var(--transition-fast);
 }
 
 button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(var(--accent-rgb), 0.4);
-}
-
-button:hover::before {
-    opacity: 1;
+    background: var(--accent-dim);
+    box-shadow: var(--accent-glow);
+    text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
 }
 
 button:active {
-    transform: translateY(0) scale(0.97);
+    transform: scale(0.97);
 }
 
 button:disabled {
-    background: linear-gradient(135deg, #4a4a5a, #3a3a4a);
+    background: transparent;
     color: var(--text-muted);
+    border-color: var(--text-muted);
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
     box-shadow: none;
-    transform: none;
-}
-
-button:disabled::before {
-    display: none;
+    text-shadow: none;
 }
 
 /* ===== Gacha Panel ===== */
@@ -289,24 +267,32 @@ button:disabled::before {
 }
 
 #gacha-btn {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+#gacha-btn:hover {
+    background: var(--accent-dim);
+    box-shadow: var(--accent-glow);
 }
 
 #gacha-10-btn {
-    background: linear-gradient(135deg, #ffd700, #ffb347);
-    color: var(--text-inverse);
+    border-color: var(--warning);
+    color: var(--warning);
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
 }
 
 #gacha-10-btn:hover {
-    box-shadow: 0 6px 24px rgba(255, 215, 0, 0.45);
+    background: var(--warning-dim);
+    box-shadow: 0 0 10px rgba(255, 213, 79, 0.4);
+    text-shadow: 0 0 8px rgba(255, 213, 79, 0.6);
 }
 
 #gacha-10-btn:disabled {
-    background: linear-gradient(135deg, #4a4a5a, #3a3a4a);
+    border-color: var(--text-muted);
     color: var(--text-muted);
     box-shadow: none;
+    text-shadow: none;
 }
 
 #gacha-result {
@@ -354,7 +340,7 @@ button:disabled::before {
 
 .card-item:hover {
     background: var(--bg-card-hover);
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-1px);
 }
 
 .card-item small {
@@ -388,17 +374,17 @@ button:disabled::before {
 
 .rarity-SSR {
     border-color: var(--rarity-ssr);
-    box-shadow: 0 0 16px var(--rarity-ssr-glow), 0 0 32px rgba(255, 215, 0, 0.15);
+    box-shadow: 0 0 16px var(--rarity-ssr-glow), 0 0 32px rgba(255, 213, 79, 0.15);
     animation: ssrPulse 2s ease-in-out infinite;
 }
 
 .rarity-SSR:hover {
-    box-shadow: 0 0 24px var(--rarity-ssr-glow), 0 0 48px rgba(255, 215, 0, 0.25);
+    box-shadow: 0 0 24px var(--rarity-ssr-glow), 0 0 48px rgba(255, 213, 79, 0.25);
 }
 
 @keyframes ssrPulse {
-    0%, 100% { box-shadow: 0 0 16px var(--rarity-ssr-glow), 0 0 32px rgba(255, 215, 0, 0.15); }
-    50% { box-shadow: 0 0 24px var(--rarity-ssr-glow), 0 0 48px rgba(255, 215, 0, 0.25); }
+    0%, 100% { box-shadow: 0 0 16px var(--rarity-ssr-glow), 0 0 32px rgba(255, 213, 79, 0.15); }
+    50% { box-shadow: 0 0 24px var(--rarity-ssr-glow), 0 0 48px rgba(255, 213, 79, 0.25); }
 }
 
 @keyframes popIn {
@@ -431,12 +417,14 @@ button:disabled::before {
     min-height: 48px;
     font-size: var(--text-lg);
     font-weight: 700;
-    background: linear-gradient(135deg, #00d2a0, #00b894);
-    box-shadow: 0 4px 15px rgba(0, 210, 160, 0.25);
+    border-color: var(--success);
+    color: var(--success);
 }
 
 #battle-btn:hover {
-    box-shadow: 0 6px 24px rgba(0, 210, 160, 0.4);
+    background: var(--success-dim);
+    box-shadow: 0 0 10px rgba(0, 210, 160, 0.4);
+    text-shadow: 0 0 8px rgba(0, 210, 160, 0.6);
 }
 
 #battle-result {
@@ -496,7 +484,6 @@ button:disabled::before {
 .owned-card:hover {
     background: var(--bg-card-hover);
     border-color: var(--border-strong);
-    transform: translateY(-1px);
 }
 
 .owned-card .level {
@@ -504,9 +491,10 @@ button:disabled::before {
     font-size: var(--text-xs);
     font-weight: 700;
     margin-left: var(--space-xs);
-    background: rgba(var(--accent-rgb), 0.15);
+    background: var(--accent-dim);
     padding: 1px 6px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
 }
 
 .owned-card small {
@@ -540,6 +528,7 @@ button:disabled::before {
     font-size: var(--text-xl);
     font-weight: 700;
     color: var(--text);
+    font-family: var(--font-mono);
 }
 
 .stat-big span {
@@ -584,6 +573,7 @@ button:disabled::before {
     font-size: var(--text-sm);
     font-weight: 700;
     color: var(--accent);
+    font-family: var(--font-mono);
 }
 
 /* ===== Achievements Panel ===== */
@@ -631,21 +621,24 @@ button:disabled::before {
     font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
+    font-family: var(--font-mono);
 }
 
 .bonus-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
+    background: transparent;
+    color: var(--warning);
+    border: 1px solid var(--warning);
     padding: 2px 8px;
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     font-size: 12px;
     font-weight: bold;
     margin-left: 8px;
     vertical-align: middle;
+    font-family: var(--font-mono);
 }
 
-/* ===== Toast Notifications ===== */
+/* ===== Toast Notifications — 深色+发光边框 ===== */
 #toast-container {
     position: fixed;
     top: var(--space-lg);
@@ -660,24 +653,20 @@ button:disabled::before {
 
 .toast {
     background: var(--bg-panel);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
     border-left: 4px solid var(--accent);
     padding: 14px 18px;
     border-radius: var(--radius);
-    box-shadow: var(--shadow-lg), 0 0 30px rgba(0,0,0,0.3);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 212, 255, 0.1);
     animation: slideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     font-size: var(--text-sm);
     line-height: 1.6;
     pointer-events: auto;
-    border-top: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
 }
 
 .toast.achievement-toast {
     border-left-color: var(--warning);
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), var(--bg-panel));
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(255, 213, 79, 0.15);
 }
 
 @keyframes slideIn {
@@ -702,33 +691,28 @@ button:disabled::before {
 #click-btn {
     font-size: var(--text-lg);
     padding: 18px 40px;
-    border-radius: var(--radius-xl);
-    background: linear-gradient(135deg, var(--accent), var(--accent2), #ff6b9d);
-    background-size: 200% 200%;
-    animation: gradientShift 3s ease infinite;
-    box-shadow: 0 6px 24px rgba(var(--accent-rgb), 0.35), var(--shadow-glow);
+    border-radius: var(--radius);
+    border-color: var(--accent);
+    color: var(--accent);
     min-height: 56px;
     min-width: 180px;
 }
 
 #click-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 32px rgba(var(--accent-rgb), 0.45), var(--shadow-glow);
+    background: var(--accent-dim);
+    box-shadow: var(--accent-glow);
+    text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
 }
 
 #click-btn:active {
-    transform: translateY(0) scale(0.96);
-}
-
-@keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    transform: scale(0.96);
 }
 
 #click-info, #idle-info {
     color: var(--text-dim);
     font-size: var(--text-sm);
     text-align: center;
+    font-family: var(--font-mono);
 }
 
 #idle-info span span {
@@ -849,6 +833,7 @@ button:disabled::before {
     font-weight: 700;
     font-size: var(--text-sm);
     white-space: nowrap;
+    font-family: var(--font-mono);
 }
 
 .shop-item button {
@@ -864,16 +849,16 @@ button:disabled::before {
     font-size: var(--text-sm);
     background: var(--bg-card);
     border: 1px solid var(--border);
-    color: var(--text);
+    color: var(--text-dim);
     font-weight: 600;
-    box-shadow: none;
     min-height: 44px;
 }
 
 #refresh-shop-btn:hover {
     background: var(--bg-card-hover);
     border-color: var(--border-strong);
-    box-shadow: var(--shadow-sm);
+    color: var(--text);
+    box-shadow: none;
 }
 
 /* ===== Collection Panel ===== */
@@ -888,6 +873,7 @@ button:disabled::before {
     font-weight: 600;
     border: 1px solid var(--border);
     flex-wrap: wrap;
+    font-family: var(--font-mono);
 }
 
 .collection-progress > div {
@@ -913,13 +899,13 @@ button:disabled::before {
 
 .set-item:hover {
     background: var(--bg-card-hover);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
 
 .set-item.set-complete {
     border-left-color: var(--success);
-    background: linear-gradient(135deg, var(--success-dim), var(--bg-card));
+    background: linear-gradient(90deg, var(--success-dim), var(--bg-card));
 }
 
 .set-item.set-incomplete {
@@ -953,7 +939,7 @@ button:disabled::before {
     color: var(--text-muted);
     background: var(--bg-input);
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     font-family: var(--font-mono);
 }
 
@@ -975,7 +961,7 @@ button:disabled::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--space-xs);
+    border-radius: var(--radius-sm);
     background: var(--bg-input);
     font-size: var(--text-sm);
     cursor: help;
@@ -1067,7 +1053,7 @@ button:disabled::before {
     font-weight: 700;
 }
 
-/* ===== Log Panel ===== */
+/* ===== Log Panel — 终端风格 ===== */
 #log-panel {
     max-height: 240px;
     overflow: hidden;
@@ -1083,6 +1069,7 @@ button:disabled::before {
     background: var(--bg-input);
     border-radius: var(--radius);
     border: 1px solid var(--border);
+    font-family: var(--font-mono);
 }
 
 .log-entry {
@@ -1155,7 +1142,6 @@ footer button {
     background: var(--bg-card);
     border: 1px solid var(--border);
     color: var(--text-dim);
-    box-shadow: none;
     font-weight: 500;
 }
 
@@ -1163,7 +1149,8 @@ footer button:hover {
     background: var(--bg-card-hover);
     color: var(--text);
     border-color: var(--border-strong);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
+    text-shadow: none;
 }
 
 /* ===== Loading States ===== */
@@ -1177,7 +1164,7 @@ footer button:hover {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(11, 11, 20, 0.5);
+    background: rgba(10, 10, 26, 0.5);
     border-radius: inherit;
     display: flex;
     align-items: center;
@@ -1219,14 +1206,12 @@ footer button:hover {
     right: 0;
     height: var(--mobile-tab-height);
     background: var(--bg-panel);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--border);
     z-index: 100;
     justify-content: space-around;
     align-items: center;
     padding: 0 var(--space-sm);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .mobile-tab {
@@ -1246,6 +1231,7 @@ footer button:hover {
     min-width: 56px;
     min-height: 48px;
     box-shadow: none;
+    font-family: var(--font-mono);
 }
 
 .mobile-tab:hover {
@@ -1257,7 +1243,7 @@ footer button:hover {
 
 .mobile-tab.active {
     color: var(--accent);
-    background: rgba(var(--accent-rgb), 0.1);
+    background: var(--accent-dim);
 }
 
 .mobile-tab .tab-icon {
@@ -1407,8 +1393,8 @@ a:focus-visible {
         --space-lg: 12px;
         --space-md: 10px;
         --space-sm: 6px;
-        --radius-lg: 12px;
-        --radius: 10px;
+        --radius-lg: 8px;
+        --radius: 6px;
     }
 
     #app {

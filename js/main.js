@@ -63,7 +63,7 @@ const Game = {
         };
         this.save();
         this.render();
-        this.showToast('游戏已重置', 'info');
+        this.showToast('系统已重置', 'info');
     },
 
     // 保存
@@ -322,7 +322,7 @@ const Game = {
                 cardsDiv.appendChild(el);
             }
             if (cardsDiv.children.length === 0) {
-                cardsDiv.innerHTML = '<span style="color:#888">暂无卡牌，快去抽卡吧！</span>';
+                cardsDiv.innerHTML = '<span style="color:#888">背包为空，快去次元抽取吧！</span>';
             }
         }
 
