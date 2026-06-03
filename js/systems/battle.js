@@ -136,12 +136,11 @@ const BattleSystem = {
         // 基础伤害 = 攻击者攻击力 - 防御者防御力（至少为1）
         let damage = Math.max(1, attacker.power - defender.defense * 0.5);
 
-        // 对BOSS增伤（r_004 火焰宝石: +20%对BOSS伤害）
-        if (isPlayer && stage && stage.isBoss && gameState) {
-            const hasFlameGem = gameState.cards['r_004'] && gameState.cards['r_004'].count > 0;
-            if (hasFlameGem) {
-                damage = Math.floor(damage * 1.2);
-            }
+        // 触发伤害计算效果（如火焰宝石对BOSS增伤）
+        if (isPlayer && gameState) {
+            const context = { damage, isPlayer, isBoss: stage && stage.isBoss };
+            EffectRegistry.trigger('on_damage_calc', gameState, context);
+            damage = context.damage;
         }
 
         // 暴击判定

@@ -5,6 +5,11 @@ const Game = {
 
     // 初始化
     init: function() {
+        // 初始化效果注册表（必须在任何系统操作之前）
+        if (typeof EffectRegistry !== 'undefined' && EffectRegistry.init) {
+            EffectRegistry.init();
+        }
+
         this.load();
         if (!this.state) {
             this.reset();

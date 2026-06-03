@@ -57,7 +57,7 @@ const CARD_CONFIG = {
         { id: 'r_001', name: '精钢剑', rarity: 'R', basePower: 12, effect: 'power', desc: '攻击力 +12' },
         { id: 'r_002', name: '骑士盾', rarity: 'R', basePower: 10, effect: 'defense', desc: '防御力 +10' },
         { id: 'r_003', name: '幸运金币', rarity: 'R', basePower: 5, effect: 'gold', desc: '金币产出 +5，抽卡券产出 +1' },
-        { id: 'r_004', name: '火焰宝石', rarity: 'R', basePower: 15, effect: 'power', desc: '攻击力 +15，对BOSS伤害+20%' },
+        { id: 'r_004', name: '火焰宝石', rarity: 'R', basePower: 15, effect: 'power', desc: '攻击力 +15，对BOSS伤害+20%', effects: [{ type: 'boss_damage_bonus', value: 0.2, trigger: 'on_damage_calc' }] },
         { id: 'r_005', name: '疾风靴', rarity: 'R', basePower: 8, effect: 'speed', desc: '先攻+1，闪避+5%' },
         { id: 'r_006', name: '生命护符', rarity: 'R', basePower: 8, effect: 'heal', desc: '每关恢复 +8，生命上限+20' },
 
@@ -71,7 +71,7 @@ const CARD_CONFIG = {
         // SSR 卡 - 核心驱动
         { id: 'ssr_001', name: '创世之刃', rarity: 'SSR', basePower: 80, effect: 'power', desc: '攻击力 +80，所有N卡效果翻倍' },
         { id: 'ssr_002', name: '永恒王冠', rarity: 'SSR', basePower: 50, effect: 'gold', desc: '金币产出 +50，成就奖励+30%' },
-        { id: 'ssr_003', name: '命运骰子', rarity: 'SSR', basePower: 30, effect: 'utility', desc: '抽卡时10%概率额外抽1张，且稀有度+1' },
+        { id: 'ssr_003', name: '命运骰子', rarity: 'SSR', basePower: 30, effect: 'utility', desc: '抽卡时10%概率额外抽1张，且稀有度+1', effects: [{ type: 'extra_draw', chance: 0.1, trigger: 'on_gacha_end', rarityUp: true }] },
         { id: 'ssr_004', name: '虚空之眼', rarity: 'SSR', basePower: 60, effect: 'power', desc: '攻击力 +60，可看到隐藏成就的提示' },
     ],
 

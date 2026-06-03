@@ -19,7 +19,6 @@ const GachaSystem = {
         gameState.stats.gachaCount += count;
 
         const cards = [];
-        const hasDice = GameUtils.hasCard(gameState, 'ssr_003');
 
         for (let i = 0; i < count; i++) {
             const isLastOfTen = (count === 10 && i === 9);
@@ -28,10 +27,16 @@ const GachaSystem = {
             cards.push(card);
             // 检查保底相关
             this._updateStreaks(gameState, card.rarity);
+        }
 
-            // ssr_003 命运骰子: 10%概率额外抽1张，且稀有度+1
-            if (hasDice && Math.random() < 0.1) {
-                const extraCard = this._rollCard(gameState, false, false, true); // rarityUp=true
+        // 触发抽卡结束效果（如命运骰子的额外抽卡）
+        const context = { cards, count };
+        EffectRegistry.trigger('on_gacha_end', gameState, context);
+
+        // 处理额外抽卡
+        if (context.extraDraws && context.extraDraws.length > 0) {
+            for (const extra of context.extraDraws) {
+                const extraCard = this._rollCard(gameState, false, false, extra.rarityUp);
                 this._addCard(gameState, extraCard);
                 cards.push(extraCard);
                 this._updateStreaks(gameState, extraCard.rarity);

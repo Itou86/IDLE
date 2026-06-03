@@ -94,12 +94,16 @@ loadJS('../js/config/stats.js');
 loadJS('../js/utils/formatter.js');
 loadJS('../js/utils/game-utils.js');
 loadJS('../js/systems/save.js');
+loadJS('../js/systems/effect-registry.js');
 loadJS('../js/systems/gacha.js');
 loadJS('../js/systems/battle.js');
 loadJS('../js/systems/achievement.js');
 loadJS('../js/systems/idle.js');
 loadJS('../js/systems/shop.js');
 loadJS('../js/systems/stats.js');
+
+// 初始化效果注册表（必须在测试运行前）
+vm.runInContext('if (typeof EffectRegistry !== "undefined" && EffectRegistry.init) EffectRegistry.init();', context);
 
 // ===== 加载测试框架 =====
 loadJS('test-framework.js');

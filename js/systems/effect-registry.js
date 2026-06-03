@@ -65,12 +65,27 @@ const EffectRegistry = {
         switch (type) {
             // 抽卡时额外抽 N 张
             case 'extra_draw':
-                ctx.extraDrawCount = (ctx.extraDrawCount || 0) + (effect.value || 0);
+                // 支持概率触发（如命运骰子：每次抽卡10%概率额外抽1张）
+                const drawCount = ctx.count || 1;
+                let triggered = 0;
+                for (let i = 0; i < drawCount; i++) {
+                    if (!effect.chance || Math.random() < effect.chance) {
+                        triggered++;
+                    }
+                }
+                if (triggered > 0) {
+                    if (!ctx.extraDraws) ctx.extraDraws = [];
+                    for (let i = 0; i < triggered; i++) {
+                        ctx.extraDraws.push({ rarityUp: !!effect.rarityUp });
+                    }
+                }
                 break;
 
             // 对 Boss 伤害加成（百分比）
             case 'boss_damage_bonus':
-                ctx.bossDamageBonus = (ctx.bossDamageBonus || 0) + (effect.value || 0);
+                if (ctx.isBoss && ctx.damage !== undefined) {
+                    ctx.damage = Math.floor(ctx.damage * (1 + (effect.value || 0)));
+                }
                 break;
 
             // N 卡效果倍率（如创世之刃：N卡效果翻倍）
