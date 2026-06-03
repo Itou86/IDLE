@@ -229,9 +229,3 @@ const StatSystem = {
         return Formatter.number(value);
     }
 };
-
-// 全局暴露
-// 全局暴露（兼容浏览器和Node.js测试环境）
-if (typeof window !== 'undefined') {
-    window.StatSystem = StatSystem;
-}

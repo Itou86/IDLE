@@ -17,7 +17,7 @@ const STAGE_CONFIG = {
 
     // ===== 关卡生成 =====
 
-    // 生成指定世界和子关卡的敌人属性
+    // 公共方法：生成指定世界和子关卡的敌人属性
     generate: function(world, subStage) {
         world = parseInt(world, 10) || 1;
         subStage = parseInt(subStage, 10) || 1;
@@ -58,7 +58,7 @@ const STAGE_CONFIG = {
         };
     },
 
-    // 获取世界名称（占位，后续替换为实际作品名）
+    // 公共方法：获取世界名称（占位，后续替换为实际作品名）
     getWorldName: function(world) {
         const worldNames = {
             1: '世界1'
@@ -66,19 +66,19 @@ const STAGE_CONFIG = {
         return worldNames[world] || `世界${world}`;
     },
 
-    // 获取关卡信息（兼容旧版接口）
+    // 公共方法：获取关卡信息（兼容旧版接口）
     getStage: function(world, subStage) {
         return this.generate(world, subStage);
     },
 
-    // 获取当前可挑战的关卡信息
+    // 公共方法：获取当前可挑战的关卡信息
     getCurrentStageInfo: function(gameState) {
         const world = gameState.world || 1;
         const subStage = gameState.subStage || 1;
         return this.generate(world, subStage);
     },
 
-    // 检查是否可以进入下一世界
+    // 公共方法：检查是否可以进入下一世界
     canUnlockNextWorld: function(gameState) {
         const world = gameState.world || 1;
         const progress = gameState.worldProgress || {};
@@ -86,7 +86,7 @@ const STAGE_CONFIG = {
         return highestSubStage >= this.UNLOCK_NEXT_WORLD_AT;
     },
 
-    // 检查指定关卡是否已解锁
+    // 公共方法：检查指定关卡是否已解锁
     isStageUnlocked: function(gameState, world, subStage) {
         const currentWorld = gameState.world || 1;
         const currentSubStage = gameState.subStage || 1;
@@ -103,7 +103,7 @@ const STAGE_CONFIG = {
         return subStage <= (progress[world] || 0) + 1;
     },
 
-    // 计算总关卡数（用于成就等）
+    // 公共方法：计算总关卡数（用于成就等）
     getTotalStage: function(gameState) {
         const world = gameState.world || 1;
         const subStage = gameState.subStage || 1;

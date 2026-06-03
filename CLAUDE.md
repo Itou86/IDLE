@@ -10,7 +10,7 @@
 
 | 属性 | 值 |
 |------|-----|
-| 项目路径 | `/mnt/d/Work/IDLE` |
+| 项目路径 | `D:\Work\IDLE`（Windows）/ `/mnt/d/Work/IDLE`（WSL） |
 | 技术栈 | 纯 HTML + CSS + JavaScript（Vanilla JS） |
 | 存储 | localStorage |
 | 核心循环 | 抽卡 → 竞技 → 奖励 → 再抽卡 |
@@ -29,7 +29,7 @@ IDLE/
 │   ├── main.js             # 游戏主入口、UI渲染、事件绑定
 │   ├── config/
 │   │   ├── cards.js        # CARD_CONFIG：23张卡 + 4套装
-│   │   ├── achievements.js # ACHIEVEMENT_CONFIG：70个成就定义
+│   │   ├── achievements.js # ACHIEVEMENT_CONFIG：68个成就定义
 │   │   ├── stages.js       # STAGE_CONFIG：关卡生成规则
 │   │   └── stats.js        # STAT_CONFIG：11种属性定义
 │   ├── systems/
@@ -45,7 +45,7 @@ IDLE/
 ├── tests/
 │   ├── index.html          # 测试套件入口
 │   ├── test-framework.js   # TestRunner + Assert
-│   ├── test-*.js           # 各系统测试文件（9个，191用例）
+│   ├── test-*.js           # 各系统测试文件（10个，192用例）
 │   └── run-node.js         # Node.js 运行测试（可选）
 ├── AGENTS.md               # 游戏设计文档（做什么）
 ├── CLAUDE.md               # AI 开发脚手架（怎么做）

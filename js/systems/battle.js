@@ -1,6 +1,6 @@
 /* ===== 战斗系统（无限流世界版） ===== */
 const BattleSystem = {
-    // 进行一场战斗（回合制）
+    // 公共方法：进行一场战斗（回合制）
     // world, subStage: 可选，挑战指定关卡；不传则挑战当前进度关卡
     fight: function(gameState, world, subStage) {
         // 向后兼容：如果只传一个参数，视为旧版线性关卡号
@@ -102,7 +102,7 @@ const BattleSystem = {
         return this._handleLoss(gameState, stage, enemyPower, stats, log, round);
     },
 
-    // 计算敌人属性
+    // 内部：计算敌人属性
     _calcEnemyStats: function(enemyPower, isBoss) {
         // 敌人属性基于战力分配
         const attackRatio = isBoss ? 0.6 : 0.7;
@@ -131,7 +131,7 @@ const BattleSystem = {
         };
     },
 
-    // 计算单次攻击伤害
+    // 内部：计算单次攻击伤害
     _calcDamage: function(attacker, defender, isPlayer, gameState, stage) {
         // 基础伤害 = 攻击者攻击力 - 防御者防御力（至少为1）
         let damage = Math.max(1, attacker.power - defender.defense * 0.5);
@@ -173,14 +173,14 @@ const BattleSystem = {
         return { damage: Math.floor(damage), isCrit, isMiss };
     },
 
-    // BOSS特殊攻击（第3回合大招）
+    // 内部：BOSS特殊攻击（第3回合大招）
     _calcBossSpecial: function(enemy, playerStats) {
         // BOSS大招 = 普通攻击 × 1.5（无视部分防御）
         const damage = Math.max(1, Math.floor(enemy.power * 1.5 - playerStats.defense * 0.3));
         return { damage };
     },
 
-    // 处理胜利
+    // 内部：处理胜利
     _handleWin: function(gameState, stage, enemyPower, playerStats, log, rounds) {
         const goldReward = stage.reward.gold;
         const ticketReward = stage.reward.tickets;
@@ -251,7 +251,7 @@ const BattleSystem = {
         };
     },
 
-    // 处理失败
+    // 内部：处理失败
     _handleLoss: function(gameState, stage, enemyPower, playerStats, log, rounds) {
         gameState.stats.battleLose++;
         gameState.stats.loseStreak++;
@@ -273,7 +273,7 @@ const BattleSystem = {
         };
     },
 
-    // 战斗掉落卡牌
+    // 内部：战斗掉落卡牌
     _dropCard: function(gameState, worldId) {
         // 按稀有度概率掉落
         const rand = Math.random();
@@ -305,7 +305,7 @@ const BattleSystem = {
         return card;
     },
 
-    // 获取当前关卡信息
+    // 公共方法：获取当前关卡信息
     getCurrentStageInfo: function(gameState) {
         const world = gameState.world || 1;
         const subStage = gameState.subStage || 1;
@@ -336,12 +336,12 @@ const BattleSystem = {
         };
     },
 
-    // 获取指定关卡信息（用于预览/选择）
+    // 公共方法：获取指定关卡信息（用于预览/选择）
     getStageInfo: function(gameState, world, subStage) {
         return STAGE_CONFIG.generate(world, subStage);
     },
 
-    // 恢复玩家HP（战斗后调用）
+    // 公共方法：恢复玩家HP（战斗后调用）
     healAfterBattle: function(gameState) {
         return true;
     },

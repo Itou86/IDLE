@@ -480,6 +480,7 @@ const Game = {
 
     // ===== 生活 / 放置 =====
 
+    // 公共方法：点击赚钱
     click: function() {
         const earned = IdleSystem.click(this.state);
         this._checkAchievements();
@@ -503,6 +504,7 @@ const Game = {
         }
     },
 
+    // 内部：显示点击浮动文字效果
     _showClickFloat: function(amount) {
         const btn = document.getElementById('click-btn');
         if (!btn) return;
@@ -523,6 +525,7 @@ const Game = {
         setTimeout(() => float.remove(), 800);
     },
 
+    // 公共方法：购买升级A
     buyClickUpgrade: function() {
         const result = IdleSystem.buyClickUpgrade(this.state);
         if (!result.success) {
@@ -534,6 +537,7 @@ const Game = {
         this.render();
     },
 
+    // 公共方法：购买升级B
     buyAutoUpgrade: function() {
         const result = IdleSystem.buyAutoUpgrade(this.state);
         if (!result.success) {
@@ -547,6 +551,7 @@ const Game = {
 
     // ===== 商店 =====
 
+    // 公共方法：刷新商店
     refreshShop: function() {
         const result = ShopSystem.refresh(this.state);
         if (result.success) {
@@ -555,6 +560,7 @@ const Game = {
         this.render();
     },
 
+    // 公共方法：购买商店物品
     buyShopItem: function(itemId) {
         const result = ShopSystem.buy(this.state, itemId);
         if (!result.success) {
@@ -569,6 +575,7 @@ const Game = {
 
     // ===== 离线收益 =====
 
+    // 内部：计算并应用离线收益
     _calcOfflineEarnings: function() {
         if (!this.state || !this.state.stats.lastSaveTime) return;
         const result = IdleSystem.applyOfflineGold(this.state);
@@ -581,6 +588,7 @@ const Game = {
         }
     },
 
+    // 内部：启动自动收益计时器
     _startAutoTick: function() {
         // 每秒自动收益 - 只更新金币显示，不触发全量渲染
         setInterval(() => {
@@ -614,6 +622,7 @@ const Game = {
         }, 1000);
     },
 
+    // 内部：启动商店倒计时计时器
     _startShopTimer: function() {
         // 每秒更新商店倒计时
         setInterval(() => {
@@ -621,6 +630,7 @@ const Game = {
         }, 1000);
     },
 
+    // 内部：渲染商店倒计时
     _renderShopTimer: function() {
         if (!this.state) return;
         const remaining = ShopSystem.getNextRefreshTime(this.state);
@@ -630,6 +640,7 @@ const Game = {
         }
     },
 
+    // 内部：渲染成就列表
     _renderAchievements: function() {
         const achDiv = document.getElementById('achievements-list');
         if (!achDiv) return;
@@ -651,6 +662,7 @@ const Game = {
         }
     },
 
+    // 内部：渲染角色属性面板
     _renderStats: function() {
         if (!this.state) return;
         const stats = StatSystem.getCharacterStats(this.state);
@@ -702,6 +714,8 @@ const Game = {
     },
 
     // ===== 卡组图鉴渲染 =====
+
+    // 内部：渲染卡组图鉴
     _renderCollection: function() {
         const collectionDiv = document.getElementById('collection-list');
         if (!collectionDiv) return;

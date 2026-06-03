@@ -1,6 +1,6 @@
 /* ===== 成就系统 ===== */
 const AchievementSystem = {
-    // 检查所有成就
+    // 公共方法：检查所有成就
     checkAll: function(gameState) {
         const unlocked = [];
         for (const ach of ACHIEVEMENT_CONFIG.list) {
@@ -99,12 +99,14 @@ const AchievementSystem = {
     },
 
     // 内部：发放奖励
+    // 注：当前 ACHIEVEMENT_CONFIG 中所有成就的 reward 均为 { powerBonus: N }，
+    //     实际战力加成由 StatSystem.getTotalPowerBonus() 计算，此处仅保留兼容逻辑。
     _grantReward: function(reward, gameState) {
         if (reward.gold) gameState.gold += reward.gold;
         if (reward.tickets) gameState.tickets += reward.tickets;
     },
 
-    // 获取成就列表（用于UI显示）
+// 公共方法：获取成就列表（用于UI显示）
     getList: function(gameState) {
         return ACHIEVEMENT_CONFIG.list.map(ach => ({
             ...ach,
@@ -112,7 +114,7 @@ const AchievementSystem = {
         }));
     },
 
-    // 计算总战力加成（来自已解锁成就）
+// 公共方法：计算总战力加成（来自已解锁成就）
     getTotalPowerBonus: function(gameState) {
         let bonus = 0;
         for (const ach of ACHIEVEMENT_CONFIG.list) {
@@ -131,8 +133,3 @@ const AchievementSystem = {
         return bonus;
     }
 };
-
-// 全局暴露（兼容浏览器和Node.js测试环境）
-if (typeof window !== 'undefined') {
-    window.AchievementSystem = AchievementSystem;
-}

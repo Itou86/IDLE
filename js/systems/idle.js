@@ -42,7 +42,7 @@ const IdleSystem = {
         return hasTimeHourglass ? 50 : 0;
     },
 
-    // 点击赚钱
+    // 公共方法：点击赚钱
     click: function(gameState) {
         const clickLevel = gameState.idle?.clickLevel || 0;
         const baseGold = this.BASE_CLICK_GOLD + clickLevel * this.clickUpgrade.valuePerLevel;
@@ -53,7 +53,7 @@ const IdleSystem = {
         return goldPerClick;
     },
 
-    // 获取每秒自动收益
+    // 公共方法：获取每秒自动收益
     getAutoGoldPerSecond: function(gameState) {
         const autoLevel = gameState.idle?.autoLevel || 0;
         const baseGold = this.BASE_AUTO_GOLD + autoLevel * this.autoUpgrade.valuePerLevel;
@@ -61,7 +61,7 @@ const IdleSystem = {
         return baseGold + cardBonus;
     },
 
-    // 计算离线收益
+    // 公共方法：计算离线收益
     calculateOfflineGold: function(gameState) {
         const now = Date.now();
         const lastTime = gameState.stats.lastSaveTime || now;
@@ -87,7 +87,7 @@ const IdleSystem = {
         };
     },
 
-    // 应用离线收益
+    // 公共方法：应用离线收益
     applyOfflineGold: function(gameState) {
         const result = this.calculateOfflineGold(gameState);
         if (result.gold > 0) {
@@ -97,19 +97,19 @@ const IdleSystem = {
         return result;
     },
 
-    // 获取升级A价格
+    // 公共方法：获取升级A价格
     getClickUpgradeCost: function(gameState) {
         const level = gameState.idle?.clickLevel || 0;
         return Math.floor(this.clickUpgrade.baseCost * Math.pow(this.clickUpgrade.costMultiplier, level));
     },
 
-    // 获取升级B价格
+    // 公共方法：获取升级B价格
     getAutoUpgradeCost: function(gameState) {
         const level = gameState.idle?.autoLevel || 0;
         return Math.floor(this.autoUpgrade.baseCost * Math.pow(this.autoUpgrade.costMultiplier, level));
     },
 
-    // 购买升级A
+    // 公共方法：购买升级A
     buyClickUpgrade: function(gameState) {
         const cost = this.getClickUpgradeCost(gameState);
         if (gameState.gold < cost) {
@@ -127,7 +127,7 @@ const IdleSystem = {
         };
     },
 
-    // 购买升级B
+    // 公共方法：购买升级B
     buyAutoUpgrade: function(gameState) {
         const cost = this.getAutoUpgradeCost(gameState);
         if (gameState.gold < cost) {
@@ -145,7 +145,7 @@ const IdleSystem = {
         };
     },
 
-    // 获取当前收益信息（用于UI显示）
+    // 公共方法：获取当前收益信息（用于UI显示）
     getInfo: function(gameState) {
         const clickLevel = gameState.idle?.clickLevel || 0;
         const autoLevel = gameState.idle?.autoLevel || 0;

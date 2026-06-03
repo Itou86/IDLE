@@ -85,38 +85,38 @@ const CARD_CONFIG = {
 
     // ===== 世界相关方法 =====
 
-    // 获取指定世界的卡牌列表
+    // 公共方法：获取指定世界的卡牌列表
     getWorldCards: function(worldId) {
         const world = this.worlds.find(w => w.id === worldId);
         if (!world) return [];
         return this.pool.filter(c => world.cardIds.includes(c.id));
     },
 
-    // 获取指定世界的套装列表
+    // 公共方法：获取指定世界的套装列表
     getWorldSets: function(worldId) {
         const world = this.worlds.find(w => w.id === worldId);
         if (!world) return this.sets;
         return world.sets || this.sets;
     },
 
-    // 获取当前世界的卡池（用于抽卡和战斗掉落）
+    // 公共方法：获取当前世界的卡池（用于抽卡和战斗掉落）
     getCurrentPool: function(gameState) {
         const worldId = gameState.world || 1;
         return this.getWorldCards(worldId);
     },
 
-    // 获取当前世界的套装
+    // 公共方法：获取当前世界的套装
     getCurrentSets: function(gameState) {
         const worldId = gameState.world || 1;
         return this.getWorldSets(worldId);
     },
 
-    // 按稀有度筛选指定世界的卡牌
+    // 公共方法：按稀有度筛选指定世界的卡牌
     getWorldCardsByRarity: function(worldId, rarity) {
         return this.getWorldCards(worldId).filter(c => c.rarity === rarity);
     },
 
-    // 添加新世界（供后续扩展使用）
+    // 公共方法：添加新世界（供后续扩展使用）
     addWorld: function(worldConfig) {
         const id = this.worlds.length > 0 ? Math.max(...this.worlds.map(w => w.id)) + 1 : 1;
         this.worlds.push({

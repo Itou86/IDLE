@@ -6,7 +6,7 @@ const GachaSystem = {
     // 十连抽消耗
     COST_10: { tickets: 10 },
 
-    // 执行抽卡 (count=1 单抽, count=10 十连)
+    // 公共方法：执行抽卡 (count=1 单抽, count=10 十连)
     draw: function(gameState, count) {
         count = parseInt(count, 10) || 1;
         const cost = count >= 10 ? this.COST_10.tickets : this.COST.tickets * count;
@@ -153,7 +153,7 @@ const GachaSystem = {
         }
     },
 
-    // 计算玩家总战力
+    // 公共方法：计算玩家总战力
     getTotalPower: function(gameState) {
         // 如果 StatSystem 可用，使用新属性系统
         if (typeof StatSystem !== 'undefined' && StatSystem.getCharacterStats) {
@@ -215,7 +215,7 @@ const GachaSystem = {
         return bonus;
     },
 
-    // 获取玩家已激活的套装列表
+    // 公共方法：获取玩家已激活的套装列表
     getActiveSets: function(gameState) {
         const active = [];
         const sets = CARD_CONFIG.getCurrentSets(gameState);
@@ -235,7 +235,7 @@ const GachaSystem = {
         return active;
     },
 
-    // 获取玩家卡组图鉴进度
+    // 公共方法：获取玩家卡组图鉴进度
     getCollectionProgress: function(gameState) {
         const totalCards = CARD_CONFIG.pool.length;
         const ownedCards = Object.keys(gameState.cards).length;
@@ -251,7 +251,7 @@ const GachaSystem = {
         };
     },
 
-    // 升级卡牌
+    // 公共方法：升级卡牌
     upgradeCard: function(gameState, cardId) {
         const cardData = gameState.cards[cardId];
         if (!cardData || cardData.count < 2) {
@@ -265,7 +265,7 @@ const GachaSystem = {
         return { success: true, newLevel: cardData.level };
     },
 
-    // 批量升级卡牌（消耗多张提升更多等级）
+    // 公共方法：批量升级卡牌（消耗多张提升更多等级）
     upgradeCardBatch: function(gameState, cardId, targetLevel) {
         const cardData = gameState.cards[cardId];
         if (!cardData) {

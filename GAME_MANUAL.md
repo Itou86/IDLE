@@ -17,7 +17,7 @@ IDLE/
 │   ├── main.js             # 游戏主入口、UI渲染、事件绑定
 │   ├── config/
 │   │   ├── cards.js        # 卡牌配置（23张卡 + 4套装）
-│   │   ├── achievements.js # 成就配置（70个成就定义）
+│   │   ├── achievements.js # 成就配置（68个成就定义）
 │   │   ├── stages.js       # 竞技关卡配置（预设+生成规则）
 │   │   └── stats.js        # 属性系统配置（11种属性定义）
 │   ├── systems/
@@ -34,7 +34,7 @@ IDLE/
 │   ├── index.html          # 测试套件入口页面
 │   ├── test-framework.js   # 轻量级测试框架
 │   ├── run-node.js         # Node.js 测试运行器
-│   └── test-*.js           # 各系统测试文件（9个，191用例）
+│   └── test-*.js           # 各系统测试文件（10个，192用例）
 ├── AGENTS.md               # 游戏设计文档
 ├── CLAUDE.md               # AI 开发脚手架
 ├── GAME_MANUAL.md          # 本文件（公式与数据手册）
@@ -163,18 +163,15 @@ streakNoSSR:   连续未抽到SSR的次数（抽到SSR时重置为0）
 
 #### 1. 敌人属性生成
 
-**预设关卡（第1-10关固定值）：**
+**所有关卡均使用生成式公式（无预设固定值）：**
 ```
-第1关: 50,   第2关: 70,   第3关: 95,   第4关: 125,  第5关: 165
-第6关: 210,  第7关: 270,  第8关: 340,  第9关: 430
-第10关(BOSS): 600 × 1.3 = 780
-```
+enemyPower = floor(40 × 1.18^totalOffset)
 
-**生成关卡（第11关起）：**
-```
-enemyPower = floor(80 × 1.12^(stage - 1))
+其中：
+  totalOffset = (world - 1) × 3 + (subStage - 1)
+  // 每个世界贡献3关的等效进度，使世界N+1第1关 ≈ 世界N第4关
 
-BOSS判定：stage % 10 === 0
+BOSS判定：subStage === 6（每世界第6关为BOSS）
 BOSS倍率：1.3
 实际敌人战力 = floor(enemyPower × bossMultiplier)
 ```
@@ -235,7 +232,7 @@ gold        += goldReward
 tickets     += ticketReward
 stats.goldTotal += goldReward
 stats.battleWin += 1
-stage       += 1
+subStage    += 1  // 若subStage > 6则进入下一世界
 stats.loseStreak = 0
 // 记录战斗日志（每回合详情）
 ```
@@ -513,7 +510,7 @@ uid = Date.now().toString(36) + Math.random().toString(36).substr(2)
 
 ---
 
-## 🏆 成就列表（70个）
+## 🏆 成就列表（68个）
 
 **成就奖励机制**：所有成就解锁后提供 `powerBonus`（战力加成百分比）。每个已解锁成就的 powerBonus 累加，最终按比例提升角色的 `power`、`defense`、`hp`。
 
@@ -600,11 +597,11 @@ uid = Date.now().toString(36) + Math.random().toString(36).substr(2)
 | ID | 名称 | 条件 | 战力加成 |
 |----|------|------|---------|
 | sys_030 | 套装新手 | 激活第一个套装羁绊 | +1% |
-| sys_031 | 套装收集者 | 激活5个套装羁绊 | +2% |
-| sys_032 | 套装大师 | 激活10个套装羁绊 | +2% |
+| sys_031 | 套装收集者 | 激活2个套装羁绊 | +2% |
+| sys_032 | 套装大师 | 激活3个套装羁绊 | +2% |
 | sys_033 | 套装之王 | 激活所有套装羁绊 | +5% |
 
-### 组合成就（10个）
+### 组合成就（8个）
 
 **同时拥有特定卡牌（5个）**
 | ID | 名称 | 条件 | 战力加成 |
@@ -615,14 +612,12 @@ uid = Date.now().toString(36) + Math.random().toString(36).substr(2)
 | combo_004 | 光暗平衡 | 同时拥有龙血剑和龙鳞甲 | +2% |
 | combo_005 | 创世之力 | 同时拥有创世之刃和永恒王冠 | +3% |
 
-**激活特定套装（5个）**
+**激活特定套装（3个）**
 | ID | 名称 | 条件 | 战力加成 |
 |----|------|------|---------|
 | combo_010 | 骑士荣耀 | 激活骑士套装 | +1% |
-| combo_011 | 元素掌控 | 激活元素使套装 | +1% |
-| combo_012 | 自然守护 | 激活自然之力套装 | +1% |
-| combo_013 | 光暗交织 | 激活光暗双生套装 | +2% |
-| combo_014 | 传说勇者 | 激活传说勇者套装 | +3% |
+| combo_011 | 屠龙传说 | 激活屠龙套装 | +2% |
+| combo_012 | 神王降临 | 激活神王套装 | +3% |
 
 ### 隐藏成就（9个）
 
@@ -647,19 +642,19 @@ uid = Date.now().toString(36) + Math.random().toString(36).substr(2)
 - 支持：通过(pass)、失败(fail)、警告(warn)三种状态
 - 断言方法：equal, notEqual, true, false, includes, greaterThan, lessThan, approx, warn, throws, doesNotThrow 等
 
-### 测试套件（10个文件，191+用例）
+### 测试套件（10个文件，192用例）
 | 测试文件 | 测试对象 | 用例数 |
 |----------|----------|--------|
-| test-config.js | 配置数据验证（卡牌/套装/成就字段完整性） | ~30 |
+| test-config.js | 配置数据验证（卡牌/套装/成就字段完整性） | ~34 |
 | test-gacha.js | 抽卡系统（概率/保底/升级/战力计算） | ~25 |
-| test-battle.js | 竞技系统（回合制/胜负/奖励/BOSS） | ~20 |
-| test-achievement.js | 成就系统（条件检测/奖励/隐藏成就） | ~25 |
-| test-idle.js | 放置收益系统（点击/自动/离线/升级） | ~20 |
-| test-shop.js | 商店系统（刷新/购买/库存） | ~15 |
+| test-battle.js | 竞技系统（回合制/胜负/奖励/BOSS） | ~21 |
+| test-achievement.js | 成就系统（条件检测/奖励/隐藏成就） | ~31 |
+| test-idle.js | 放置收益系统（点击/自动/离线/升级） | ~16 |
+| test-shop.js | 商店系统（刷新/购买/库存） | ~11 |
 | test-save.js | 存档系统（序列化/导入导出） | ~20 |
-| test-formatter.js | 工具函数（数字/时间/深拷贝/UID） | ~15 |
-| test-integration.js | 核心循环集成（跨系统交互） | ~20 |
-| test-stats.js | 属性系统（属性计算/套装加成/成就加成） | ~15 |
+| test-formatter.js | 工具函数（数字/时间/深拷贝/UID） | ~20 |
+| test-integration.js | 核心循环集成（跨系统交互） | ~14 |
+| test-stats.js | 属性系统（属性计算/套装加成/成就加成） | —（待创建） |
 
 **运行测试：**
 ```bash
@@ -680,17 +675,16 @@ npm test
 {
   gold: 50,            // 初始金币
   tickets: 20,         // 初始抽卡券（可抽20次单抽或2次十连）
-  stage: 1,            // 从第1关开始
+  world: 1,            // 当前世界
+  subStage: 1,         // 当前世界内的子关卡
+  worldProgress: {},   // 各世界最高通关进度 { "1": 5 }
   cards: {},           // 无卡牌
   achievements: {},    // 无成就
   idle: {
     clickLevel: 0,
     autoLevel: 1           // 初始自动收益1级
   },
-  shop: {
-    lastRefresh: 0,
-    cardStock: {}
-  },
+  // shop: 由 ShopSystem 在首次访问时动态创建
   stats: {
     goldTotal: 50,
     gachaCount: 0,
@@ -715,17 +709,17 @@ npm test
 
 ## 📊 数值增长曲线参考
 
-### 关卡敌人战力增长（1.12倍指数增长）
-| 关卡 | 敌人战力 |
-|------|----------|
-| 1 | 50 |
-| 5 | 165 |
-| 10 | 780 (BOSS) |
-| 20 | ~2,400 |
-| 50 | ~38,000 |
-| 100 | ~580,000 |
-| 200 | ~1.3×10⁸ |
-| 500 | ~1.5×10²⁰ |
+### 关卡敌人战力增长（1.18倍指数增长，基于 totalOffset）
+| 世界 | 子关卡 | totalOffset | 敌人战力 |
+|------|--------|-------------|----------|
+| 1 | 1 | 0 | 40 |
+| 1 | 5 | 4 | ~82 |
+| 1 | 6 (BOSS) | 5 | ~127 |
+| 2 | 1 | 3 | ~65 |
+| 2 | 6 (BOSS) | 8 | ~158 |
+| 3 | 1 | 6 | ~108 |
+| 5 | 6 (BOSS) | 17 | ~571 |
+| 10 | 6 (BOSS) | 32 | ~4,330 |
 
 ### 玩家战力增长示例（基于 StatSystem）
 ```
@@ -776,4 +770,4 @@ npm test
 
 *文档生成时间: 2026-06-03*
 *基于项目 commit: 62b296c*
-*卡牌数量: 23张 | 套装数量: 4套 | 成就数量: 70个 | 测试用例: 191+*
+*卡牌数量: 23张 | 套装数量: 4套 | 成就数量: 68个 | 测试用例: 192*
