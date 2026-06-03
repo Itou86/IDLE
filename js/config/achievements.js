@@ -74,16 +74,16 @@ const ACHIEVEMENT_CONFIG = {
         { id: 'sys_033', name: '套装之王', desc: '激活所有套装羁绊', condition: { type: 'set_active', value: 0 }, reward: { powerBonus: 5 }, hidden: false },
 
         // === 组合成就：同时拥有特定卡牌 ===
-        { id: 'combo_001', name: '攻守兼备', desc: '同时拥有生锈的剑和破木盾', condition: { type: 'has_cards', value: ['n_001', 'n_002'] }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_002', name: '元素亲和', desc: '同时拥有火焰宝石和疾风靴', condition: { type: 'has_cards', value: ['r_004', 'r_005'] }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_003', name: '自然之力', desc: '同时拥有铁箭头和麻绳', condition: { type: 'has_cards', value: ['n_007', 'n_008'] }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_004', name: '光暗平衡', desc: '同时拥有龙血剑和龙鳞甲', condition: { type: 'has_cards', value: ['sr_001', 'sr_002'] }, reward: { powerBonus: 2 }, hidden: false },
-        { id: 'combo_005', name: '创世之力', desc: '同时拥有创世之刃和永恒王冠', condition: { type: 'has_cards', value: ['ssr_001', 'ssr_002'] }, reward: { powerBonus: 3 }, hidden: false },
+        { id: 'combo_001', name: '攻守兼备', desc: '同时拥有苦无和木制替身', condition: { type: 'has_cards', value: ['n_001', 'n_002'] }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'combo_002', name: '元素亲和', desc: '同时拥有现实宝石和飞雷神苦无', condition: { type: 'has_cards', value: ['r_004', 'r_005'] }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'combo_003', name: '自然之力', desc: '同时拥有令咒残片和立体机动气体', condition: { type: 'has_cards', value: ['n_007', 'n_008'] }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'combo_004', name: '光暗平衡', desc: '同时拥有霜之哀伤和统御之冠', condition: { type: 'has_cards', value: ['sr_001', 'sr_002'] }, reward: { powerBonus: 2 }, hidden: false },
+        { id: 'combo_005', name: '创世之力', desc: '同时拥有无限手套和王之财宝', condition: { type: 'has_cards', value: ['ssr_001', 'ssr_002'] }, reward: { powerBonus: 3 }, hidden: false },
 
         // === 组合成就：激活特定套装 ===
-        { id: 'combo_010', name: '骑士荣耀', desc: '激活骑士套装', condition: { type: 'set_active_specific', value: '骑士套装' }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'combo_011', name: '屠龙传说', desc: '激活屠龙套装', condition: { type: 'set_active_specific', value: '屠龙套装' }, reward: { powerBonus: 2 }, hidden: false },
-        { id: 'combo_012', name: '神王降临', desc: '激活神王套装', condition: { type: 'set_active_specific', value: '神王套装' }, reward: { powerBonus: 3 }, hidden: false },
+        { id: 'combo_010', name: '骑士荣耀', desc: '激活草帽团羁绊', condition: { type: 'set_active_specific', value: '草帽团羁绊' }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'combo_011', name: '屠龙传说', desc: '激活权游龙焰套装', condition: { type: 'set_active_specific', value: '权游龙焰套装' }, reward: { powerBonus: 2 }, hidden: false },
+        { id: 'combo_012', name: '神王降临', desc: '激活无限宝石套装', condition: { type: 'set_active_specific', value: '无限宝石套装' }, reward: { powerBonus: 3 }, hidden: false },
 
         // === 隐藏成就（搞怪/探索，但都可解锁） ===
         { id: 'hid_001', name: '十连保底', desc: '连续10次抽卡没有R以上', condition: { type: 'gacha_streak_no_rare', value: 10 }, reward: { powerBonus: 1 }, hidden: true },

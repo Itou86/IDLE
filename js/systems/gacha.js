@@ -29,7 +29,7 @@ const GachaSystem = {
             // 检查保底相关
             this._updateStreaks(gameState, card.rarity);
 
-            // ssr_003 命运骰子: 10%概率额外抽1张，且稀有度+1
+            // ssr_003 卢恩弯弧: 10%概率额外抽1张，且稀有度+1
             if (hasDice && Math.random() < 0.1) {
                 const extraCard = this._rollCard(gameState, false, false, true); // rarityUp=true
                 this._addCard(gameState, extraCard);
@@ -42,7 +42,7 @@ const GachaSystem = {
     },
 
     // 稀有度保底概率提升（十连时SR/SSR概率提升，第10张保底SR）
-    // rarityUp: 命运骰子效果，稀有度+1
+    // rarityUp: 卢恩弯弧效果，稀有度+1
     _rollCard: function(gameState, isTenPull, isLastOfTen, rarityUp) {
         // 获取当前世界的卡池
         const worldId = gameState.world || 1;
@@ -95,7 +95,7 @@ const GachaSystem = {
             else rarity = 'N';
         }
 
-        // 命运骰子效果: 稀有度+1
+        // 卢恩弯弧效果: 稀有度+1
         if (rarityUp) {
             const upMap = { 'N': 'R', 'R': 'SR', 'SR': 'SSR', 'SSR': 'SSR' };
             rarity = upMap[rarity] || rarity;

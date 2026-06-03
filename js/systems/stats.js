@@ -67,7 +67,7 @@ const StatSystem = {
         const bonuses = {};
         const cards = gameState.cards || {};
 
-        // 检查是否有N卡翻倍效果（ssr_001 创世之刃）
+        // 检查是否有N卡翻倍效果（ssr_001 无限手套）
         const hasCreationBlade = cards['ssr_001'] && cards['ssr_001'].count > 0;
         const nCardMultiplier = hasCreationBlade ? 2 : 1;
 
@@ -100,25 +100,25 @@ const StatSystem = {
 
             // ===== 特殊卡牌效果 =====
 
-            // r_006 生命护符: 生命上限+20
+            // r_006 圣光道标: 生命上限+20
             if (id === 'r_006') {
                 const hpBonus = 20 * count * levelMultiplier;
                 bonuses.hp = (bonuses.hp || 0) + hpBonus;
             }
 
-            // r_005 疾风靴: 闪避+5%
+            // r_005 飞雷神苦无: 闪避+5%
             if (id === 'r_005') {
                 const dodgeBonus = 5 * count * levelMultiplier;
                 bonuses.dodgeRate = (bonuses.dodgeRate || 0) + dodgeBonus;
             }
 
-            // sr_001 龙血剑: 与龙鳞甲同时装备时+50%攻击力
+            // sr_001 霜之哀伤: 与统御之冠同时装备时+50%攻击力
             if (id === 'sr_001' && dragonSynergy) {
                 const synergyBonus = config.basePower * 0.5 * count * levelMultiplier;
                 bonuses.power = (bonuses.power || 0) + synergyBonus;
             }
 
-            // sr_002 龙鳞甲: 与龙血剑同时装备时+50%防御力
+            // sr_002 统御之冠: 与霜之哀伤同时装备时+50%防御力
             if (id === 'sr_002' && dragonSynergy) {
                 const synergyBonus = config.basePower * 0.5 * count * levelMultiplier;
                 bonuses.defense = (bonuses.defense || 0) + synergyBonus;

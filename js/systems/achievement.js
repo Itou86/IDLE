@@ -121,7 +121,7 @@ const AchievementSystem = {
             }
         }
 
-        // ssr_002 永恒王冠: 成就奖励+30%
+        // ssr_002 王之财宝: 成就奖励+30%
         const hasEternalCrown = gameState.cards && gameState.cards['ssr_002']
             && gameState.cards['ssr_002'].count > 0;
         if (hasEternalCrown) {

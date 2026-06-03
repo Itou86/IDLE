@@ -37,7 +37,7 @@ const IdleSystem = {
 
     // 计算来自卡牌的离线收益加成百分比
     _getOfflineBonusPercent: function(gameState) {
-        // sr_004 时空沙漏: 离线收益+50%
+        // sr_004 世界树之种: 离线收益+50%
         const hasTimeHourglass = gameState.cards['sr_004'] && gameState.cards['sr_004'].count > 0;
         return hasTimeHourglass ? 50 : 0;
     },
@@ -74,7 +74,7 @@ const IdleSystem = {
         const pointsPerSecond = this.getAutoPointsPerSecond(gameState);
         let offlinePoints = effectiveSeconds * pointsPerSecond;
 
-        // 应用离线收益加成（如 sr_004 时空沙漏）
+        // 应用离线收益加成（如 sr_004 世界树之种）
         const offlineBonus = this._getOfflineBonusPercent(gameState);
         if (offlineBonus > 0) {
             offlinePoints = Math.floor(offlinePoints * (1 + offlineBonus / 100));

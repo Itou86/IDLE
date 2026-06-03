@@ -136,7 +136,7 @@ const BattleSystem = {
         // 基础伤害 = 攻击者攻击力 - 防御者防御力（至少为1）
         let damage = Math.max(1, attacker.power - defender.defense * 0.5);
 
-        // 对BOSS增伤（r_004 火焰宝石: +20%对BOSS伤害）
+        // 对BOSS增伤（r_004 现实宝石: +20%对BOSS伤害）
         if (isPlayer && stage && stage.isBoss && gameState) {
             const hasFlameGem = gameState.cards['r_004'] && gameState.cards['r_004'].count > 0;
             if (hasFlameGem) {
@@ -158,7 +158,7 @@ const BattleSystem = {
         if (!isPlayer) {
             // 基础闪避：速度差值
             const speedDodge = Math.max(0, (defender.speed || 0) - (attacker.speed || 0));
-            // 卡牌闪避加成（r_005 疾风靴等）
+            // 卡牌闪避加成（r_005 飞雷神苦无等）
             let cardDodge = 0;
             if (gameState && typeof StatSystem !== 'undefined' && StatSystem.getDodgeRate) {
                 cardDodge = StatSystem.getDodgeRate(gameState);
@@ -211,14 +211,14 @@ const BattleSystem = {
         // 战斗掉落卡牌
         const droppedCard = this._dropCard(gameState, stage.world);
 
-        // sr_005 灵魂契约: 击败敌人时20%概率再抽1次
+        // sr_005 黑暗印记: 击败敌人时20%概率再抽1次
         let extraDraw = null;
         const hasSoulContract = gameState.cards['sr_005'] && gameState.cards['sr_005'].count > 0;
         if (hasSoulContract && Math.random() < 0.2) {
             extraDraw = this._dropCard(gameState, stage.world);
         }
 
-        // sr_003 聚宝盆: 每10关额外获得世界碎片
+        // sr_003 大千录残页: 每10关额外获得世界碎片
         let extraShards = 0;
         const hasTreasureBowl = gameState.cards['sr_003'] && gameState.cards['sr_003'].count > 0;
         if (hasTreasureBowl && stage.totalStage % 10 === 0) {

@@ -67,7 +67,7 @@ const EffectRegistry = {
         switch (type) {
             // 抽卡时额外抽 N 张
             case 'extra_draw':
-                // 支持概率触发（如命运骰子：每次抽卡10%概率额外抽1张）
+                // 支持概率触发（如卢恩弯弧：每次抽卡10%概率额外抽1张）
                 const drawCount = ctx.count || 1;
                 let triggered = 0;
                 for (let i = 0; i < drawCount; i++) {
@@ -90,7 +90,7 @@ const EffectRegistry = {
                 }
                 break;
 
-            // N 卡效果倍率（如创世之刃：N卡效果翻倍）
+            // N 卡效果倍率（如无限手套：N卡效果翻倍）
             case 'n_card_multiplier':
                 ctx.nCardMultiplier = (ctx.nCardMultiplier || 1) * (effect.value || 1);
                 break;
