@@ -4,8 +4,8 @@ TestRunner.suite('💾 存档系统 - SaveSystem', (test) => {
     // 辅助：创建测试状态
     function createState() {
         return {
-            gold: 12345,
-            tickets: 50,
+            points: 12345,
+            shards: 50,
             stage: 42,
             cards: {
                 'n_001': { count: 3, level: 2, instances: ['a', 'b', 'c'] },
@@ -16,7 +16,7 @@ TestRunner.suite('💾 存档系统 - SaveSystem', (test) => {
                 'num_002': true
             },
             stats: {
-                goldTotal: 20000,
+                pointsTotal: 20000,
                 gachaCount: 15,
                 battleWin: 8,
                 battleLose: 3,
@@ -50,8 +50,8 @@ TestRunner.suite('💾 存档系统 - SaveSystem', (test) => {
         SaveSystem.save(state);
         const loaded = SaveSystem.load();
         Assert.exists(loaded, '应成功读取');
-        Assert.equal(loaded.gold, state.gold, '金币应一致');
-        Assert.equal(loaded.tickets, state.tickets, '抽卡券应一致');
+        Assert.equal(loaded.points, state.points, '系统点应一致');
+        Assert.equal(loaded.shards, state.shards, '世界碎片应一致');
         Assert.equal(loaded.stage, state.stage, '关卡应一致');
     });
 
@@ -91,9 +91,9 @@ TestRunner.suite('💾 存档系统 - SaveSystem', (test) => {
         const state = createState();
         SaveSystem.save(state);
         const loaded = SaveSystem.load();
-        loaded.gold = 99999;
+        loaded.points = 99999;
         const loaded2 = SaveSystem.load();
-        Assert.equal(loaded2.gold, state.gold, '修改读取数据不应影响存档');
+        Assert.equal(loaded2.points, state.points, '修改读取数据不应影响存档');
     });
 
     // --- reset ---
@@ -130,7 +130,7 @@ TestRunner.suite('💾 存档系统 - SaveSystem', (test) => {
         const exported = SaveSystem.export(state);
         const imported = SaveSystem.import(exported);
         Assert.exists(imported, '导入应成功');
-        Assert.equal(imported.gold, state.gold, '导入后金币应一致');
+        Assert.equal(imported.points, state.points, '导入后系统点应一致');
         Assert.equal(imported.stage, state.stage, '导入后关卡应一致');
         Assert.equal(imported.stats.gachaCount, state.stats.gachaCount, '导入后统计应一致');
     });
@@ -163,16 +163,16 @@ TestRunner.suite('💾 存档系统 - SaveSystem', (test) => {
 
     test('save: 超大数值', () => {
         const state = {
-            gold: Number.MAX_SAFE_INTEGER,
-            tickets: 999999,
+            points: Number.MAX_SAFE_INTEGER,
+            shards: 999999,
             stage: 999999,
             cards: {},
             achievements: {},
-            stats: { goldTotal: Number.MAX_SAFE_INTEGER }
+            stats: { pointsTotal: Number.MAX_SAFE_INTEGER }
         };
         SaveSystem.save(state);
         const loaded = SaveSystem.load();
-        Assert.equal(loaded.gold, Number.MAX_SAFE_INTEGER, '超大数值应正确保存');
+        Assert.equal(loaded.points, Number.MAX_SAFE_INTEGER, '超大数值应正确保存');
     });
 
     test('save: 特殊字符', () => {
@@ -189,15 +189,15 @@ TestRunner.suite('💾 存档系统 - SaveSystem', (test) => {
 
     test('save: 多次覆盖', () => {
         const state1 = createState();
-        state1.gold = 100;
+        state1.points = 100;
         SaveSystem.save(state1);
 
         const state2 = createState();
-        state2.gold = 200;
+        state2.points = 200;
         SaveSystem.save(state2);
 
         const loaded = SaveSystem.load();
-        Assert.equal(loaded.gold, 200, '应读取最后一次保存');
+        Assert.equal(loaded.points, 200, '应读取最后一次保存');
     });
 
     // --- 清理 ---

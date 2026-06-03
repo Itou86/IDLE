@@ -1,6 +1,6 @@
 /* ===== 成就系统 ===== */
 const AchievementSystem = {
-    // 公共方法：检查所有成就
+    // 检查所有成就
     checkAll: function(gameState) {
         const unlocked = [];
         for (const ach of ACHIEVEMENT_CONFIG.list) {
@@ -18,8 +18,8 @@ const AchievementSystem = {
     _checkCondition: function(condition, gameState) {
         const stats = gameState.stats;
         switch (condition.type) {
-            case 'gold_total':
-                return stats.goldTotal >= condition.value;
+            case 'points_total':
+                return stats.pointsTotal >= condition.value;
             case 'gacha_count':
                 return stats.gachaCount >= condition.value;
             case 'battle_win':
@@ -77,9 +77,9 @@ const AchievementSystem = {
                 const worldProgress5 = gameState.worldProgress || {};
                 return (worldProgress5[1] || 0) >= 5 && (Date.now() - stats.createTime) < 3600000;
             case 'hoarder':
-                return gameState.gold >= condition.value && stats.gachaCount === 0;
+                return gameState.points >= condition.value && stats.gachaCount === 0;
             case 'gamble':
-                return gameState.gold === 0 && stats.gachaCount > 0;
+                return gameState.points === 0 && stats.gachaCount > 0;
             case 'lose_streak':
                 return stats.loseStreak >= condition.value;
             case 'underdog_win':
@@ -99,14 +99,12 @@ const AchievementSystem = {
     },
 
     // 内部：发放奖励
-    // 注：当前 ACHIEVEMENT_CONFIG 中所有成就的 reward 均为 { powerBonus: N }，
-    //     实际战力加成由 StatSystem.getTotalPowerBonus() 计算，此处仅保留兼容逻辑。
     _grantReward: function(reward, gameState) {
-        if (reward.gold) gameState.gold += reward.gold;
-        if (reward.tickets) gameState.tickets += reward.tickets;
+        if (reward.points) gameState.points += reward.points;
+        if (reward.shards) gameState.shards += reward.shards;
     },
 
-// 公共方法：获取成就列表（用于UI显示）
+    // 获取成就列表（用于UI显示）
     getList: function(gameState) {
         return ACHIEVEMENT_CONFIG.list.map(ach => ({
             ...ach,
@@ -114,7 +112,7 @@ const AchievementSystem = {
         }));
     },
 
-// 公共方法：计算总战力加成（来自已解锁成就）
+    // 计算总战力加成（来自已解锁成就）
     getTotalPowerBonus: function(gameState) {
         let bonus = 0;
         for (const ach of ACHIEVEMENT_CONFIG.list) {
@@ -123,12 +121,18 @@ const AchievementSystem = {
             }
         }
 
-        // 触发 achievement_calc 效果（如永恒王冠+30%）
-        const context = EffectRegistry.trigger('achievement_calc', gameState, {});
-        if (context.achievementBonus && context.achievementBonus > 0) {
-            bonus = Math.floor(bonus * context.achievementBonus);
+        // ssr_002 永恒王冠: 成就奖励+30%
+        const hasEternalCrown = gameState.cards && gameState.cards['ssr_002']
+            && gameState.cards['ssr_002'].count > 0;
+        if (hasEternalCrown) {
+            bonus = Math.floor(bonus * 1.3);
         }
 
         return bonus;
     }
 };
+
+// 全局暴露（兼容浏览器和Node.js测试环境）
+if (typeof window !== 'undefined') {
+    window.AchievementSystem = AchievementSystem;
+}

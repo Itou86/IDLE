@@ -1,8 +1,8 @@
 /* ===== 放置收益系统 ===== */
 const IdleSystem = {
     // 基础配置
-    BASE_CLICK_GOLD: 2,      // 点击基础收益(原1)
-    BASE_AUTO_GOLD: 1,       // 自动基础收益(原0，初始给1)
+    BASE_CLICK_POINTS: 2,      // 点击基础收益(原1)
+    BASE_AUTO_POINTS: 1,       // 自动基础收益(原0，初始给1)
 
     // 升级配置
     clickUpgrade: {
@@ -17,15 +17,15 @@ const IdleSystem = {
         valuePerLevel: 1,     // 每级增加每秒收益
     },
 
-    // 内部：计算来自卡牌的金币加成
-    _getCardGoldBonus: function(gameState) {
+    // 计算来自卡牌的系统点加成
+    _getCardPointsBonus: function(gameState) {
         let bonus = 0;
         for (const [id, cardData] of Object.entries(gameState.cards || {})) {
             const config = CARD_CONFIG.pool.find(c => c.id === id);
             if (!config) continue;
 
-            // 基础 goldBonus 映射
-            if (config.effect === 'gold' && config.basePower) {
+            // 基础 pointsBonus 映射
+            if (config.effect === 'points' && config.basePower) {
                 const level = cardData.level || 1;
                 const multiplier = 1 + (level - 1) * 0.1;
                 const count = cardData.count || 1;
@@ -35,34 +35,34 @@ const IdleSystem = {
         return bonus;
     },
 
-    // 内部：计算来自卡牌的离线收益加成百分比
+    // 计算来自卡牌的离线收益加成百分比
     _getOfflineBonusPercent: function(gameState) {
-        // 触发 offline_calc 效果（如时空沙漏+50%离线收益）
-        const context = EffectRegistry.trigger('offline_calc', gameState, {});
-        return context.offlineBonus || 0;
+        // sr_004 时空沙漏: 离线收益+50%
+        const hasTimeHourglass = gameState.cards['sr_004'] && gameState.cards['sr_004'].count > 0;
+        return hasTimeHourglass ? 50 : 0;
     },
 
-    // 公共方法：点击赚钱
+    // 点击赚系统点
     click: function(gameState) {
         const clickLevel = gameState.idle?.clickLevel || 0;
-        const baseGold = this.BASE_CLICK_GOLD + clickLevel * this.clickUpgrade.valuePerLevel;
-        const cardBonus = this._getCardGoldBonus(gameState);
-        const goldPerClick = baseGold + cardBonus;
-        gameState.gold += goldPerClick;
-        gameState.stats.goldTotal += goldPerClick;
-        return goldPerClick;
+        const basePoints = this.BASE_CLICK_POINTS + clickLevel * this.clickUpgrade.valuePerLevel;
+        const cardBonus = this._getCardPointsBonus(gameState);
+        const pointsPerClick = basePoints + cardBonus;
+        gameState.points += pointsPerClick;
+        gameState.stats.pointsTotal += pointsPerClick;
+        return pointsPerClick;
     },
 
-    // 公共方法：获取每秒自动收益
-    getAutoGoldPerSecond: function(gameState) {
+    // 获取每秒自动收益
+    getAutoPointsPerSecond: function(gameState) {
         const autoLevel = gameState.idle?.autoLevel || 0;
-        const baseGold = this.BASE_AUTO_GOLD + autoLevel * this.autoUpgrade.valuePerLevel;
-        const cardBonus = this._getCardGoldBonus(gameState);
-        return baseGold + cardBonus;
+        const basePoints = this.BASE_AUTO_POINTS + autoLevel * this.autoUpgrade.valuePerLevel;
+        const cardBonus = this._getCardPointsBonus(gameState);
+        return basePoints + cardBonus;
     },
 
-    // 公共方法：计算离线收益
-    calculateOfflineGold: function(gameState) {
+    // 计算离线收益
+    calculateOfflinePoints: function(gameState) {
         const now = Date.now();
         const lastTime = gameState.stats.lastSaveTime || now;
         const offlineSeconds = Math.floor((now - lastTime) / 1000);
@@ -71,95 +71,95 @@ const IdleSystem = {
         const maxOfflineSeconds = 8 * 3600;
         const effectiveSeconds = Math.min(offlineSeconds, maxOfflineSeconds);
 
-        const goldPerSecond = this.getAutoGoldPerSecond(gameState);
-        let offlineGold = effectiveSeconds * goldPerSecond;
+        const pointsPerSecond = this.getAutoPointsPerSecond(gameState);
+        let offlinePoints = effectiveSeconds * pointsPerSecond;
 
         // 应用离线收益加成（如 sr_004 时空沙漏）
         const offlineBonus = this._getOfflineBonusPercent(gameState);
         if (offlineBonus > 0) {
-            offlineGold = Math.floor(offlineGold * (1 + offlineBonus / 100));
+            offlinePoints = Math.floor(offlinePoints * (1 + offlineBonus / 100));
         }
 
         return {
-            gold: offlineGold,
+            points: offlinePoints,
             seconds: effectiveSeconds,
             capped: offlineSeconds > maxOfflineSeconds
         };
     },
 
-    // 公共方法：应用离线收益
-    applyOfflineGold: function(gameState) {
-        const result = this.calculateOfflineGold(gameState);
-        if (result.gold > 0) {
-            gameState.gold += result.gold;
-            gameState.stats.goldTotal += result.gold;
+    // 应用离线收益
+    applyOfflinePoints: function(gameState) {
+        const result = this.calculateOfflinePoints(gameState);
+        if (result.points > 0) {
+            gameState.points += result.points;
+            gameState.stats.pointsTotal += result.points;
         }
         return result;
     },
 
-    // 公共方法：获取升级A价格
+    // 获取升级A价格
     getClickUpgradeCost: function(gameState) {
         const level = gameState.idle?.clickLevel || 0;
         return Math.floor(this.clickUpgrade.baseCost * Math.pow(this.clickUpgrade.costMultiplier, level));
     },
 
-    // 公共方法：获取升级B价格
+    // 获取升级B价格
     getAutoUpgradeCost: function(gameState) {
         const level = gameState.idle?.autoLevel || 0;
         return Math.floor(this.autoUpgrade.baseCost * Math.pow(this.autoUpgrade.costMultiplier, level));
     },
 
-    // 公共方法：购买升级A
+    // 购买升级A
     buyClickUpgrade: function(gameState) {
         const cost = this.getClickUpgradeCost(gameState);
-        if (gameState.gold < cost) {
-            return { success: false, reason: '金币不足' };
+        if (gameState.points < cost) {
+            return { success: false, reason: '系统点不足' };
         }
 
-        gameState.gold -= cost;
+        gameState.points -= cost;
         if (!gameState.idle) gameState.idle = {};
         gameState.idle.clickLevel = (gameState.idle.clickLevel || 0) + 1;
 
         return {
             success: true,
             newLevel: gameState.idle.clickLevel,
-            newValue: this.BASE_CLICK_GOLD + gameState.idle.clickLevel * this.clickUpgrade.valuePerLevel
+            newValue: this.BASE_CLICK_POINTS + gameState.idle.clickLevel * this.clickUpgrade.valuePerLevel
         };
     },
 
-    // 公共方法：购买升级B
+    // 购买升级B
     buyAutoUpgrade: function(gameState) {
         const cost = this.getAutoUpgradeCost(gameState);
-        if (gameState.gold < cost) {
-            return { success: false, reason: '金币不足' };
+        if (gameState.points < cost) {
+            return { success: false, reason: '系统点不足' };
         }
 
-        gameState.gold -= cost;
+        gameState.points -= cost;
         if (!gameState.idle) gameState.idle = {};
         gameState.idle.autoLevel = (gameState.idle.autoLevel || 0) + 1;
 
         return {
             success: true,
             newLevel: gameState.idle.autoLevel,
-            newValue: this.BASE_AUTO_GOLD + gameState.idle.autoLevel * this.autoUpgrade.valuePerLevel
+            newValue: this.BASE_AUTO_POINTS + gameState.idle.autoLevel * this.autoUpgrade.valuePerLevel
         };
     },
 
-    // 公共方法：获取当前收益信息（用于UI显示）
+    // 获取当前收益信息（用于UI显示）
     getInfo: function(gameState) {
         const clickLevel = gameState.idle?.clickLevel || 0;
         const autoLevel = gameState.idle?.autoLevel || 0;
-        const cardBonus = this._getCardGoldBonus(gameState);
+        const cardBonus = this._getCardPointsBonus(gameState);
 
         return {
-            clickValue: this.BASE_CLICK_GOLD + clickLevel * this.clickUpgrade.valuePerLevel + cardBonus,
-            autoValue: this.BASE_AUTO_GOLD + autoLevel * this.autoUpgrade.valuePerLevel + cardBonus,
+            clickValue: this.BASE_CLICK_POINTS + clickLevel * this.clickUpgrade.valuePerLevel + cardBonus,
+            autoValue: this.BASE_AUTO_POINTS + autoLevel * this.autoUpgrade.valuePerLevel + cardBonus,
             clickLevel: clickLevel,
             autoLevel: autoLevel,
             clickUpgradeCost: this.getClickUpgradeCost(gameState),
             autoUpgradeCost: this.getAutoUpgradeCost(gameState),
-            canAffordClick: gameState.gold >= this.getClickUpgradeCost(gameState),
-            canAffordAuto: gameState.gold >= this.getAutoUpgradeCost(gameState)
+            canAffordClick: gameState.points >= this.getClickUpgradeCost(gameState),
+            canAffordAuto: gameState.points >= this.getAutoUpgradeCost(gameState)
         };
     }
 };

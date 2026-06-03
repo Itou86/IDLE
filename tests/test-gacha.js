@@ -2,15 +2,15 @@
 TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
 
     // 辅助：创建干净的测试状态
-    function createState(gold = 100, tickets = 100) {
+    function createState(points = 100, shards = 100) {
         return {
-            gold: gold,
-            tickets: tickets,
+            points: points,
+            shards: shards,
             stage: 1,
             cards: {},
             achievements: {},
             stats: {
-                goldTotal: gold,
+                pointsTotal: points,
                 gachaCount: 0,
                 battleWin: 0,
                 battleLose: 0,
@@ -24,19 +24,19 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         };
     }
 
-    test('draw: 正常抽卡消耗券', () => {
+    test('draw: 正常抽卡消耗碎片', () => {
         const state = createState(100, 10);
         const result = GachaSystem.draw(state, 1);
-        Assert.true(result.success, '应有足够券抽卡');
-        Assert.equal(state.tickets, 9, '应消耗1张券');
+        Assert.true(result.success, '应有足够碎片抽卡');
+        Assert.equal(state.shards, 9, '应消耗1个碎片');
     });
 
-    test('draw: 券不足时失败', () => {
+    test('draw: 碎片不足时失败', () => {
         const state = createState(100, 0);
         const result = GachaSystem.draw(state, 1);
-        Assert.false(result.success, '券不足应失败');
-        Assert.includes(result.reason, '不足', '应提示券不足');
-        Assert.equal(state.tickets, 0, '不应消耗券');
+        Assert.false(result.success, '碎片不足应失败');
+        Assert.includes(result.reason, '不足', '应提示碎片不足');
+        Assert.equal(state.shards, 0, '不应消耗碎片');
     });
 
     test('draw: 返回卡牌信息', () => {
@@ -134,21 +134,20 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         Assert.equal(result.cards[0].level, 1, '新卡牌等级应为1');
     });
 
-    test('draw: 十连抽消耗10券', () => {
+    test('draw: 十连抽消耗10碎片', () => {
         const state = createState(100, 15);
         const result = GachaSystem.draw(state, 10);
-        Assert.true(result.success, '应有足够券十连');
-        Assert.equal(state.tickets, 5, '应消耗10张券');
-        // 十连抽过程中若抽到命运骰子(ssr_003)可能触发额外抽卡，所以cards.length可能>=10
-        Assert.greaterThanOrEqual(result.cards.length, 10, '应返回至少10张卡');
+        Assert.true(result.success, '应有足够碎片十连');
+        Assert.equal(state.shards, 5, '应消耗10个碎片');
+        Assert.equal(result.cards.length, 10, '应返回10张卡');
         Assert.equal(result.count, 10, 'count应为10');
     });
 
-    test('draw: 十连抽券不足', () => {
+    test('draw: 十连抽碎片不足', () => {
         const state = createState(100, 5);
         const result = GachaSystem.draw(state, 10);
-        Assert.false(result.success, '5张券不应能十连');
-        Assert.equal(state.tickets, 5, '不应消耗券');
+        Assert.false(result.success, '5个碎片不应能十连');
+        Assert.equal(state.shards, 5, '不应消耗碎片');
     });
 
 test('draw: 十连抽最后一张保底SR', () => {

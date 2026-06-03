@@ -32,8 +32,8 @@ const Game = {
     // 创建存档
     reset: function() {
         this.state = {
-            gold: 50,            // 初始金币(原100，降低因为点击收益高了)
-            tickets: 20,         // 初始抽卡券(原10，让玩家能抽20次)
+            points: 50,          // 初始系统点(原100，降低因为点击收益高了)
+            shards: 20,          // 初始世界碎片(原10，让玩家能抽20次)
             world: 1,            // 当前世界
             subStage: 1,          // 当前世界内的子关卡
             worldProgress: {},    // 各世界最高通关进度 { "1": 5 }
@@ -44,7 +44,7 @@ const Game = {
                 autoLevel: 1     // 初始自动收益1级
             },
             stats: {
-                goldTotal: 50,
+                pointsTotal: 50,
                 gachaCount: 0,
                 battleWin: 0,
                 battleLose: 0,
@@ -205,8 +205,8 @@ const Game = {
 
         if (result.win) {
             let msg = `✅ 胜利！${CARD_CONFIG.getWorldName(result.world)} · 第 ${result.subStage} 关`;
-            msg += `<br>获得 💰${result.reward.gold}`;
-            if (result.reward.tickets > 0) msg += ` 🎫${result.reward.tickets}`;
+            msg += `<br>获得 💰${result.reward.points}`;
+            if (result.reward.shards > 0) msg += ` 🎫${result.reward.shards}`;
             if (result.droppedCard) {
                 const rStyle = CARD_CONFIG.rarityStyle[result.droppedCard.rarity];
                 msg += `<br>🎁 掉落: <span style="color:${rStyle.color}">${result.droppedCard.name}</span> (${rStyle.name})`;
@@ -222,8 +222,8 @@ const Game = {
             // 记录日志
             let logMsg = `⚔️ ${CARD_CONFIG.getWorldName(result.world)} · 第 ${result.subStage} 关 胜利`;
             if (result.isBoss) logMsg += ' (BOSS)';
-            logMsg += `, 获得 💰${result.reward.gold}`;
-            if (result.reward.tickets > 0) logMsg += ` 🎫${result.reward.tickets}`;
+            logMsg += `, 获得 💰${result.reward.points}`;
+            if (result.reward.shards > 0) logMsg += ` 🎫${result.reward.shards}`;
             if (result.droppedCard) logMsg += ` [掉落: ${result.droppedCard.name}]`;
             this._log(logMsg, 'battle-win');
         } else {
@@ -261,8 +261,8 @@ const Game = {
         if (!this.state) return;
 
         // 资源
-        document.getElementById('gold').textContent = Formatter.number(this.state.gold);
-        document.getElementById('tickets').textContent = this.state.tickets;
+        document.getElementById('gold').textContent = Formatter.number(this.state.points);
+        document.getElementById('tickets').textContent = this.state.shards;
 
         // 世界/关卡信息
         const stageInfo = BattleSystem.getCurrentStageInfo(this.state);
@@ -292,15 +292,15 @@ const Game = {
         // 按钮状态 - 抽卡
         const gachaBtn = document.getElementById('gacha-btn');
         const gacha10Btn = document.getElementById('gacha-10-btn');
-        const canSingle = this.state.tickets >= GachaSystem.COST.tickets;
-        const canTen = this.state.tickets >= GachaSystem.COST_10.tickets;
+        const canSingle = this.state.shards >= GachaSystem.COST.shards;
+        const canTen = this.state.shards >= GachaSystem.COST_10.shards;
         if (gachaBtn) {
             gachaBtn.disabled = !canSingle;
-            gachaBtn.textContent = canSingle ? `单抽 (${GachaSystem.COST.tickets} 🎫)` : `单抽 (券不足)`;
+            gachaBtn.textContent = canSingle ? `单抽 (${GachaSystem.COST.shards} 🎫)` : `单抽 (碎片不足)`;
         }
         if (gacha10Btn) {
             gacha10Btn.disabled = !canTen;
-            gacha10Btn.textContent = canTen ? `十连抽 (${GachaSystem.COST_10.tickets} 🎫)` : `十连抽 (券不足)`;
+            gacha10Btn.textContent = canTen ? `十连抽 (${GachaSystem.COST_10.shards} 🎫)` : `十连抽 (碎片不足)`;
         }
 
         // 卡牌列表
@@ -377,7 +377,7 @@ const Game = {
         for (const item of items) {
             const el = document.createElement('div');
             el.className = 'shop-item';
-            const canAfford = this.state.gold >= item.cost;
+            const canAfford = this.state.points >= item.cost;
             el.innerHTML = `
                 <div class="item-info">
                     <span class="item-name">${item.icon || ''} ${item.name}</span>
@@ -399,8 +399,8 @@ const Game = {
         const unlocked = AchievementSystem.checkAll(this.state);
         for (const ach of unlocked) {
             const rewardText = [];
-            if (ach.reward.gold) rewardText.push(`💰${ach.reward.gold}`);
-            if (ach.reward.tickets) rewardText.push(`🎫${ach.reward.tickets}`);
+            if (ach.reward.points) rewardText.push(`💰${ach.reward.points}`);
+            if (ach.reward.shards) rewardText.push(`🎫${ach.reward.shards}`);
             this.showToast(
                 `🏆 成就解锁：${ach.name}<br>${ach.desc}<br>奖励：${rewardText.join(' ')}`,
                 'achievement'
@@ -505,7 +505,7 @@ const Game = {
         
         // 每10次点击记录一次日志，避免刷屏
         if (this.state.stats.clickSpamCount % 10 === 0) {
-            this._log(`💰 点击赚金币 +${earned} (累计${this.state.stats.clickSpamCount}次)`, 'info');
+            this._log(`💰 点击赚系统点 +${earned} (累计${this.state.stats.clickSpamCount}次)`, 'info');
         }
     },
 
@@ -537,8 +537,8 @@ const Game = {
             this.showToast(result.reason, 'error');
             return;
         }
-        this.showToast(`升级A成功！点击收益 +${result.newValue} 金币`, 'info');
-        this._log(`⬆️ 升级A成功，点击收益 +${result.newValue} 金币`, 'upgrade');
+        this.showToast(`升级A成功！点击收益 +${result.newValue} 系统点`, 'info');
+        this._log(`⬆️ 升级A成功，点击收益 +${result.newValue} 系统点`, 'upgrade');
         this.render();
     },
 
@@ -549,8 +549,8 @@ const Game = {
             this.showToast(result.reason, 'error');
             return;
         }
-        this.showToast(`升级B成功！每秒自动 +${result.newValue} 金币`, 'info');
-        this._log(`⬆️ 升级B成功，自动收益 +${result.newValue} 金币/秒`, 'upgrade');
+        this.showToast(`升级B成功！每秒自动 +${result.newValue} 系统点`, 'info');
+        this._log(`⬆️ 升级B成功，自动收益 +${result.newValue} 系统点/秒`, 'upgrade');
         this.render();
     },
 
@@ -583,13 +583,13 @@ const Game = {
     // 内部：计算并应用离线收益
     _calcOfflineEarnings: function() {
         if (!this.state || !this.state.stats.lastSaveTime) return;
-        const result = IdleSystem.applyOfflineGold(this.state);
-        if (result.gold > 0) {
+        const result = IdleSystem.applyOfflinePoints(this.state);
+        if (result.points > 0) {
             this.showToast(
-                `离线收益：💰${result.gold}（离线${Formatter.time(result.seconds)}）`,
+                `离线收益：💰${result.points}（离线${Formatter.time(result.seconds)}）`,
                 'info'
             );
-            this._log(`💤 离线收益: 💰${result.gold} (离线${Formatter.time(result.seconds)})`, 'info');
+            this._log(`💤 离线收益: 💰${result.points} (离线${Formatter.time(result.seconds)})`, 'info');
         }
     },
 
@@ -598,14 +598,14 @@ const Game = {
         // 每秒自动收益 - 只更新金币显示，不触发全量渲染
         setInterval(() => {
             if (!this.state) return;
-            const goldPerSec = IdleSystem.getAutoGoldPerSecond(this.state);
-            if (goldPerSec > 0) {
-                this.state.gold += goldPerSec;
-                this.state.stats.goldTotal += goldPerSec;
-                // 只更新金币显示，避免全量渲染导致图鉴跳动
-                const goldEl = document.getElementById('gold');
-                if (goldEl) {
-                    goldEl.textContent = Formatter.number(this.state.gold);
+            const pointsPerSec = IdleSystem.getAutoPointsPerSecond(this.state);
+            if (pointsPerSec > 0) {
+                this.state.points += pointsPerSec;
+                this.state.stats.pointsTotal += pointsPerSec;
+                // 只更新系统点显示，避免全量渲染导致图鉴跳动
+                const pointsEl = document.getElementById('gold');
+                if (pointsEl) {
+                    pointsEl.textContent = Formatter.number(this.state.points);
                 }
                 // 成就检测（可能触发成就解锁）
                 const newAchievements = AchievementSystem.checkAll(this.state);

@@ -7,14 +7,14 @@ const ACHIEVEMENT_CONFIG = {
     // 成就列表
     list: [
         // === 数值成就：金币累计 ===
-        { id: 'num_001', name: '初出茅庐', desc: '累计获得100金币', condition: { type: 'gold_total', value: 100 }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'num_002', name: '小有积蓄', desc: '累计获得500金币', condition: { type: 'gold_total', value: 500 }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'num_003', name: '稳步积累', desc: '累计获得2,000金币', condition: { type: 'gold_total', value: 2000 }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'num_004', name: '富翁之路', desc: '累计获得10,000金币', condition: { type: 'gold_total', value: 10000 }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'num_005', name: '财运亨通', desc: '累计获得5万金币', condition: { type: 'gold_total', value: 50000 }, reward: { powerBonus: 1 }, hidden: false },
-        { id: 'num_006', name: '百万富翁', desc: '累计获得100万金币', condition: { type: 'gold_total', value: 1000000 }, reward: { powerBonus: 2 }, hidden: false },
-        { id: 'num_007', name: '亿万富翁', desc: '累计获得1亿金币', condition: { type: 'gold_total', value: 100000000 }, reward: { powerBonus: 3 }, hidden: false },
-        { id: 'num_008', name: '富可敌国', desc: '累计获得100亿金币', condition: { type: 'gold_total', value: 10000000000 }, reward: { powerBonus: 5 }, hidden: false },
+        { id: 'num_001', name: '初出茅庐', desc: '累计获得100系统点', condition: { type: 'points_total', value: 100 }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'num_002', name: '小有积蓄', desc: '累计获得500系统点', condition: { type: 'points_total', value: 500 }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'num_003', name: '稳步积累', desc: '累计获得2,000系统点', condition: { type: 'points_total', value: 2000 }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'num_004', name: '富翁之路', desc: '累计获得10,000系统点', condition: { type: 'points_total', value: 10000 }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'num_005', name: '财运亨通', desc: '累计获得5万系统点', condition: { type: 'points_total', value: 50000 }, reward: { powerBonus: 1 }, hidden: false },
+        { id: 'num_006', name: '百万富翁', desc: '累计获得100万系统点', condition: { type: 'points_total', value: 1000000 }, reward: { powerBonus: 2 }, hidden: false },
+        { id: 'num_007', name: '亿万富翁', desc: '累计获得1亿系统点', condition: { type: 'points_total', value: 100000000 }, reward: { powerBonus: 3 }, hidden: false },
+        { id: 'num_008', name: '富可敌国', desc: '累计获得100亿系统点', condition: { type: 'points_total', value: 10000000000 }, reward: { powerBonus: 5 }, hidden: false },
 
         // === 数值成就：抽卡次数 ===
         { id: 'num_010', name: '初次抽卡', desc: '进行首次抽卡', condition: { type: 'gacha_count', value: 1 }, reward: { powerBonus: 1 }, hidden: false },
@@ -89,11 +89,11 @@ const ACHIEVEMENT_CONFIG = {
         { id: 'hid_001', name: '十连保底', desc: '连续10次抽卡没有R以上', condition: { type: 'gacha_streak_no_rare', value: 10 }, reward: { powerBonus: 1 }, hidden: true },
         { id: 'hid_002', name: '欧皇附体', desc: '单次抽卡抽到SSR', condition: { type: 'gacha_single_ssr', value: 1 }, reward: { powerBonus: 2 }, hidden: true },
         { id: 'hid_003', name: '非酋之王', desc: '连续100次抽卡没有SSR', condition: { type: 'gacha_streak_no_ssr', value: 100 }, reward: { powerBonus: 3 }, hidden: true },
-        { id: 'hid_005', name: '守财奴', desc: '持有金币超过10万但一次都不抽卡', condition: { type: 'hoarder', value: 100000 }, reward: { powerBonus: 1 }, hidden: true },
-        { id: 'hid_006', name: '赌徒', desc: '金币为0时进行抽卡', condition: { type: 'gamble', value: 0 }, reward: { powerBonus: 1 }, hidden: true },
+        { id: 'hid_005', name: '守财奴', desc: '持有系统点超过10万但一次都不次元抽取', condition: { type: 'hoarder', value: 100000 }, reward: { powerBonus: 1 }, hidden: true },
+        { id: 'hid_006', name: '赌徒', desc: '系统点为0时进行抽卡', condition: { type: 'gamble', value: 0 }, reward: { powerBonus: 1 }, hidden: true },
         { id: 'hid_007', name: '连败者', desc: '连续失败10场竞技', condition: { type: 'lose_streak', value: 10 }, reward: { powerBonus: 1 }, hidden: true },
         { id: 'hid_008', name: '绝地反击', desc: '战力低于敌人10%时获胜', condition: { type: 'underdog_win', value: 0.9 }, reward: { powerBonus: 2 }, hidden: true },
-        { id: 'hid_009', name: '点击狂魔', desc: '1分钟内点击赚金币按钮超过30次', condition: { type: 'click_spam', value: 30 }, reward: { powerBonus: 1 }, hidden: true },
+        { id: 'hid_009', name: '点击狂魔', desc: '1分钟内点击赚系统点按钮超过30次', condition: { type: 'click_spam', value: 30 }, reward: { powerBonus: 1 }, hidden: true },
         { id: 'hid_010', name: '午夜玩家', desc: '在0:00-1:00之间登录游戏', condition: { type: 'midnight_login', value: 1 }, reward: { powerBonus: 1 }, hidden: true },
     ]
 };

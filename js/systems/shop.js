@@ -1,11 +1,11 @@
 /* ===== 商店系统 ===== */
 const ShopSystem = {
     // 配置
-    TICKET_COST: 500,        // 券价格
+    SHARD_COST: 500,        // 碎片价格
     CARD_COST: 300,          // N卡价格
     REFRESH_INTERVAL: 20 * 60 * 1000,  // 20分钟刷新（毫秒）
 
-    // 公共方法：获取商店当前商品
+    // 获取商店当前商品
     getItems: function(gameState) {
         // 确保商店数据存在
         if (!gameState.shop) {
@@ -23,12 +23,12 @@ const ShopSystem = {
 
         const items = [];
 
-        // 券商品
+        // 碎片商品
         items.push({
-            id: 'ticket',
-            name: '抽卡券',
-            type: 'ticket',
-            cost: this.TICKET_COST,
+            id: 'shard',
+            name: '世界碎片',
+            type: 'shard',
+            cost: this.SHARD_COST,
             desc: '用于抽卡',
             icon: '🎫'
         });
@@ -55,21 +55,21 @@ const ShopSystem = {
         return items;
     },
 
-    // 公共方法：购买商品
+    // 购买商品
     buy: function(gameState, itemId) {
         // 先检查库存（不触发刷新）
         if (!gameState.shop) {
             return { success: false, reason: '商店未初始化' };
         }
 
-        // 检查是否是券
-        if (itemId === 'ticket') {
-            if (gameState.gold < this.TICKET_COST) {
-                return { success: false, reason: '金币不足' };
+        // 检查是否是碎片
+        if (itemId === 'shard') {
+            if (gameState.points < this.SHARD_COST) {
+                return { success: false, reason: '系统点不足' };
             }
-            gameState.gold -= this.TICKET_COST;
-            gameState.tickets += 1;
-            return { success: true, item: { id: 'ticket', name: '抽卡券', type: 'ticket', cost: this.TICKET_COST }, received: '抽卡券 x1' };
+            gameState.points -= this.SHARD_COST;
+            gameState.shards += 1;
+            return { success: true, item: { id: 'shard', name: '世界碎片', type: 'shard', cost: this.SHARD_COST }, received: '世界碎片 x1' };
         }
 
         // 检查是否是卡牌且库存足够
@@ -81,12 +81,12 @@ const ShopSystem = {
             return { success: false, reason: '库存不足' };
         }
 
-        if (gameState.gold < this.CARD_COST) {
-            return { success: false, reason: '金币不足' };
+        if (gameState.points < this.CARD_COST) {
+            return { success: false, reason: '系统点不足' };
         }
 
-        // 扣除金币和库存
-        gameState.gold -= this.CARD_COST;
+        // 扣除系统点和库存
+        gameState.points -= this.CARD_COST;
         gameState.shop.cardStock[itemId]--;
 
         // 添加卡牌到库存
@@ -95,19 +95,28 @@ const ShopSystem = {
         card.uid = Formatter.uid();
         card.level = 1;
 
-        GameUtils.addCardToInventory(gameState, card);
+        if (!gameState.cards[itemId]) {
+            gameState.cards[itemId] = { count: 0, level: 1, instances: [] };
+        }
+        gameState.cards[itemId].count++;
+        gameState.cards[itemId].instances.push(card.uid);
+
+        // 记录稀有度获得
+        if (!gameState.stats.rarityObtained[card.rarity]) {
+            gameState.stats.rarityObtained[card.rarity] = true;
+        }
 
         return { success: true, item: { id: itemId, name: config.name, type: 'card', cost: this.CARD_COST }, received: card.name };
     },
 
-    // 公共方法：刷新商店
+    // 刷新商店
     refresh: function(gameState) {
         // 手动刷新不消耗，只是重置时间
         this._refresh(gameState);
         return { success: true };
     },
 
-    // 公共方法：获取下次刷新时间
+    // 获取下次刷新时间
     getNextRefreshTime: function(gameState) {
         if (!gameState.shop) return 0;
         const next = gameState.shop.lastRefresh + this.REFRESH_INTERVAL;

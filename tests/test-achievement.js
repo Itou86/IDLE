@@ -1,17 +1,17 @@
 /* ===== 成就系统测试 ===== */
 TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
 
-    function createState(gold = 100, tickets = 10, world = 1, subStage = 1, cards = {}, achievements = {}, stats = {}) {
+    function createState(points = 100, shards = 10, world = 1, subStage = 1, cards = {}, achievements = {}, stats = {}) {
         return {
-            gold: gold,
-            tickets: tickets,
+            points: points,
+            shards: shards,
             world: world,
             subStage: subStage,
             worldProgress: {},
             cards: cards,
             achievements: achievements,
             stats: {
-                goldTotal: 0,  // 累计金币从0开始，避免触发成就
+                pointsTotal: 0,  // 累计系统点从0开始，避免触发成就
                 gachaCount: 0,
                 battleWin: 0,
                 battleLose: 0,
@@ -45,7 +45,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
 
     test('checkAll: 金币成就解锁', () => {
         const state = createState(100000);
-        state.stats.goldTotal = 100; // 累计100金币
+        state.stats.pointsTotal = 100; // 累计100金币
         const unlocked = AchievementSystem.checkAll(state);
         const found = unlocked.find(a => a.id === 'num_001');
         Assert.exists(found, '应解锁"初出茅庐"成就');
@@ -53,18 +53,18 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
 
     test('checkAll: 多个金币成就阶梯解锁', () => {
         const state = createState(100000);
-        state.stats.goldTotal = 2000; // 累计2000金币
+        state.stats.pointsTotal = 2000; // 累计2000系统点
         const unlocked = AchievementSystem.checkAll(state);
         const ids = unlocked.map(a => a.id);
-        Assert.true(ids.includes('num_001'), '应解锁100金币成就');
-        Assert.true(ids.includes('num_002'), '应解锁500金币成就');
-        Assert.true(ids.includes('num_003'), '应解锁2000金币成就');
-        Assert.false(ids.includes('num_004'), '不应解锁1万金币成就');
+        Assert.true(ids.includes('num_001'), '应解锁100系统点成就');
+        Assert.true(ids.includes('num_002'), '应解锁500系统点成就');
+        Assert.true(ids.includes('num_003'), '应解锁2000系统点成就');
+        Assert.false(ids.includes('num_004'), '不应解锁1万系统点成就');
     });
 
     test('checkAll: 成就战力加成计算', () => {
         const state = createState(0);
-        state.stats.goldTotal = 100;
+        state.stats.pointsTotal = 100;
         AchievementSystem.checkAll(state);
         const bonus = AchievementSystem.getTotalPowerBonus(state);
         Assert.greaterThan(bonus, 0, '应获得成就战力加成');
@@ -72,7 +72,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
 
     test('checkAll: 成就只解锁一次', () => {
         const state = createState(0);
-        state.stats.goldTotal = 100;
+        state.stats.pointsTotal = 100;
         AchievementSystem.checkAll(state);
         const count1 = Object.keys(state.achievements).length;
         AchievementSystem.checkAll(state); // 再次检查
@@ -258,7 +258,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
     // --- 奖励测试 ---
     test('checkAll: 战力加成奖励', () => {
         const state = createState(0);
-        state.stats.goldTotal = 100;
+        state.stats.pointsTotal = 100;
         const beforeBonus = AchievementSystem.getTotalPowerBonus(state);
         AchievementSystem.checkAll(state);
         const afterBonus = AchievementSystem.getTotalPowerBonus(state);
@@ -267,7 +267,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
 
     test('checkAll: 多个成就叠加战力加成', () => {
         const state = createState(0);
-        state.stats.goldTotal = 100;
+        state.stats.pointsTotal = 100;
         state.stats.gachaCount = 1;
         const beforeBonus = AchievementSystem.getTotalPowerBonus(state);
         AchievementSystem.checkAll(state);
@@ -280,7 +280,7 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
         const state = createState(0);
         // 找一个没有奖励的成就（如果有的话）
         // 或者测试空奖励情况
-        state.stats.goldTotal = 100;
+        state.stats.pointsTotal = 100;
         Assert.doesNotThrow(() => {
             AchievementSystem.checkAll(state);
         }, '正常成就检查不应报错');
@@ -289,20 +289,20 @@ TestRunner.suite('🏆 成就系统 - AchievementSystem', (test) => {
     // --- 边界测试 ---
     test('checkAll: 刚好达到阈值', () => {
         const state = createState(0);
-        state.stats.goldTotal = 99; // 刚好不到100
+        state.stats.pointsTotal = 99; // 刚好不到100
         let unlocked = AchievementSystem.checkAll(state);
         let found = unlocked.find(a => a.id === 'num_001');
-        Assert.equal(found, undefined, '99金币不应解锁');
+        Assert.equal(found, undefined, '99系统点不应解锁');
 
-        state.stats.goldTotal = 100; // 刚好100
+        state.stats.pointsTotal = 100; // 刚好100
         unlocked = AchievementSystem.checkAll(state);
         found = unlocked.find(a => a.id === 'num_001');
-        Assert.exists(found, '100金币应刚好解锁');
+        Assert.exists(found, '100系统点应刚好解锁');
     });
 
     test('checkAll: 极端大数值', () => {
         const state = createState(0);
-        state.stats.goldTotal = 999999999;
+        state.stats.pointsTotal = 999999999;
         state.stats.gachaCount = 9999;
         state.stats.battleWin = 9999;
         state.world = 167;

@@ -1,17 +1,17 @@
 /* ===== 竞技系统测试（无限流世界版） ===== */
 TestRunner.suite('⚔️ 竞技系统 - BattleSystem', (test) => {
 
-    function createState(gold = 100, tickets = 10, world = 1, subStage = 1, cards = {}) {
+    function createState(points = 100, shards = 10, world = 1, subStage = 1, cards = {}) {
         return {
-            gold: gold,
-            tickets: tickets,
+            points: points,
+            shards: shards,
             world: world,
             subStage: subStage,
             worldProgress: {},
             cards: cards,
             achievements: {},
             stats: {
-                goldTotal: gold,
+                pointsTotal: points,
                 gachaCount: 0,
                 battleWin: 0,
                 battleLose: 0,
@@ -44,11 +44,11 @@ TestRunner.suite('⚔️ 竞技系统 - BattleSystem', (test) => {
         const state = createState(100, 10, 1, 1, {
             'ssr_001': { count: 1, level: 1, instances: ['a'] }
         });
-        const beforeGold = state.gold;
-        const beforeTickets = state.tickets;
+        const beforePoints = state.points;
+        const beforeShards = state.shards;
         const result = BattleSystem.fight(state);
-        Assert.greaterThan(state.gold, beforeGold, '应获得金币');
-        Assert.greaterThanOrEqual(result.reward.gold, 0, '返回应有金币奖励');
+        Assert.greaterThan(state.points, beforePoints, '应获得系统点');
+        Assert.greaterThanOrEqual(result.reward.points, 0, '返回应有系统点奖励');
     });
 
     test('fight: 胜利后关卡推进', () => {
@@ -103,13 +103,13 @@ TestRunner.suite('⚔️ 竞技系统 - BattleSystem', (test) => {
         Assert.equal(state.stats.loseStreak, 0, '胜利应重置连败');
     });
 
-    test('fight: 金币累计统计', () => {
+    test('fight: 系统点累计统计', () => {
         const state = createState(100, 10, 1, 1, {
             'ssr_001': { count: 1, level: 1, instances: ['a'] }
         });
-        const beforeTotal = state.stats.goldTotal;
+        const beforeTotal = state.stats.pointsTotal;
         BattleSystem.fight(state);
-        Assert.greaterThan(state.stats.goldTotal, beforeTotal, '金币累计应增加');
+        Assert.greaterThan(state.stats.pointsTotal, beforeTotal, '系统点累计应增加');
     });
 
     test('fight: 返回结果结构完整', () => {
@@ -203,7 +203,7 @@ TestRunner.suite('⚔️ 竞技系统 - BattleSystem', (test) => {
         const state = createState(100, 10, 999, 1);
         const info = BattleSystem.getCurrentStageInfo(state);
         Assert.greaterThan(info.enemyPower, 0, '第999世界应有敌人');
-        Assert.exists(info.reward.gold, '应有奖励');
+        Assert.exists(info.reward.points, '应有奖励');
     });
 
     test('fight: 防御力影响有效战力', () => {

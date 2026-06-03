@@ -131,7 +131,7 @@ TestRunner.suite('📦 配置数据 - Cards', (test) => {
         for (const set of CARD_CONFIG.sets) {
             const hasBonus = (set.bonus.power || 0) > 0 ||
                            (set.bonus.defense || 0) > 0 ||
-                           (set.bonus.gold || 0) > 0;
+                           (set.bonus.points || 0) > 0;
             Assert.true(hasBonus, `套装 ${set.name} 应有实际加成`);
         }
     });
@@ -169,7 +169,7 @@ TestRunner.suite('📦 配置数据 - Achievements', (test) => {
 
     test('achievements: 条件类型合法', () => {
         const validTypes = [
-            'gold_total', 'gacha_count', 'battle_win', 'stage',
+            'points_total', 'gacha_count', 'battle_win', 'stage',
             'card_count', 'card_unique', 'card_all', 'card_level',
             'rarity_obtain', 'set_active', 'set_active_count',
             'has_cards', 'set_active_specific',
@@ -184,11 +184,11 @@ TestRunner.suite('📦 配置数据 - Achievements', (test) => {
 
     test('achievements: 奖励数值非负', () => {
         for (const ach of ACHIEVEMENT_CONFIG.list) {
-            if (ach.reward.gold !== undefined) {
-                Assert.greaterThanOrEqual(ach.reward.gold, 0, `${ach.id} 金币奖励应非负`);
+            if (ach.reward.points !== undefined) {
+                Assert.greaterThanOrEqual(ach.reward.points, 0, `${ach.id} 系统点奖励应非负`);
             }
-            if (ach.reward.tickets !== undefined) {
-                Assert.greaterThanOrEqual(ach.reward.tickets, 0, `${ach.id} 券奖励应非负`);
+            if (ach.reward.shards !== undefined) {
+                Assert.greaterThanOrEqual(ach.reward.shards, 0, `${ach.id} 碎片奖励应非负`);
             }
             if (ach.reward.powerBonus !== undefined) {
                 Assert.greaterThanOrEqual(ach.reward.powerBonus, 0, `${ach.id} 战力加成应非负`);
@@ -207,13 +207,13 @@ TestRunner.suite('📦 配置数据 - Achievements', (test) => {
     });
 
     test('achievements: 数值成就有递增梯度', () => {
-        const goldAchs = ACHIEVEMENT_CONFIG.list
-            .filter(a => a.condition.type === 'gold_total')
+        const pointsAchs = ACHIEVEMENT_CONFIG.list
+            .filter(a => a.condition.type === 'points_total')
             .sort((a, b) => a.condition.value - b.condition.value);
-        Assert.greaterThan(goldAchs.length, 1, '应有多个金币成就');
-        for (let i = 1; i < goldAchs.length; i++) {
-            Assert.greaterThan(goldAchs[i].condition.value, goldAchs[i-1].condition.value,
-                '金币成就目标应递增');
+        Assert.greaterThan(pointsAchs.length, 1, '应有多个系统点成就');
+        for (let i = 1; i < pointsAchs.length; i++) {
+            Assert.greaterThan(pointsAchs[i].condition.value, pointsAchs[i-1].condition.value,
+                '系统点成就目标应递增');
         }
     });
 });
@@ -241,7 +241,7 @@ TestRunner.suite('📦 配置数据 - Stages', (test) => {
     test('stages: 世界内奖励递增', () => {
         const s1 = STAGE_CONFIG.generate(1, 1);
         const s2 = STAGE_CONFIG.generate(1, 2);
-        Assert.greaterThanOrEqual(s2.reward.gold, s1.reward.gold, '金币奖励应递增');
+        Assert.greaterThanOrEqual(s2.reward.points, s1.reward.points, '系统点奖励应递增');
     });
 
     test('stages: BOSS关卡配置正确', () => {

@@ -2,10 +2,10 @@
 
 TestRunner.suite('ShopSystem', (test) => {
 
-function createShopState(gold = 1000) {
+function createShopState(points = 1000) {
     return {
-        gold: gold,
-        tickets: 0,
+        points: points,
+        shards: 0,
         stage: 1,
         cards: {},
         achievements: {},
@@ -14,7 +14,7 @@ function createShopState(gold = 1000) {
             cardStock: {}
         },
         stats: {
-            goldTotal: gold,
+            pointsTotal: points,
             gachaCount: 0,
             battleWin: 0,
             battleLose: 0,
@@ -32,11 +32,11 @@ test('ShopSystem - 获取商品列表', () => {
     const state = createShopState(1000);
     const items = ShopSystem.getItems(state);
 
-    // 至少应有券
-    const ticket = items.find(i => i.id === 'ticket');
-    Assert.exists(ticket, '应有券商品');
-    Assert.equal(ticket.cost, 500, '券价格应为500');
-    Assert.equal(ticket.type, 'ticket', '类型应为ticket');
+    // 至少应有碎片
+    const shard = items.find(i => i.id === 'shard');
+    Assert.exists(shard, '应有碎片商品');
+    Assert.equal(shard.cost, 500, '碎片价格应为500');
+    Assert.equal(shard.type, 'shard', '类型应为shard');
 });
 
 test('ShopSystem - 商店自动刷新', () => {
@@ -54,21 +54,21 @@ test('ShopSystem - 商店自动刷新', () => {
     }
 });
 
-test('ShopSystem - 购买券', () => {
+test('ShopSystem - 购买碎片', () => {
     const state = createShopState(1000);
-    const result = ShopSystem.buy(state, 'ticket');
+    const result = ShopSystem.buy(state, 'shard');
 
-    Assert.true(result.success, '购买券应成功');
-    Assert.equal(state.gold, 500, '应扣除500金币');
-    Assert.equal(state.tickets, 1, '应获得1张券');
+    Assert.true(result.success, '购买碎片应成功');
+    Assert.equal(state.points, 500, '应扣除500系统点');
+    Assert.equal(state.shards, 1, '应获得1个碎片');
 });
 
-test('ShopSystem - 金币不足购买券', () => {
+test('ShopSystem - 系统点不足购买碎片', () => {
     const state = createShopState(300);
-    const result = ShopSystem.buy(state, 'ticket');
+    const result = ShopSystem.buy(state, 'shard');
 
-    Assert.false(result.success, '金币不足应失败');
-    Assert.equal(state.tickets, 0, '不应获得券');
+    Assert.false(result.success, '系统点不足应失败');
+    Assert.equal(state.shards, 0, '不应获得碎片');
 });
 
 test('ShopSystem - 购买卡牌', () => {
@@ -86,7 +86,7 @@ test('ShopSystem - 购买卡牌', () => {
 
     const result = ShopSystem.buy(state, cardId);
     Assert.true(result.success, '购买卡牌应成功');
-    Assert.equal(state.gold, 1000 - 300, '应扣除300金币');
+    Assert.equal(state.points, 1000 - 300, '应扣除300系统点');
     Assert.equal(state.shop.cardStock[cardId], beforeStock - 1, '库存应减少');
     Assert.equal(state.cards[cardId].count, 1, '应获得1张卡牌');
 });

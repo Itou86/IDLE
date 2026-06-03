@@ -1,24 +1,25 @@
 /* ===== 抽卡系统（无限流世界版） ===== */
 const GachaSystem = {
     // 抽卡消耗
-    COST: { tickets: 1 },
+    COST: { shards: 1 },
 
     // 十连抽消耗
-    COST_10: { tickets: 10 },
+    COST_10: { shards: 10 },
 
-    // 公共方法：执行抽卡 (count=1 单抽, count=10 十连)
+    // 执行抽卡 (count=1 单抽, count=10 十连)
     draw: function(gameState, count) {
         count = parseInt(count, 10) || 1;
-        const cost = count >= 10 ? this.COST_10.tickets : this.COST.tickets * count;
+        const cost = count >= 10 ? this.COST_10.shards : this.COST.shards * count;
 
-        if (gameState.tickets < cost) {
-            return { success: false, reason: '抽卡券不足' };
+        if (gameState.shards < cost) {
+            return { success: false, reason: '世界碎片不足' };
         }
 
-        gameState.tickets -= cost;
+        gameState.shards -= cost;
         gameState.stats.gachaCount += count;
 
         const cards = [];
+        const hasDice = gameState.cards['ssr_003'] && gameState.cards['ssr_003'].count > 0;
 
         for (let i = 0; i < count; i++) {
             const isLastOfTen = (count === 10 && i === 9);
@@ -27,16 +28,10 @@ const GachaSystem = {
             cards.push(card);
             // 检查保底相关
             this._updateStreaks(gameState, card.rarity);
-        }
 
-        // 触发抽卡结束效果（如命运骰子的额外抽卡）
-        const context = { cards, count };
-        EffectRegistry.trigger('on_gacha_end', gameState, context);
-
-        // 处理额外抽卡
-        if (context.extraDraws && context.extraDraws.length > 0) {
-            for (const extra of context.extraDraws) {
-                const extraCard = this._rollCard(gameState, false, false, extra.rarityUp);
+            // ssr_003 命运骰子: 10%概率额外抽1张，且稀有度+1
+            if (hasDice && Math.random() < 0.1) {
+                const extraCard = this._rollCard(gameState, false, false, true); // rarityUp=true
                 this._addCard(gameState, extraCard);
                 cards.push(extraCard);
                 this._updateStreaks(gameState, extraCard.rarity);
@@ -46,7 +41,7 @@ const GachaSystem = {
         return { success: true, cards: cards, count: count };
     },
 
-    // 内部：稀有度保底概率提升（十连时SR/SSR概率提升，第10张保底SR）
+    // 稀有度保底概率提升（十连时SR/SSR概率提升，第10张保底SR）
     // rarityUp: 命运骰子效果，稀有度+1
     _rollCard: function(gameState, isTenPull, isLastOfTen, rarityUp) {
         // 获取当前世界的卡池
@@ -132,7 +127,16 @@ const GachaSystem = {
 
     // 内部：添加卡牌到玩家库存
     _addCard: function(gameState, card) {
-        GameUtils.addCardToInventory(gameState, card);
+        if (!gameState.cards[card.id]) {
+            gameState.cards[card.id] = { count: 0, level: 1, instances: [] };
+        }
+        gameState.cards[card.id].count++;
+        gameState.cards[card.id].instances.push(card.uid);
+
+        // 记录稀有度获得
+        if (!gameState.stats.rarityObtained[card.rarity]) {
+            gameState.stats.rarityObtained[card.rarity] = true;
+        }
     },
 
     // 内部：更新连抽统计
@@ -149,7 +153,7 @@ const GachaSystem = {
         }
     },
 
-    // 公共方法：计算玩家总战力
+    // 计算玩家总战力
     getTotalPower: function(gameState) {
         // 如果 StatSystem 可用，使用新属性系统
         if (typeof StatSystem !== 'undefined' && StatSystem.getCharacterStats) {
@@ -168,7 +172,7 @@ const GachaSystem = {
             const config = CARD_CONFIG.pool.find(c => c.id === id);
             if (!config) continue;
             const level = cardData.level || 1;
-            const multiplier = GameUtils.getLevelMultiplier(level);
+            const multiplier = 1 + (level - 1) * 0.1;
             const count = cardData.count || 1;
 
             // 兼容新版 stats 格式
@@ -196,7 +200,7 @@ const GachaSystem = {
 
     // 内部：计算套装加成
     _getSetBonus: function(gameState) {
-        const bonus = { power: 0, defense: 0, gold: 0, speed: 0, dropRate: 0, hp: 0, hpRegen: 0, ticketBonus: 0, critRate: 0, critDamage: 0, expBonus: 0 };
+        const bonus = { power: 0, defense: 0, points: 0, speed: 0, dropRate: 0, hp: 0, hpRegen: 0, shardBonus: 0, critRate: 0, critDamage: 0, expBonus: 0 };
         const sets = CARD_CONFIG.getCurrentSets(gameState);
         for (const set of sets) {
             const hasAll = set.ids.every(id => gameState.cards[id] && gameState.cards[id].count > 0);
@@ -211,7 +215,7 @@ const GachaSystem = {
         return bonus;
     },
 
-    // 公共方法：获取玩家已激活的套装列表
+    // 获取玩家已激活的套装列表
     getActiveSets: function(gameState) {
         const active = [];
         const sets = CARD_CONFIG.getCurrentSets(gameState);
@@ -231,7 +235,7 @@ const GachaSystem = {
         return active;
     },
 
-    // 公共方法：获取玩家卡组图鉴进度
+    // 获取玩家卡组图鉴进度
     getCollectionProgress: function(gameState) {
         const totalCards = CARD_CONFIG.pool.length;
         const ownedCards = Object.keys(gameState.cards).length;
@@ -247,7 +251,7 @@ const GachaSystem = {
         };
     },
 
-    // 公共方法：升级卡牌
+    // 升级卡牌
     upgradeCard: function(gameState, cardId) {
         const cardData = gameState.cards[cardId];
         if (!cardData || cardData.count < 2) {
@@ -261,7 +265,7 @@ const GachaSystem = {
         return { success: true, newLevel: cardData.level };
     },
 
-    // 公共方法：批量升级卡牌（消耗多张提升更多等级）
+    // 批量升级卡牌（消耗多张提升更多等级）
     upgradeCardBatch: function(gameState, cardId, targetLevel) {
         const cardData = gameState.cards[cardId];
         if (!cardData) {

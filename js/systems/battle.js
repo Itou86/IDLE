@@ -1,6 +1,6 @@
 /* ===== 战斗系统（无限流世界版） ===== */
 const BattleSystem = {
-    // 公共方法：进行一场战斗（回合制）
+    // 进行一场战斗（回合制）
     // world, subStage: 可选，挑战指定关卡；不传则挑战当前进度关卡
     fight: function(gameState, world, subStage) {
         // 向后兼容：如果只传一个参数，视为旧版线性关卡号
@@ -102,7 +102,7 @@ const BattleSystem = {
         return this._handleLoss(gameState, stage, enemyPower, stats, log, round);
     },
 
-    // 内部：计算敌人属性
+    // 计算敌人属性
     _calcEnemyStats: function(enemyPower, isBoss) {
         // 敌人属性基于战力分配
         const attackRatio = isBoss ? 0.6 : 0.7;
@@ -131,16 +131,17 @@ const BattleSystem = {
         };
     },
 
-    // 内部：计算单次攻击伤害
+    // 计算单次攻击伤害
     _calcDamage: function(attacker, defender, isPlayer, gameState, stage) {
         // 基础伤害 = 攻击者攻击力 - 防御者防御力（至少为1）
         let damage = Math.max(1, attacker.power - defender.defense * 0.5);
 
-        // 触发伤害计算效果（如火焰宝石对BOSS增伤）
-        if (isPlayer && gameState) {
-            const context = { damage, isPlayer, isBoss: stage && stage.isBoss };
-            EffectRegistry.trigger('on_damage_calc', gameState, context);
-            damage = context.damage;
+        // 对BOSS增伤（r_004 火焰宝石: +20%对BOSS伤害）
+        if (isPlayer && stage && stage.isBoss && gameState) {
+            const hasFlameGem = gameState.cards['r_004'] && gameState.cards['r_004'].count > 0;
+            if (hasFlameGem) {
+                damage = Math.floor(damage * 1.2);
+            }
         }
 
         // 暴击判定
@@ -172,21 +173,21 @@ const BattleSystem = {
         return { damage: Math.floor(damage), isCrit, isMiss };
     },
 
-    // 内部：BOSS特殊攻击（第3回合大招）
+    // BOSS特殊攻击（第3回合大招）
     _calcBossSpecial: function(enemy, playerStats) {
         // BOSS大招 = 普通攻击 × 1.5（无视部分防御）
         const damage = Math.max(1, Math.floor(enemy.power * 1.5 - playerStats.defense * 0.3));
         return { damage };
     },
 
-    // 内部：处理胜利
+    // 处理胜利
     _handleWin: function(gameState, stage, enemyPower, playerStats, log, rounds) {
-        const goldReward = stage.reward.gold;
-        const ticketReward = stage.reward.tickets;
+        const pointsReward = stage.reward.points;
+        const shardReward = stage.reward.shards;
 
-        gameState.gold += goldReward;
-        gameState.tickets += ticketReward;
-        gameState.stats.goldTotal += goldReward;
+        gameState.points += pointsReward;
+        gameState.shards += shardReward;
+        gameState.stats.pointsTotal += pointsReward;
         gameState.stats.battleWin++;
         gameState.stats.loseStreak = 0;
 
@@ -210,25 +211,19 @@ const BattleSystem = {
         // 战斗掉落卡牌
         const droppedCard = this._dropCard(gameState, stage.world);
 
-        // 触发 on_kill 效果（灵魂契约、聚宝盆等）
-        const killContext = EffectRegistry.trigger('on_kill', gameState, {
-            world: stage.world,
-            totalStage: stage.totalStage
-        });
-
-        // 灵魂契约: 击败敌人时概率再抽1次
+        // sr_005 灵魂契约: 击败敌人时20%概率再抽1次
         let extraDraw = null;
-        if (killContext.killExtraDropChance > 0 && Math.random() < killContext.killExtraDropChance) {
+        const hasSoulContract = gameState.cards['sr_005'] && gameState.cards['sr_005'].count > 0;
+        if (hasSoulContract && Math.random() < 0.2) {
             extraDraw = this._dropCard(gameState, stage.world);
         }
 
-        // 聚宝盆: 每N关额外获得抽卡券
-        let extraTickets = 0;
-        if (killContext.stageTicketBonus > 0 && killContext.stageTicketInterval > 0) {
-            if (stage.totalStage % killContext.stageTicketInterval === 0) {
-                extraTickets = killContext.stageTicketBonus;
-                gameState.tickets += extraTickets;
-            }
+        // sr_003 聚宝盆: 每10关额外获得世界碎片
+        let extraShards = 0;
+        const hasTreasureBowl = gameState.cards['sr_003'] && gameState.cards['sr_003'].count > 0;
+        if (hasTreasureBowl && stage.totalStage % 10 === 0) {
+            extraShards = 1;
+            gameState.shards += extraShards;
         }
 
         // 记录绝地反击（hid_008）
@@ -246,17 +241,17 @@ const BattleSystem = {
             playerPower: playerStats.effectivePower,
             playerHP: playerStats.hp,
             enemyHP: 0,
-            reward: { gold: goldReward, tickets: ticketReward + extraTickets },
+            reward: { points: pointsReward, shards: shardReward + extraShards },
             droppedCard: droppedCard,
             extraDraw: extraDraw,
-            extraTickets: extraTickets,
+            extraShards: extraShards,
             isBoss: stage.isBoss || false,
             log,
             rounds
         };
     },
 
-    // 内部：处理失败
+    // 处理失败
     _handleLoss: function(gameState, stage, enemyPower, playerStats, log, rounds) {
         gameState.stats.battleLose++;
         gameState.stats.loseStreak++;
@@ -278,7 +273,7 @@ const BattleSystem = {
         };
     },
 
-    // 内部：战斗掉落卡牌
+    // 战斗掉落卡牌
     _dropCard: function(gameState, worldId) {
         // 按稀有度概率掉落
         const rand = Math.random();
@@ -296,12 +291,21 @@ const BattleSystem = {
         card.level = 1;
 
         // 添加到玩家库存
-        GameUtils.addCardToInventory(gameState, card);
+        if (!gameState.cards[card.id]) {
+            gameState.cards[card.id] = { count: 0, level: 1, instances: [] };
+        }
+        gameState.cards[card.id].count++;
+        gameState.cards[card.id].instances.push(card.uid);
+
+        // 记录稀有度获得
+        if (!gameState.stats.rarityObtained[card.rarity]) {
+            gameState.stats.rarityObtained[card.rarity] = true;
+        }
 
         return card;
     },
 
-    // 公共方法：获取当前关卡信息
+    // 获取当前关卡信息
     getCurrentStageInfo: function(gameState) {
         const world = gameState.world || 1;
         const subStage = gameState.subStage || 1;
@@ -332,12 +336,12 @@ const BattleSystem = {
         };
     },
 
-    // 公共方法：获取指定关卡信息（用于预览/选择）
+    // 获取指定关卡信息（用于预览/选择）
     getStageInfo: function(gameState, world, subStage) {
         return STAGE_CONFIG.generate(world, subStage);
     },
 
-    // 公共方法：恢复玩家HP（战斗后调用）
+    // 恢复玩家HP（战斗后调用）
     healAfterBattle: function(gameState) {
         return true;
     },
@@ -357,8 +361,8 @@ const BattleSystem = {
             effectivePower: (oldStats.power || 10) + (oldStats.defense || 0) * 0.5,
             hp: 200,
             hpRegen: 50,
-            goldBonus: 0,
-            ticketBonus: 0,
+            pointsBonus: 0,
+            shardBonus: 0,
             dropRate: 0,
             critRate: 0,
             critDamage: 50,

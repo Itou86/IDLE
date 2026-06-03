@@ -3,15 +3,15 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     function createFreshGame() {
         return {
-            gold: 100,
-            tickets: 10,
+            points: 100,
+            shards: 10,
             world: 1,
             subStage: 1,
             worldProgress: {},
             cards: {},
             achievements: {},
             stats: {
-                goldTotal: 100,
+                pointsTotal: 100,
                 gachaCount: 0,
                 battleWin: 0,
                 battleLose: 0,
@@ -28,7 +28,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
     // --- 完整循环：抽卡 → 竞技 → 奖励 → 再抽卡 ---
     test('integration: 抽卡获得卡牌提升战力', () => {
         const state = createFreshGame();
-        state.tickets = 100; // 给足够券
+        state.shards = 100; // 给足够碎片
         const powerBefore = GachaSystem.getTotalPower(state);
 
         // 抽卡（多次确保抽到卡）
@@ -43,7 +43,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 抽卡后竞技变强', () => {
         const state = createFreshGame();
-        state.tickets = 100; // 给足够券
+        state.shards = 100; // 给足够碎片
         state.subStage = 5;
 
         // 先不抽卡，记录战力
@@ -64,18 +64,18 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
         // 装备强力卡牌确保胜利
         state.cards['ssr_001'] = { count: 1, level: 1, instances: ['a'] };
 
-        const beforeTickets = state.tickets;
+        const beforeShards = state.shards;
 
         // 竞技胜利
         const battleResult = BattleSystem.fight(state);
         Assert.true(battleResult.win, '应胜利');
 
         // 检查获得奖励
-        Assert.greaterThan(state.gold, 100, '应获得金币');
-        // 高关卡可能有券奖励
+        Assert.greaterThan(state.points, 100, '应获得系统点');
+        // 高关卡可能有碎片奖励
 
-        // 用获得的资源继续抽卡（如果有券的话）
-        if (state.tickets >= 10) {
+        // 用获得的资源继续抽卡（如果有碎片的话）
+        if (state.shards >= 10) {
             const gachaResult = GachaSystem.draw(state);
             Assert.true(gachaResult.success, '应有足够券再抽卡');
         }
@@ -83,7 +83,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 完整循环10次', () => {
         const state = createFreshGame();
-        state.tickets = 100; // 给足够券
+        state.shards = 100; // 给足够碎片
         // 给足够强的基础装备确保能赢
         state.cards['n_001'] = { count: 10, level: 1, instances: Array(10).fill('x') };
 
@@ -92,7 +92,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
         for (let i = 0; i < 10; i++) {
             // 抽卡
-            if (state.tickets >= 10) {
+            if (state.shards >= 10) {
                 const r = GachaSystem.draw(state);
                 if (r.success) draws++;
             }
@@ -109,11 +109,11 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 存档保存完整游戏进度', () => {
         const state = createFreshGame();
-        state.tickets = 50;
+        state.shards = 50;
 
         // 玩几轮
         for (let i = 0; i < 5; i++) {
-            if (state.tickets >= 10) GachaSystem.draw(state);
+            if (state.shards >= 10) GachaSystem.draw(state);
             BattleSystem.fight(state);
             AchievementSystem.checkAll(state);
         }
@@ -123,8 +123,8 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
         const loaded = SaveSystem.load();
 
         // 验证所有字段
-        Assert.equal(loaded.gold, state.gold, '金币应一致');
-        Assert.equal(loaded.tickets, state.tickets, '券应一致');
+        Assert.equal(loaded.points, state.points, '系统点应一致');
+        Assert.equal(loaded.shards, state.shards, '碎片应一致');
         Assert.equal(loaded.world, state.world, '世界应一致');
         Assert.equal(loaded.subStage, state.subStage, '子关卡应一致');
         Assert.equal(
@@ -143,7 +143,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 读取存档后继续游戏', () => {
         const state = createFreshGame();
-        state.tickets = 30;
+        state.shards = 30;
 
         // 玩一轮
         GachaSystem.draw(state);
@@ -154,7 +154,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
         const loaded = SaveSystem.load();
 
         // 继续玩
-        if (loaded.tickets >= 10) {
+        if (loaded.shards >= 10) {
             const r = GachaSystem.draw(loaded);
             Assert.true(r.success, '读档后应能继续抽卡');
         }
@@ -164,7 +164,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 成就系统与抽卡联动', () => {
         const state = createFreshGame();
-        state.tickets = 100;
+        state.shards = 100;
 
         // 抽10次
         for (let i = 0; i < 10; i++) {
@@ -256,11 +256,11 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 导出导入完整进度', () => {
         const state = createFreshGame();
-        state.tickets = 50;
+        state.shards = 50;
 
         // 玩一段时间
         for (let i = 0; i < 5; i++) {
-            if (state.tickets >= 10) GachaSystem.draw(state);
+            if (state.shards >= 10) GachaSystem.draw(state);
             BattleSystem.fight(state);
         }
         AchievementSystem.checkAll(state);
@@ -270,7 +270,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
         // 模拟"分享存档"
         const imported = SaveSystem.import(exported);
 
-        Assert.equal(imported.gold, state.gold, '导入后金币应一致');
+        Assert.equal(imported.points, state.points, '导入后系统点应一致');
         Assert.equal(imported.world, state.world, '导入后世界应一致');
         Assert.equal(imported.subStage, state.subStage, '导入后子关卡应一致');
         Assert.equal(
@@ -287,7 +287,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
 
     test('integration: 从零开始到第10关', () => {
         const state = createFreshGame();
-        state.tickets = 300; // 更多资源
+        state.shards = 300; // 更多资源
         // 给足够强的基础装备帮助通关
         state.cards['n_001'] = { count: 20, level: 1, instances: Array(20).fill('x') };
         state.cards['n_002'] = { count: 15, level: 1, instances: Array(15).fill('y') };
@@ -302,7 +302,7 @@ TestRunner.suite('🎮 集成测试 - 核心循环', (test) => {
             rounds++;
 
             // 抽卡增强
-            if (state.tickets >= 10) {
+            if (state.shards >= 10) {
                 GachaSystem.draw(state);
             }
 
