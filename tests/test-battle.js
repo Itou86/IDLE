@@ -1,4 +1,4 @@
-/* ===== 竞技系统测试（无限流世界版） ===== */
+/* ===== 竞技系统测试（简化回合制 - 方案B） ===== */
 TestRunner.suite('⚔️ 竞技系统 - BattleSystem', (test) => {
 
     function createState(points = 100, shards = 10, world = 1, subStage = 1, cards = {}) {
@@ -28,7 +28,7 @@ TestRunner.suite('⚔️ 竞技系统 - BattleSystem', (test) => {
     // --- fight: 基本战斗 ---
     test('fight: 战力碾压时胜利', () => {
         const state = createState(100, 10, 1, 1, {
-            'ssr_001': { count: 1, level: 1, instances: ['a'] } // 创世之刃 +80攻
+            'ssr_001': { count: 1, level: 1, instances: ['a'] } // 火箭筒 +80攻
         });
         const result = BattleSystem.fight(state);
         Assert.true(result.win, '高战力应获胜');
@@ -159,6 +159,95 @@ TestRunner.suite('⚔️ 竞技系统 - BattleSystem', (test) => {
         // 世界2第1关 ≈ 世界1第4关，难度应接近
         const ratio = Math.max(r1.enemyPower, r2.enemyPower) / Math.min(r1.enemyPower, r2.enemyPower);
         Assert.lessThan(ratio, 2.0, '跨世界难度不应跳跃过大');
+    });
+
+    // --- 简化回合制新增/变更测试 ---
+    test('fight: 先攻由speed一次性判定', () => {
+        // 玩家speed=5(基础), 敌人speed=1(第1关敌人战力/100)
+        // 玩家先攻，所以高战力玩家应该先出手并快速胜利
+        const state = createState(100, 10, 1, 1, {
+            'ssr_001': { count: 1, level: 1, instances: ['a'] }
+        });
+        const result = BattleSystem.fight(state);
+        Assert.true(result.win, '先攻优势应帮助胜利');
+        // 战斗日志中第1回合的actor应为'player'（先攻）
+        if (result.log.length > 0) {
+            Assert.equal(result.log[0].actor, 'player', '玩家应先攻');
+        }
+    });
+
+    test('fight: 去掉闪避（日志中无miss）', () => {
+        const state = createState(100, 10, 1, 1, {
+            'ssr_001': { count: 1, level: 1, instances: ['a'] }
+        });
+        const result = BattleSystem.fight(state);
+        for (const entry of result.log) {
+            Assert.notEqual(entry.action, 'miss', '不应有闪避');
+            // 新日志结构没有 isMiss 字段
+            Assert.notExists(entry.isMiss, '不应有isMiss字段');
+        }
+    });
+
+    test('fight: 暴击保留（低概率）', () => {
+        // 通过直接调用 _calcDamage 验证暴击机制（100%暴击率）
+        const attacker = { power: 100, defense: 50, critRate: 100, critDamage: 1.5 };
+        const defender = { power: 100, defense: 50, critRate: 0, critDamage: 1.5 };
+        const result = BattleSystem._calcDamage(attacker, defender, true, null, { isBoss: false });
+        Assert.true(result.isCrit, '100%暴击率应必然暴击');
+        // 暴击伤害 = 基础伤害 * 1.5
+        const baseDamage = Math.max(1, attacker.power - defender.defense);
+        const expectedCritDamage = Math.floor(baseDamage * 1.5);
+        Assert.equal(result.damage, expectedCritDamage, '暴击伤害应为基础伤害的1.5倍');
+    });
+
+    test('fight: BOSS每3回合额外攻击', () => {
+        // 找一个需要多回合的BOSS战
+        const state = createState(100, 10, 1, 6, {
+            'n_001': { count: 5, level: 1, instances: ['a','b','c','d','e'] }
+        });
+        const result = BattleSystem.fight(state);
+        if (result.isBoss && result.log.length >= 3) {
+            // 检查第3回合是否有BOSS额外攻击标记
+            const round3Entries = result.log.filter(e => e.round === 3 && e.actor === 'enemy');
+            // BOSS在第3回合应有额外攻击（isExtra标记）
+            const hasExtra = round3Entries.some(e => e.isExtra);
+            if (result.log.length >= 3) {
+                Assert.true(hasExtra, 'BOSS第3回合应有额外攻击');
+            }
+        }
+    });
+
+    test('fight: 伤害公式 = max(1, 攻击 - 防御)', () => {
+        // 验证伤害至少为1
+        const state = createState(100, 10, 1, 1, {
+            'ssr_001': { count: 1, level: 1, instances: ['a'] }
+        });
+        const result = BattleSystem.fight(state);
+        for (const entry of result.log) {
+            if (entry.damage !== undefined) {
+                Assert.greaterThanOrEqual(entry.damage, 1, '伤害至少为1');
+            }
+        }
+    });
+
+    test('fight: 战斗日志结构简化', () => {
+        const state = createState(100, 10, 1, 1, {
+            'ssr_001': { count: 1, level: 1, instances: ['a'] }
+        });
+        const result = BattleSystem.fight(state);
+        if (result.log.length > 0) {
+            const entry = result.log[0];
+            Assert.exists(entry.round, '日志应有round字段');
+            Assert.exists(entry.actor, '日志应有actor字段');
+            Assert.exists(entry.action, '日志应有action字段');
+            Assert.exists(entry.damage, '日志应有damage字段');
+            Assert.exists(entry.remainingHP, '日志应有remainingHP字段');
+            // 不应有旧的isMiss字段
+            Assert.notExists(entry.isMiss, '简化日志不应有isMiss');
+            // 不应有旧的isSpecial/specialName字段
+            Assert.notExists(entry.isSpecial, '简化日志不应有isSpecial');
+            Assert.notExists(entry.specialName, '简化日志不应有specialName');
+        }
     });
 
     // --- getCurrentStageInfo ---

@@ -35,7 +35,7 @@ TestRunner.suite('🎲 抽卡系统 - GachaSystem', (test) => {
         const state = createState(100, 0);
         const result = GachaSystem.draw(state, 1);
         Assert.false(result.success, '碎片不足应失败');
-        Assert.includes(result.reason, '不足', '应提示碎片不足');
+        Assert.equal(result.errorCode, ERROR_CODES.NOT_ENOUGH_SHARDS, '应返回碎片不足错误码');
         Assert.equal(state.shards, 0, '不应消耗碎片');
     });
 
@@ -222,6 +222,7 @@ test('draw: 十连抽最后一张保底SR', () => {
         state.cards['n_001'] = { count: 1, level: 1, instances: ['a'] };
         const result = GachaSystem.upgradeCard(state, 'n_001');
         Assert.false(result.success, '1张卡不应能升级');
+        Assert.equal(result.errorCode, ERROR_CODES.NOT_ENOUGH_CARDS, '应返回卡牌不足错误码');
     });
 
     test('upgradeCard: 2张卡可升级', () => {
@@ -252,6 +253,7 @@ test('draw: 十连抽最后一张保底SR', () => {
         const state = createState();
         const result = GachaSystem.upgradeCard(state, 'nonexistent');
         Assert.false(result.success, '不存在的卡牌不应能升级');
+        Assert.equal(result.errorCode, ERROR_CODES.CARD_NOT_FOUND, '应返回卡牌不存在错误码');
     });
 
     // --- 概率分布测试（统计检验）---

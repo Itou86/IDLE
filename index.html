@@ -11,101 +11,134 @@
         <header>
             <h1>INFINITE</h1>
             <div id="resources">
-                <span>💰 <span id="gold">0</span> 系统点</span>
-                <span>🎫 <span id="tickets">0</span> 世界碎片</span>
+                <span>💰 <span id="points">0</span> 系统点</span>
+                <span>🎫 <span id="shards">0</span> 世界碎片</span>
             </div>
         </header>
 
+        <!-- 顶部导航栏 -->
+        <nav id="main-nav">
+            <button data-view="gacha" class="nav-item active" onclick="game.switchView('gacha')">
+                <span class="nav-icon">🎲</span>
+                <span class="nav-label">抽取</span>
+            </button>
+            <button data-view="battle" class="nav-item" onclick="game.switchView('battle')">
+                <span class="nav-icon">⚔️</span>
+                <span class="nav-label">征战</span>
+            </button>
+            <button data-view="collection" class="nav-item" onclick="game.switchView('collection')">
+                <span class="nav-icon">🃏</span>
+                <span class="nav-label">收集</span>
+            </button>
+            <button data-view="idle" class="nav-item" onclick="game.switchView('idle')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">收益</span>
+            </button>
+        </nav>
+
         <main>
-            <section id="gacha-panel">
-                <h2>🎲 次元抽取</h2>
-                <div class="gacha-buttons">
-                    <button id="gacha-btn" onclick="game.gacha(1)">单抽 (1 🎫)</button>
-                    <button id="gacha-10-btn" onclick="game.gacha(10)">十连抽 (10 🎫)</button>
-                </div>
-                <div id="gacha-result"></div>
-            </section>
-
-            <section id="battle-panel">
-                <h2>⚔️ 位面征战</h2>
-                <div id="world-info">
-                    <div>当前世界: <span id="current-world">世界1</span></div>
-                    <div>关卡: <span id="current-stage">世界1 · 第1关</span></div>
-                    <div>敌人战力: <span id="enemy-power">100</span></div>
-                </div>
-                <div class="battle-actions">
-                    <button id="battle-btn" onclick="game.battle()">挑战当前关卡</button>
-                    <button id="next-world-btn" onclick="game.nextWorld()" style="display:none;">🌍 进入下一世界</button>
-                </div>
-                <div id="battle-result"></div>
-            </section>
-
-            <section id="collection-panel">
-                <h2>📚 卡组图鉴</h2>
-                <div id="collection-list"></div>
-            </section>
-
-            <section id="cards-panel">
-                <h2>🃏 遗物背包</h2>
-                <div id="cards-list"></div>
-            </section>
-
-            <section id="stats-panel">
-                <h2>📊 轮回者属性</h2>
-                <div id="stats-content">
-                    <div class="stat-summary">
-                        <div class="stat-big">⚔️ 有效战力: <span id="effective-power">10</span></div>
-                        <div class="stat-big">❤️ 生命: <span id="hp-value">100</span> / <span id="hp-max">100</span></div>
+            <!-- 抽取视图 -->
+            <div id="view-gacha" class="view view-active">
+                <section id="gacha-panel">
+                    <h2>🎲 次元抽取</h2>
+                    <div class="gacha-buttons">
+                        <button id="gacha-btn" onclick="game.gacha(1)">单抽 (1 🎫)</button>
+                        <button id="gacha-10-btn" onclick="game.gacha(10)">十连抽 (10 🎫)</button>
                     </div>
-                    <div class="stat-grid" id="stats-grid"></div>
-                    <div class="stat-sources" id="stat-sources"></div>
-                </div>
-            </section>
+                    <div id="gacha-result"></div>
+                </section>
 
-            <section id="achievements-panel">
-                <h2>🏆 轮回成就 <small id="achievement-bonus" class="bonus-badge">+0%</small></h2>
-                <div id="achievements-list"></div>
-            </section>
+                <section id="log-panel">
+                    <h2>📜 位面日志</h2>
+                    <div id="log-list"></div>
+                </section>
+            </div>
 
-            <section id="life-panel">
-                <h2>🏠 系统收益</h2>
-                <div id="life-content">
-                    <div id="click-section">
-                        <button id="click-btn" onclick="game.click()">💰 赚系统点</button>
-                        <div id="click-info">每次点击: +<span id="click-value">1</span> 系统点</div>
+            <!-- 征战视图 -->
+            <div id="view-battle" class="view">
+                <section id="battle-panel">
+                    <h2>⚔️ 位面征战</h2>
+                    <div id="world-info">
+                        <div>当前世界: <span id="current-world">世界1</span></div>
+                        <div>关卡: <span id="current-stage">世界1 · 第1关</span></div>
+                        <div>敌人战力: <span id="enemy-power">100</span></div>
                     </div>
-                    <div id="idle-info">
-                        <span>每秒自动: +<span id="auto-value">0</span> 系统点</span>
+                    <div class="battle-actions">
+                        <button id="battle-btn" onclick="game.battle()">挑战当前关卡</button>
+                        <button id="next-world-btn" onclick="game.nextWorld()" style="display:none;">🌍 进入下一世界</button>
                     </div>
-                    <div id="upgrades">
-                        <div class="upgrade-item" id="upgrade-a">
-                            <span>升级A - 点击收益</span>
-                            <span>当前等级: <span id="click-level">0</span></span>
-                            <span>价格: <span id="click-cost">10</span> 系统点</span>
-                            <button id="buy-click-btn" onclick="game.buyClickUpgrade()">购买</button>
+                    <div id="battle-result"></div>
+                </section>
+
+                <section id="stats-panel">
+                    <h2>📊 轮回者属性</h2>
+                    <div id="stats-content">
+                        <div class="stat-summary">
+                            <div class="stat-big">⚔️ 有效战力: <span id="effective-power">10</span></div>
+                            <div class="stat-big">❤️ 生命: <span id="hp-value">100</span> / <span id="hp-max">100</span></div>
                         </div>
-                        <div class="upgrade-item" id="upgrade-b">
-                            <span>升级B - 自动收益</span>
-                            <span>当前等级: <span id="auto-level">0</span></span>
-                            <span>价格: <span id="auto-cost">50</span> 系统点</span>
-                            <button id="buy-auto-btn" onclick="game.buyAutoUpgrade()">购买</button>
+                        <div class="stat-grid" id="stats-grid"></div>
+                        <div class="stat-sources" id="stat-sources"></div>
+                    </div>
+                </section>
+
+                <section id="achievements-panel">
+                    <h2>🏆 轮回成就 <small id="achievement-bonus" class="bonus-badge">+0%</small></h2>
+                    <div id="achievements-list"></div>
+                </section>
+            </div>
+
+            <!-- 收集视图 -->
+            <div id="view-collection" class="view">
+                <section id="cards-panel">
+                    <h2>🃏 遗物背包</h2>
+                    <div id="cards-list"></div>
+                </section>
+
+                <section id="collection-panel">
+                    <h2>📚 卡组图鉴</h2>
+                    <div id="collection-list"></div>
+                </section>
+            </div>
+
+            <!-- 收益视图 -->
+            <div id="view-idle" class="view">
+                <section id="life-panel">
+                    <h2>🏠 系统收益</h2>
+                    <div id="life-content">
+                        <div id="click-section">
+                            <button id="click-btn" onclick="game.click()">💰 赚系统点</button>
+                            <div id="click-info">每次点击: +<span id="click-value">1</span> 系统点</div>
+                        </div>
+                        <div id="idle-info">
+                            <span>每秒自动: +<span id="auto-value">0</span> 系统点</span>
+                        </div>
+                        <div id="upgrades">
+                            <div class="upgrade-item" id="upgrade-a">
+                                <span>升级A - 点击收益</span>
+                                <span>当前等级: <span id="click-level">0</span></span>
+                                <span>价格: <span id="click-cost">10</span> 系统点</span>
+                                <button id="buy-click-btn" onclick="game.buyClickUpgrade()">购买</button>
+                            </div>
+                            <div class="upgrade-item" id="upgrade-b">
+                                <span>升级B - 自动收益</span>
+                                <span>当前等级: <span id="auto-level">0</span></span>
+                                <span>价格: <span id="auto-cost">50</span> 系统点</span>
+                                <button id="buy-auto-btn" onclick="game.buyAutoUpgrade()">购买</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <section id="shop-panel">
-                <h2>🛒 系统商城</h2>
-                <div id="shop-content">
-                    <div id="shop-timer">下次刷新: <span id="refresh-timer">20:00</span></div>
-                    <div id="shop-items"></div>
-                    <button id="refresh-shop-btn" onclick="game.refreshShop()">🔄 刷新商店</button>
-                </div>
-            </section>
-            <section id="log-panel">
-                <h2>📜 位面日志</h2>
-                <div id="log-list"></div>
-            </section>
+                <section id="shop-panel">
+                    <h2>🛒 系统商城</h2>
+                    <div id="shop-content">
+                        <div id="shop-timer">下次刷新: <span id="refresh-timer">20:00</span></div>
+                        <div id="shop-items"></div>
+                        <button id="refresh-shop-btn" onclick="game.refreshShop()">🔄 刷新商店</button>
+                    </div>
+                </section>
+            </div>
         </main>
 
         <footer>
@@ -113,29 +146,6 @@
             <button onclick="game.load()">📂 读取</button>
             <button onclick="game.reset()">🔄 重置</button>
         </footer>
-
-        <nav class="mobile-tabs" id="mobile-tabs">
-            <button class="mobile-tab active" data-tab="gacha" onclick="game.switchTab('gacha')">
-                <span class="tab-icon">🎲</span>
-                <span>抽取</span>
-            </button>
-            <button class="mobile-tab" data-tab="battle" onclick="game.switchTab('battle')">
-                <span class="tab-icon">⚔️</span>
-                <span>征战</span>
-            </button>
-            <button class="mobile-tab" data-tab="cards" onclick="game.switchTab('cards')">
-                <span class="tab-icon">🃏</span>
-                <span>背包</span>
-            </button>
-            <button class="mobile-tab" data-tab="life" onclick="game.switchTab('life')">
-                <span class="tab-icon">🏠</span>
-                <span>收益</span>
-            </button>
-            <button class="mobile-tab" data-tab="log" onclick="game.switchTab('log')">
-                <span class="tab-icon">📜</span>
-                <span>日志</span>
-            </button>
-        </nav>
     </div>
 
     <!-- 配置 -->
@@ -157,6 +167,10 @@
     <script src="js/systems/idle.js"></script>
     <script src="js/systems/shop.js"></script>
     <script src="js/systems/stats.js"></script>
+
+    <!-- UI（在 main.js 之前加载）-->
+    <script src="js/ui/components.js"></script>
+    <script src="js/ui/renderer.js"></script>
 
     <!-- 入口 -->
     <script src="js/main.js"></script>

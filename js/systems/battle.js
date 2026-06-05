@@ -1,4 +1,4 @@
-/* ===== 战斗系统（无限流世界版） ===== */
+/* ===== 战斗系统（简化回合制 - 方案B） ===== */
 const BattleSystem = {
     // 进行一场战斗（回合制）
     // world, subStage: 可选，挑战指定关卡；不传则挑战当前进度关卡
@@ -25,77 +25,100 @@ const BattleSystem = {
         let playerHP = stats.hp;
         let enemyHP = enemy.hp;
 
-        // 先攻判定
-        let playerFirst = stats.speed >= enemy.speed;
+        // 先攻一次性判定：speed 高者先攻，相同则玩家先攻
+        const playerFirst = stats.speed >= enemy.speed;
 
         // 回合制战斗
         while (round < 100) { // 最多100回合防死循环
             round++;
 
-            const attacker = playerFirst ? 'player' : 'enemy';
-            const defender = playerFirst ? 'enemy' : 'player';
+            // 先攻方攻击
+            const firstAttacker = playerFirst ? stats : enemy;
+            const firstDefender = playerFirst ? enemy : stats;
+            const firstIsPlayer = playerFirst;
 
-            // BOSS第3回合大招（如果BOSS存在此机制）
-            if (stage.isBoss && round === 3) {
-                const bossDamage = this._calcBossSpecial(enemy, stats);
-                playerHP -= bossDamage.damage;
+            // BOSS 每3回合一次额外攻击
+            if (stage.isBoss && round % 3 === 0) {
+                const bossExtra = this._calcDamage(enemy, stats, false, gameState, stage);
+                playerHP -= bossExtra.damage;
                 log.push({
                     round,
                     actor: 'enemy',
-                    action: 'special',
-                    damage: bossDamage.damage,
-                    isCrit: false,
-                    isMiss: false,
-                    isSpecial: true,
-                    specialName: 'BOSS大招',
+                    action: bossExtra.isCrit ? 'crit' : 'attack',
+                    damage: bossExtra.damage,
+                    isCrit: bossExtra.isCrit,
+                    isExtra: true,
                     remainingHP: Math.max(0, playerHP)
                 });
 
                 if (playerHP <= 0) {
                     return this._handleLoss(gameState, stage, enemyPower, stats, log, round);
                 }
-                // 大招后仍然继续正常回合（BOSS额外行动）
             }
 
-            // 玩家回合
-            if (attacker === 'player') {
-                const result = this._calcDamage(stats, enemy, true, gameState, stage);
-                enemyHP -= result.damage;
+            // 先攻方回合
+            const firstResult = this._calcDamage(firstAttacker, firstDefender, firstIsPlayer, gameState, stage);
+            if (firstIsPlayer) {
+                enemyHP -= firstResult.damage;
                 log.push({
                     round,
                     actor: 'player',
-                    action: result.isCrit ? 'crit' : 'attack',
-                    damage: result.damage,
-                    isCrit: result.isCrit,
-                    isMiss: false,
+                    action: firstResult.isCrit ? 'crit' : 'attack',
+                    damage: firstResult.damage,
+                    isCrit: firstResult.isCrit,
                     remainingHP: Math.max(0, enemyHP)
                 });
-
                 if (enemyHP <= 0) {
                     return this._handleWin(gameState, stage, enemyPower, stats, log, round);
                 }
-            }
-            // 敌人回合
-            else {
-                const result = this._calcDamage(enemy, stats, false, gameState, stage);
-                playerHP -= result.damage;
+            } else {
+                playerHP -= firstResult.damage;
                 log.push({
                     round,
                     actor: 'enemy',
-                    action: result.isCrit ? 'crit' : 'attack',
-                    damage: result.damage,
-                    isCrit: result.isCrit,
-                    isMiss: result.isMiss,
+                    action: firstResult.isCrit ? 'crit' : 'attack',
+                    damage: firstResult.damage,
+                    isCrit: firstResult.isCrit,
                     remainingHP: Math.max(0, playerHP)
                 });
-
                 if (playerHP <= 0) {
                     return this._handleLoss(gameState, stage, enemyPower, stats, log, round);
                 }
             }
 
-            // 交换先手（下回合另一方先攻）
-            playerFirst = !playerFirst;
+            // 后攻方回合
+            const secondAttacker = playerFirst ? enemy : stats;
+            const secondDefender = playerFirst ? stats : enemy;
+            const secondIsPlayer = !playerFirst;
+
+            const secondResult = this._calcDamage(secondAttacker, secondDefender, secondIsPlayer, gameState, stage);
+            if (secondIsPlayer) {
+                enemyHP -= secondResult.damage;
+                log.push({
+                    round,
+                    actor: 'player',
+                    action: secondResult.isCrit ? 'crit' : 'attack',
+                    damage: secondResult.damage,
+                    isCrit: secondResult.isCrit,
+                    remainingHP: Math.max(0, enemyHP)
+                });
+                if (enemyHP <= 0) {
+                    return this._handleWin(gameState, stage, enemyPower, stats, log, round);
+                }
+            } else {
+                playerHP -= secondResult.damage;
+                log.push({
+                    round,
+                    actor: 'enemy',
+                    action: secondResult.isCrit ? 'crit' : 'attack',
+                    damage: secondResult.damage,
+                    isCrit: secondResult.isCrit,
+                    remainingHP: Math.max(0, playerHP)
+                });
+                if (playerHP <= 0) {
+                    return this._handleLoss(gameState, stage, enemyPower, stats, log, round);
+                }
+            }
         }
 
         // 超过100回合，判定为失败（超时）
@@ -111,73 +134,45 @@ const BattleSystem = {
         const power = Math.floor(enemyPower * attackRatio);
         const defense = Math.floor(enemyPower * defenseRatio);
 
-        // 敌人HP = 战力 × 系数（BOSS更高）
+        // 敌人HP = 战力 x 系数（BOSS更高）
         const hpMultiplier = isBoss ? 3.0 : 2.0;
         const hp = Math.floor(enemyPower * hpMultiplier);
 
         // 敌人速度 = 战力 / 100（基础）
         const speed = Math.max(1, Math.floor(enemyPower / 100));
 
-        // BOSS有低概率暴击
-        const critRate = isBoss ? 5 : 0;
-
         return {
             power,
             defense,
             hp,
             speed,
-            critRate,
-            critDamage: 50 // 暴击伤害加成50%
+            critRate: 5,      // 固定5%暴击率
+            critDamage: 1.5   // 暴击伤害倍率1.5x
         };
     },
 
     // 计算单次攻击伤害
     _calcDamage: function(attacker, defender, isPlayer, gameState, stage) {
         // 基础伤害 = 攻击者攻击力 - 防御者防御力（至少为1）
-        let damage = Math.max(1, attacker.power - defender.defense * 0.5);
-
-        // 对BOSS增伤（r_004 现实宝石: +20%对BOSS伤害）
-        if (isPlayer && stage && stage.isBoss && gameState) {
-            const hasFlameGem = gameState.cards['r_004'] && gameState.cards['r_004'].count > 0;
-            if (hasFlameGem) {
-                damage = Math.floor(damage * 1.2);
-            }
-        }
+        let damage = Math.max(1, attacker.power - defender.defense);
 
         // 暴击判定
         let isCrit = false;
         const critRate = attacker.critRate || 0;
         if (critRate > 0 && Math.random() * 100 < critRate) {
             isCrit = true;
-            const critDamage = attacker.critDamage || 50;
-            damage = Math.floor(damage * (1 + critDamage / 100));
+            const critDamage = attacker.critDamage || 1.5;
+            damage = Math.floor(damage * critDamage);
         }
 
-        // 闪避判定（玩家被攻击时）
-        let isMiss = false;
-        if (!isPlayer) {
-            // 基础闪避：速度差值
-            const speedDodge = Math.max(0, (defender.speed || 0) - (attacker.speed || 0));
-            // 卡牌闪避加成（r_005 飞雷神苦无等）
-            let cardDodge = 0;
-            if (gameState && typeof StatSystem !== 'undefined' && StatSystem.getDodgeRate) {
-                cardDodge = StatSystem.getDodgeRate(gameState);
-            }
-            const totalDodge = speedDodge + cardDodge;
-            if (totalDodge > 0 && Math.random() * 100 < Math.min(totalDodge, 50)) {
-                isMiss = true;
-                damage = 0;
-            }
+        // EffectRegistry 触发（替代硬编码卡牌效果）
+        if (gameState && stage && typeof EffectRegistry !== 'undefined' && EffectRegistry.trigger) {
+            const context = { damage, isPlayer, isBoss: stage.isBoss || false };
+            EffectRegistry.trigger('on_damage_calc', gameState, context);
+            damage = context.damage;
         }
 
-        return { damage: Math.floor(damage), isCrit, isMiss };
-    },
-
-    // BOSS特殊攻击（第3回合大招）
-    _calcBossSpecial: function(enemy, playerStats) {
-        // BOSS大招 = 普通攻击 × 1.5（无视部分防御）
-        const damage = Math.max(1, Math.floor(enemy.power * 1.5 - playerStats.defense * 0.3));
-        return { damage };
+        return { damage: Math.floor(damage), isCrit };
     },
 
     // 处理胜利
@@ -211,19 +206,29 @@ const BattleSystem = {
         // 战斗掉落卡牌
         const droppedCard = this._dropCard(gameState, stage.world);
 
-        // sr_005 黑暗印记: 击败敌人时20%概率再抽1次
+        // EffectRegistry 触发击杀效果（替代硬编码）
         let extraDraw = null;
-        const hasSoulContract = gameState.cards['sr_005'] && gameState.cards['sr_005'].count > 0;
-        if (hasSoulContract && Math.random() < 0.2) {
-            extraDraw = this._dropCard(gameState, stage.world);
-        }
-
-        // sr_003 大千录残页: 每10关额外获得世界碎片
         let extraShards = 0;
-        const hasTreasureBowl = gameState.cards['sr_003'] && gameState.cards['sr_003'].count > 0;
-        if (hasTreasureBowl && stage.totalStage % 10 === 0) {
-            extraShards = 1;
-            gameState.shards += extraShards;
+
+        if (typeof EffectRegistry !== 'undefined' && EffectRegistry.trigger) {
+            const killContext = { totalStage: stage.totalStage };
+            EffectRegistry.trigger('on_kill', gameState, killContext);
+
+            // kill_extra_drop: 额外掉落
+            if (killContext.killExtraDropChance > 0 && Math.random() < killContext.killExtraDropChance) {
+                const dropCount = killContext.killExtraDropCount || 1;
+                for (let i = 0; i < dropCount; i++) {
+                    extraDraw = this._dropCard(gameState, stage.world);
+                }
+            }
+
+            // stage_ticket_bonus: 每N关额外碎片
+            if (killContext.stageTicketInterval && stage.totalStage % killContext.stageTicketInterval === 0) {
+                extraShards = killContext.stageTicketBonus || 0;
+                if (extraShards > 0) {
+                    gameState.shards += extraShards;
+                }
+            }
         }
 
         // 记录绝地反击（hid_008）
@@ -288,19 +293,7 @@ const BattleSystem = {
 
         const card = Formatter.clone(pool[Math.floor(Math.random() * pool.length)]);
         card.uid = Formatter.uid();
-        card.level = 1;
-
-        // 添加到玩家库存
-        if (!gameState.cards[card.id]) {
-            gameState.cards[card.id] = { count: 0, level: 1, instances: [] };
-        }
-        gameState.cards[card.id].count++;
-        gameState.cards[card.id].instances.push(card.uid);
-
-        // 记录稀有度获得
-        if (!gameState.stats.rarityObtained[card.rarity]) {
-            gameState.stats.rarityObtained[card.rarity] = true;
-        }
+        GameUtils.addCardToInventory(gameState, card);
 
         return card;
     },
@@ -364,8 +357,8 @@ const BattleSystem = {
             pointsBonus: 0,
             shardBonus: 0,
             dropRate: 0,
-            critRate: 0,
-            critDamage: 50,
+            critRate: 5,
+            critDamage: 1.5,
             speed: 5,
             expBonus: 0
         };

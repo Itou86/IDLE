@@ -6,12 +6,13 @@ const STAT_CONFIG = {
         defense: { name: '防御力', desc: '减少受到的伤害', icon: '🛡️', format: 'flat' },
         hp: { name: '生命值', desc: '战斗中的血量', icon: '❤️', format: 'flat' },
         hpRegen: { name: '生命恢复', desc: '每关战斗后恢复的生命', icon: '💚', format: 'flat' },
-        pointsBonus: { name: '系统点加成', desc: '每秒额外获得的系统点', icon: '💰', format: 'flat' },
+        pointsBonus: { name: '系统点加成', desc: '系统点产出加成', icon: '💰', format: 'flat' },
+        pointsBonus: { name: '系统点加成', desc: '每秒额外获得的系统点', icon: '💎', format: 'flat' },
         shardBonus: { name: '碎片加成', desc: '每10关额外获得世界碎片', icon: '🎫', format: 'flat' },
         dropRate: { name: '掉率提升', desc: '抽卡稀有度概率提升(%)', icon: '🍀', format: 'percent' },
         critRate: { name: '暴击率', desc: '攻击时暴击概率(%)', icon: '💥', format: 'percent' },
         critDamage: { name: '暴击伤害', desc: '暴击时的伤害倍率(%)', icon: '🔥', format: 'percent' },
-        speed: { name: '速度', desc: '影响先手权和闪避', icon: '⚡', format: 'flat' },
+        speed: { name: '速度', desc: '影响先手权', icon: '⚡', format: 'flat' },
         expBonus: { name: '经验加成', desc: '卡牌获得经验加成(%)', icon: '📈', format: 'percent' },
     },
 
@@ -21,6 +22,7 @@ const STAT_CONFIG = {
         defense: 0,
         hp: 200,          // 增加基础HP
         hpRegen: 50,      // 每关恢复50
+        pointsBonus: 0,
         pointsBonus: 0,
         shardBonus: 0,
         dropRate: 0,

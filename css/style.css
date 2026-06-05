@@ -176,10 +176,93 @@ header h1 {
 
 /* ===== Main Layout ===== */
 main {
+    margin-bottom: var(--space-lg);
+}
+
+/* ===== 顶部导航栏 ===== */
+#main-nav {
+    display: flex;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-lg);
+    position: sticky;
+    top: var(--space-sm);
+    z-index: 40;
+}
+
+.nav-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    color: var(--text-dim);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: var(--font-mono);
+}
+
+.nav-item:hover {
+    color: var(--text);
+    background: var(--bg-card);
+    border-color: var(--border);
+}
+
+.nav-item.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    box-shadow: var(--accent-glow);
+}
+
+.nav-icon {
+    font-size: 1.2rem;
+}
+
+/* ===== 视图容器 ===== */
+.view {
+    display: none;
+    gap: var(--space-lg);
+}
+
+.view.view-active {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-lg);
-    margin-bottom: var(--space-lg);
+}
+
+/* 抽取视图：单列全宽 */
+#view-gacha {
+    grid-template-columns: 1fr;
+}
+
+/* 征战视图：战斗 + 属性并列，成就全宽在下方 */
+#view-battle {
+    grid-template-columns: 1fr 1fr;
+}
+#view-battle #achievements-panel {
+    grid-column: 1 / -1;
+}
+
+/* 收集视图：背包 + 图鉴（图鉴全宽在下方） */
+#view-collection {
+    grid-template-columns: 1fr 2fr;
+}
+#view-collection #collection-panel {
+    grid-column: 1 / -1;
+}
+
+/* 收益视图：收益 + 商店并列 */
+#view-idle {
+    grid-template-columns: 1fr 1fr;
 }
 
 /* Full-width panels */
@@ -1198,20 +1281,9 @@ footer button:hover {
 }
 
 /* ===== Mobile Tab Bar ===== */
+/* mobile-tabs 已废弃，统一使用顶部导航 */
 .mobile-tabs {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: var(--mobile-tab-height);
-    background: var(--bg-panel);
-    border-top: 1px solid var(--border);
-    z-index: 100;
-    justify-content: space-around;
-    align-items: center;
-    padding: 0 var(--space-sm);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    display: none !important;
 }
 
 .mobile-tab {
@@ -1377,13 +1449,9 @@ a:focus-visible {
         padding-bottom: calc(var(--space-md) + var(--mobile-tab-height));
     }
 
-    /* Show mobile tab bar */
-    .mobile-tabs {
-        display: flex;
-    }
-
+    /* 移动端视图也使用顶部导航 */
     #app {
-        padding-bottom: calc(var(--space-md) + var(--mobile-tab-height));
+        padding-bottom: var(--space-md);
     }
 }
 

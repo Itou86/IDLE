@@ -158,7 +158,7 @@ TestRunner.suite('💾 存档系统 - SaveSystem', (test) => {
         const result = SaveSystem.save({});
         Assert.true(result, '空对象应能保存');
         const loaded = SaveSystem.load();
-        Assert.equal(JSON.stringify(loaded), '{}', '空对象应正确还原');
+        Assert.equal(loaded.saveVersion, SaveSystem.CURRENT_VERSION, '空对象应写入版本号');
     });
 
     test('save: 超大数值', () => {
@@ -198,6 +198,37 @@ TestRunner.suite('💾 存档系统 - SaveSystem', (test) => {
 
         const loaded = SaveSystem.load();
         Assert.equal(loaded.points, 200, '应读取最后一次保存');
+    });
+
+    // --- 版本号管理 ---
+    test('save: 保存时自动写入版本号', () => {
+        const state = createState();
+        delete state.saveVersion; // 清除可能存在的版本号
+        SaveSystem.save(state);
+        const loaded = SaveSystem.load();
+        Assert.equal(loaded.saveVersion, SaveSystem.CURRENT_VERSION, '应写入当前版本号');
+    });
+
+    test('load: 低版本存档自动迁移', () => {
+        // 模拟一个 v1 存档：直接写入 localStorage（绕过 save() 的版本号写入）
+        const v1State = {
+            points: 100,
+            shards: 10,
+            stage: 5, // 旧版线性关卡
+            cards: {},
+            achievements: {},
+            stats: { pointsTotal: 100, gachaCount: 0, battleWin: 0, battleLose: 0, loseStreak: 0, streakNoRare: 0, streakNoSSR: 0, rarityObtained: {}, lastSaveTime: Date.now(), createTime: Date.now() }
+        };
+        localStorage.setItem(SaveSystem.KEY, JSON.stringify(v1State));
+        const loaded = SaveSystem.load();
+        Assert.equal(loaded.saveVersion, SaveSystem.CURRENT_VERSION, '迁移后应为最新版本');
+        Assert.equal(loaded.world, 1, '应设置 world');
+        Assert.exists(loaded.worldProgress, '应设置 worldProgress');
+    });
+
+    test('SaveSystem: 迁移链数组存在', () => {
+        Assert.exists(SaveSystem._migrations, '应有迁移链');
+        Assert.type(SaveSystem._migrations, 'object', '迁移链应为数组/对象');
     });
 
     // --- 清理 ---

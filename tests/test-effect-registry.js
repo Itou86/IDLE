@@ -133,16 +133,15 @@ TestRunner.suite('EffectRegistry - _executeEffect 各类型', (test) => {
     });
 
     test('flat_stat_bonus: 累加固定属性', () => {
-        const ctx = EffectRegistry._executeEffect({ type: 'flat_stat_bonus', stat: 'hpMax', value: 20 }, createEffectState(), {});
-        Assert.equal(ctx.flatStatBonus.hpMax, 20, 'hpMax 应为 20');
+        const ctx = EffectRegistry._executeEffect({ type: 'flat_stat_bonus', stat: 'hpMax', value: 20, _cardId: 'r_006' }, createEffectState(), {});
+        Assert.equal(ctx.flatStatBonuses.length, 1, '应有1个flat_stat_bonus条目');
+        Assert.equal(ctx.flatStatBonuses[0].stat, 'hpMax', 'stat应为hpMax');
+        Assert.equal(ctx.flatStatBonuses[0].value, 20, 'value应为20');
+        Assert.equal(ctx.flatStatBonuses[0].cardId, 'r_006', 'cardId应为r_006');
 
-        const ctx2 = EffectRegistry._executeEffect({ type: 'flat_stat_bonus', stat: 'hpMax', value: 10 }, createEffectState(), ctx);
-        Assert.equal(ctx2.flatStatBonus.hpMax, 30, 'hpMax 应累加为 30');
-    });
-
-    test('dodge_rate_bonus: 累加闪避率', () => {
-        const ctx = EffectRegistry._executeEffect({ type: 'dodge_rate_bonus', value: 0.05 }, createEffectState(), {});
-        Assert.equal(ctx.dodgeRateBonus, 0.05, 'dodgeRateBonus 应为 0.05');
+        const ctx2 = EffectRegistry._executeEffect({ type: 'flat_stat_bonus', stat: 'hpMax', value: 10, _cardId: 'r_007' }, createEffectState(), ctx);
+        Assert.equal(ctx2.flatStatBonuses.length, 2, '应有2个flat_stat_bonus条目');
+        Assert.equal(ctx2.flatStatBonuses[1].value, 10, '第二个value应为10');
     });
 
     test('未知 type 不抛异常', () => {
@@ -239,13 +238,13 @@ TestRunner.suite('EffectRegistry - 多效果组合', (test) => {
             return ctx;
         });
         EffectRegistry.register('combo', (gs, ctx) => {
-            ctx.dodgeRateBonus = (ctx.dodgeRateBonus || 0) + 0.05;
+            ctx.offlineBonus = (ctx.offlineBonus || 0) + 0.5;
             return ctx;
         });
 
         const ctx = EffectRegistry.trigger('combo', createEffectState(), {});
         Assert.equal(ctx.bossDamageBonus, 0.2, 'bossDamageBonus 应为 0.2');
-        Assert.equal(ctx.dodgeRateBonus, 0.05, 'dodgeRateBonus 应为 0.05');
+        Assert.equal(ctx.offlineBonus, 0.5, 'offlineBonus 应为 0.5');
     });
 
     test('不同 trigger 互不干扰', () => {

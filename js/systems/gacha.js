@@ -12,7 +12,7 @@ const GachaSystem = {
         const cost = count >= 10 ? this.COST_10.shards : this.COST.shards * count;
 
         if (gameState.shards < cost) {
-            return { success: false, reason: '世界碎片不足' };
+            return { success: false, reason: '世界碎片不足', errorCode: ERROR_CODES.NOT_ENOUGH_SHARDS };
         }
 
         gameState.shards -= cost;
@@ -41,58 +41,49 @@ const GachaSystem = {
         return { success: true, cards: cards, count: count };
     },
 
+    // 内部：从指定卡池按稀有度选卡，空池时自动降级（SSR→SR→R→N→总池N）
+    _createCardFromPool: function(pool, rarity) {
+        let targetPool = pool.filter(c => c.rarity === rarity);
+        // 降级链
+        const downgrade = { 'SSR': 'SR', 'SR': 'R', 'R': 'N' };
+        while (targetPool.length === 0 && downgrade[rarity]) {
+            rarity = downgrade[rarity];
+            targetPool = pool.filter(c => c.rarity === rarity);
+        }
+        // 当前池全空时，从总池保底
+        if (targetPool.length === 0) {
+            targetPool = CARD_CONFIG.pool.filter(c => c.rarity === 'N');
+        }
+        const card = Formatter.clone(targetPool[Math.floor(Math.random() * targetPool.length)]);
+        card.uid = Formatter.uid();
+        card.level = 1;
+        return card;
+    },
+
     // 稀有度保底概率提升（十连时SR/SSR概率提升，第10张保底SR）
     // rarityUp: 卢恩弯弧效果，稀有度+1
     _rollCard: function(gameState, isTenPull, isLastOfTen, rarityUp) {
-        // 获取当前世界的卡池
-        const worldId = gameState.world || 1;
-        const worldPool = CARD_CONFIG.getWorldCards(worldId);
-
+        const currentPool = CARD_CONFIG.getCurrentPool(gameState);
         let rarity;
 
-        // 十连最后一张保底SR
         if (isLastOfTen) {
-            const rand = Math.random();
-            if (rand < 0.15) rarity = 'SSR';  // 15%
-            else rarity = 'SR'; // 85%
-            const pool = worldPool.filter(c => c.rarity === rarity);
-            // 如果该世界没有这个稀有度，降级
-            if (pool.length === 0) {
-                const fallbackRarity = rarity === 'SSR' ? 'SR' : 'R';
-                const fallbackPool = worldPool.filter(c => c.rarity === fallbackRarity);
-                if (fallbackPool.length === 0) {
-                    // 最终降级到N
-                    const nPool = worldPool.filter(c => c.rarity === 'N');
-                    const card = Formatter.clone(nPool[Math.floor(Math.random() * nPool.length)]);
-                    card.uid = Formatter.uid();
-                    card.level = 1;
-                    return card;
-                }
-                const card = Formatter.clone(fallbackPool[Math.floor(Math.random() * fallbackPool.length)]);
-                card.uid = Formatter.uid();
-                card.level = 1;
-                return card;
-            }
-            const card = Formatter.clone(pool[Math.floor(Math.random() * pool.length)]);
-            card.uid = Formatter.uid();
-            card.level = 1;
-            return card;
-        }
-
-        const rand = Math.random();
-
-        // 十连抽整体稀有度概率提升
-        if (isTenPull) {
-            if (rand < 0.08) rarity = 'SSR';      // 8% (vs 平时5%)
-            else if (rand < 0.08 + 0.18) rarity = 'SR'; // 18% (vs 平时10%)
-            else if (rand < 0.08 + 0.18 + 0.35) rarity = 'R'; // 35% (vs 平时25%)
-            else rarity = 'N'; // 39% (vs 平时60%)
+            // 十连最后一张保底：15% SSR, 85% SR
+            rarity = Math.random() < 0.15 ? 'SSR' : 'SR';
         } else {
-            // 单抽用原概率
-            if (rand < CARD_CONFIG.rates.SSR) rarity = 'SSR';
-            else if (rand < CARD_CONFIG.rates.SSR + CARD_CONFIG.rates.SR) rarity = 'SR';
-            else if (rand < CARD_CONFIG.rates.SSR + CARD_CONFIG.rates.SR + CARD_CONFIG.rates.R) rarity = 'R';
-            else rarity = 'N';
+            const rand = Math.random();
+            if (isTenPull) {
+                // 十连概率提升
+                if (rand < 0.08) rarity = 'SSR';
+                else if (rand < 0.26) rarity = 'SR';
+                else if (rand < 0.61) rarity = 'R';
+                else rarity = 'N';
+            } else {
+                // 单抽用基础概率
+                if (rand < CARD_CONFIG.rates.SSR) rarity = 'SSR';
+                else if (rand < CARD_CONFIG.rates.SSR + CARD_CONFIG.rates.SR) rarity = 'SR';
+                else if (rand < CARD_CONFIG.rates.SSR + CARD_CONFIG.rates.SR + CARD_CONFIG.rates.R) rarity = 'R';
+                else rarity = 'N';
+            }
         }
 
         // 卢恩弯弧效果: 稀有度+1
@@ -101,42 +92,12 @@ const GachaSystem = {
             rarity = upMap[rarity] || rarity;
         }
 
-        // 从当前世界对应稀有度中随机选一张
-        const pool = worldPool.filter(c => c.rarity === rarity);
-        if (pool.length === 0) {
-            // 该世界没有这个稀有度，降级到N
-            const nPool = worldPool.filter(c => c.rarity === 'N');
-            if (nPool.length === 0) {
-                // 保底：从总池随机取一张
-                const fallbackPool = CARD_CONFIG.pool.filter(c => c.rarity === 'N');
-                const card = Formatter.clone(fallbackPool[Math.floor(Math.random() * fallbackPool.length)]);
-                card.uid = Formatter.uid();
-                card.level = 1;
-                return card;
-            }
-            const card = Formatter.clone(nPool[Math.floor(Math.random() * nPool.length)]);
-            card.uid = Formatter.uid();
-            card.level = 1;
-            return card;
-        }
-        const card = Formatter.clone(pool[Math.floor(Math.random() * pool.length)]);
-        card.uid = Formatter.uid();
-        card.level = 1;
-        return card;
+        return this._createCardFromPool(currentPool, rarity);
     },
 
-    // 内部：添加卡牌到玩家库存
+    // 内部：添加卡牌到玩家库存（委托给 GameUtils）
     _addCard: function(gameState, card) {
-        if (!gameState.cards[card.id]) {
-            gameState.cards[card.id] = { count: 0, level: 1, instances: [] };
-        }
-        gameState.cards[card.id].count++;
-        gameState.cards[card.id].instances.push(card.uid);
-
-        // 记录稀有度获得
-        if (!gameState.stats.rarityObtained[card.rarity]) {
-            gameState.stats.rarityObtained[card.rarity] = true;
-        }
+        GameUtils.addCardToInventory(gameState, card);
     },
 
     // 内部：更新连抽统计
@@ -155,7 +116,6 @@ const GachaSystem = {
 
     // 计算玩家总战力
     getTotalPower: function(gameState) {
-        // 如果 StatSystem 可用，使用新属性系统
         if (typeof StatSystem !== 'undefined' && StatSystem.getCharacterStats) {
             const stats = StatSystem.getCharacterStats(gameState);
             return {
@@ -164,38 +124,8 @@ const GachaSystem = {
                 effectivePower: stats.effectivePower
             };
         }
-
-        // 降级：使用旧版计算（兼容测试环境 + 新版卡牌格式）
-        let power = 10;
-        let defense = 0;
-        for (const [id, cardData] of Object.entries(gameState.cards)) {
-            const config = CARD_CONFIG.pool.find(c => c.id === id);
-            if (!config) continue;
-            const level = cardData.level || 1;
-            const multiplier = 1 + (level - 1) * 0.1;
-            const count = cardData.count || 1;
-
-            // 兼容新版 stats 格式
-            if (config.stats) {
-                if (config.stats.power) {
-                    power += config.stats.power * count * multiplier;
-                }
-                if (config.stats.defense) {
-                    defense += config.stats.defense * count * multiplier;
-                }
-            } else if (config.basePower !== undefined && config.effect) {
-                // 旧版格式
-                if (config.effect === 'power') {
-                    power += config.basePower * count * multiplier;
-                } else if (config.effect === 'defense') {
-                    defense += config.basePower * count * multiplier;
-                }
-            }
-        }
-        const setBonus = this._getSetBonus(gameState);
-        power += setBonus.power || 0;
-        defense += setBonus.defense || 0;
-        return { power: Math.floor(power), defense: Math.floor(defense) };
+        // 降级：StatSystem 不可用时返回最小兼容值
+        return { power: 10, defense: 0, effectivePower: 10 };
     },
 
     // 内部：计算套装加成
@@ -254,8 +184,11 @@ const GachaSystem = {
     // 升级卡牌
     upgradeCard: function(gameState, cardId) {
         const cardData = gameState.cards[cardId];
-        if (!cardData || cardData.count < 2) {
-            return { success: false, reason: '需要2张相同卡牌才能升级' };
+        if (!cardData) {
+            return { success: false, reason: '卡牌不存在', errorCode: ERROR_CODES.CARD_NOT_FOUND };
+        }
+        if (cardData.count < 2) {
+            return { success: false, reason: '需要2张相同卡牌才能升级', errorCode: ERROR_CODES.NOT_ENOUGH_CARDS };
         }
 
         cardData.count -= 1; // 消耗1张
@@ -269,7 +202,7 @@ const GachaSystem = {
     upgradeCardBatch: function(gameState, cardId, targetLevel) {
         const cardData = gameState.cards[cardId];
         if (!cardData) {
-            return { success: false, reason: '卡牌不存在' };
+            return { success: false, reason: '卡牌不存在', errorCode: ERROR_CODES.CARD_NOT_FOUND };
         }
 
         const currentLevel = cardData.level || 1;
@@ -277,7 +210,7 @@ const GachaSystem = {
         const cardsNeeded = levelsNeeded; // 每升1级需要1张
 
         if (cardData.count < cardsNeeded + 1) { // 至少留1张
-            return { success: false, reason: `需要${cardsNeeded}张卡牌升到${targetLevel}级` };
+            return { success: false, reason: `需要${cardsNeeded}张卡牌升到${targetLevel}级`, errorCode: ERROR_CODES.NOT_ENOUGH_CARDS };
         }
 
         cardData.count -= cardsNeeded;

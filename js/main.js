@@ -16,6 +16,9 @@ const Game = {
         }
         this._createToastContainer();
         this._initMobileTabs();
+        // 恢复上次保存的视图（默认抽取）
+        const savedView = this.state.currentView || 'gacha';
+        this.switchView(savedView);
         this.render();
 
         // 自动保存（每30秒）
@@ -59,7 +62,9 @@ const Game = {
                 underdogWin: false,         // hid_008: 是否低战力获胜过
                 clickSpamCount: 0,          // hid_009: 点击计数
                 clickSpamStartTime: 0       // hid_009: 点击计时起点
-            }
+            },
+            saveVersion: SaveSystem.CURRENT_VERSION, // 存档版本号
+            currentView: 'gacha'   // 默认显示抽取视图
         };
         this.save();
         this.render();
@@ -255,142 +260,14 @@ const Game = {
         this.render();
     },
 
-    // ===== 渲染 =====
+    // ===== 渲染（委托给 UIRenderer）=====
 
     render: function() {
-        if (!this.state) return;
-
-        // 资源
-        document.getElementById('gold').textContent = Formatter.number(this.state.points);
-        document.getElementById('tickets').textContent = this.state.shards;
-
-        // 世界/关卡信息
-        const stageInfo = BattleSystem.getCurrentStageInfo(this.state);
-        const worldName = CARD_CONFIG.getWorldName(this.state.world);
-        const currentStageEl = document.getElementById('current-stage');
-        if (currentStageEl) {
-            currentStageEl.textContent = `${worldName} · 第${this.state.subStage}关`;
-        }
-        const enemyPowerEl = document.getElementById('enemy-power');
-        if (enemyPowerEl) {
-            enemyPowerEl.textContent = Formatter.number(stageInfo.enemyPower);
-        }
-
-        // 世界名称显示
-        const worldEl = document.getElementById('current-world');
-        if (worldEl) {
-            worldEl.textContent = worldName;
-        }
-
-        // 下一世界按钮状态
-        const nextWorldBtn = document.getElementById('next-world-btn');
-        if (nextWorldBtn) {
-            const canNext = STAGE_CONFIG.canUnlockNextWorld(this.state);
-            nextWorldBtn.style.display = canNext ? 'inline-block' : 'none';
-        }
-
-        // 按钮状态 - 抽卡
-        const gachaBtn = document.getElementById('gacha-btn');
-        const gacha10Btn = document.getElementById('gacha-10-btn');
-        const canSingle = this.state.shards >= GachaSystem.COST.shards;
-        const canTen = this.state.shards >= GachaSystem.COST_10.shards;
-        if (gachaBtn) {
-            gachaBtn.disabled = !canSingle;
-            gachaBtn.textContent = canSingle ? `单抽 (${GachaSystem.COST.shards} 🎫)` : `单抽 (碎片不足)`;
-        }
-        if (gacha10Btn) {
-            gacha10Btn.disabled = !canTen;
-            gacha10Btn.textContent = canTen ? `十连抽 (${GachaSystem.COST_10.shards} 🎫)` : `十连抽 (碎片不足)`;
-        }
-
-        // 卡牌列表
-        const cardsDiv = document.getElementById('cards-list');
-        if (cardsDiv) {
-            cardsDiv.innerHTML = '';
-            for (const [id, data] of Object.entries(this.state.cards)) {
-                const config = CARD_CONFIG.pool.find(c => c.id === id);
-                if (!config) continue;
-                const rarityInfo = CARD_CONFIG.rarityStyle[config.rarity];
-                const el = document.createElement('div');
-                el.className = 'owned-card';
-                el.innerHTML = `
-                    <span style="color:${rarityInfo.color}">●</span>
-                    ${config.name}
-                    <span class="level">Lv.${data.level}</span>
-                    <small>x${data.count}</small>
-                `;
-                cardsDiv.appendChild(el);
-            }
-            if (cardsDiv.children.length === 0) {
-                cardsDiv.innerHTML = '<span style="color:#888">背包为空，快去次元抽取吧！</span>';
-            }
-        }
-
-        // 卡组图鉴
-        this._renderCollection();
-
-        // 角色属性面板
-        this._renderStats();
-
-        // 成就列表
-        this._renderAchievements();
-
-        // 成就战力加成显示
-        const achBonus = AchievementSystem.getTotalPowerBonus(this.state);
-        const achBonusEl = document.getElementById('achievement-bonus');
-        if (achBonusEl) {
-            achBonusEl.textContent = `+${achBonus}%`;
-        }
-
-        // 生活面板 - 收益信息
-        const idleInfo = IdleSystem.getInfo(this.state);
-        const clickValEl = document.getElementById('click-value');
-        if (clickValEl) clickValEl.textContent = idleInfo.clickValue;
-        const autoValEl = document.getElementById('auto-value');
-        if (autoValEl) autoValEl.textContent = idleInfo.autoValue;
-        const clickLvlEl = document.getElementById('click-level');
-        if (clickLvlEl) clickLvlEl.textContent = idleInfo.clickLevel;
-        const autoLvlEl = document.getElementById('auto-level');
-        if (autoLvlEl) autoLvlEl.textContent = idleInfo.autoLevel;
-        const clickCostEl = document.getElementById('click-cost');
-        if (clickCostEl) clickCostEl.textContent = idleInfo.clickUpgradeCost;
-        const autoCostEl = document.getElementById('auto-cost');
-        if (autoCostEl) autoCostEl.textContent = idleInfo.autoUpgradeCost;
-
-        // 升级按钮状态
-        const buyClickBtn = document.getElementById('buy-click-btn');
-        if (buyClickBtn) buyClickBtn.disabled = !idleInfo.canAffordClick;
-        const buyAutoBtn = document.getElementById('buy-auto-btn');
-        if (buyAutoBtn) buyAutoBtn.disabled = !idleInfo.canAffordAuto;
-
-        // 商店面板
-        this._renderShop();
+        UIRenderer.render(this.state);
     },
 
     _renderShop: function() {
-        if (!this.state) return;
-        const items = ShopSystem.getItems(this.state);
-        const shopDiv = document.getElementById('shop-items');
-        if (!shopDiv) return;
-
-        shopDiv.innerHTML = '';
-        for (const item of items) {
-            const el = document.createElement('div');
-            el.className = 'shop-item';
-            const canAfford = this.state.points >= item.cost;
-            el.innerHTML = `
-                <div class="item-info">
-                    <span class="item-name">${item.icon || ''} ${item.name}</span>
-                    <span class="item-desc">${item.desc}${item.stock ? ` (库存: ${item.stock})` : ''}</span>
-                </div>
-                <span class="item-cost">💰${item.cost}</span>
-                <button ${canAfford ? '' : 'disabled'} onclick="game.buyShopItem('${item.id}')">购买</button>
-            `;
-            shopDiv.appendChild(el);
-        }
-
-        // 更新倒计时
-        this._renderShopTimer();
+        UIRenderer.renderShop(this.state);
     },
 
     // ===== 成就检查 =====
@@ -401,86 +278,73 @@ const Game = {
             const rewardText = [];
             if (ach.reward.points) rewardText.push(`💰${ach.reward.points}`);
             if (ach.reward.shards) rewardText.push(`🎫${ach.reward.shards}`);
-            this.showToast(
+            UIComponents.showToast(
                 `🏆 成就解锁：${ach.name}<br>${ach.desc}<br>奖励：${rewardText.join(' ')}`,
                 'achievement'
             );
-            this._log(`🏆 成就解锁: ${ach.name} (${ach.desc}) 奖励: ${rewardText.join(' ')}`, 'achievement');
+            UIComponents.log(`🏆 成就解锁: ${ach.name} (${ach.desc}) 奖励: ${rewardText.join(' ')}`, 'achievement');
         }
     },
 
-    // ===== Toast 通知 =====
+    // ===== 视图导航 =====
 
-    _createToastContainer: function() {
-        if (document.getElementById('toast-container')) return;
-        const container = document.createElement('div');
-        container.id = 'toast-container';
-        document.body.appendChild(container);
-    },
-
-    // ===== Mobile Tabs =====
-
-    TAB_PANELS: {
-        gacha: ['gacha-panel'],
-        battle: ['battle-panel'],
-        cards: ['cards-panel', 'collection-panel', 'achievements-panel'],
-        life: ['life-panel', 'shop-panel'],
-        log: ['log-panel']
+    VIEW_MAP: {
+        gacha: 'view-gacha',
+        battle: 'view-battle',
+        collection: 'view-collection',
+        idle: 'view-idle'
     },
 
     _initMobileTabs: function() {
-        // Set default active tab on mobile
-        this.switchTab('gacha');
+        this.switchView('gacha');
     },
 
-    switchTab: function(tabName) {
-        const panelIds = this.TAB_PANELS[tabName] || [];
-
-        // Update tab buttons
-        document.querySelectorAll('.mobile-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.tab === tabName);
+    switchView: function(viewName) {
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === viewName);
         });
-
-        // Update panels visibility (only affects mobile via CSS media query)
-        document.querySelectorAll('main > section').forEach(section => {
-            section.classList.toggle('panel-active', panelIds.includes(section.id));
+        document.querySelectorAll('.view').forEach(view => {
+            view.classList.toggle('view-active', view.id === `view-${viewName}`);
         });
+        if (this.state) {
+            this.state.currentView = viewName;
+        }
     },
+
+    // ===== 委托给 UIComponents =====
 
     showToast: function(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-
-        const toast = document.createElement('div');
-        toast.className = `toast ${type === 'achievement' ? 'achievement-toast' : ''}`;
-        toast.innerHTML = message;
-        container.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transition = 'opacity 0.5s';
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
+        UIComponents.showToast(message, type);
     },
 
-    // ===== 日志系统 =====
+    _createToastContainer: function() {
+        UIComponents.createToastContainer();
+    },
 
     _log: function(message, type = 'info') {
-        const logList = document.getElementById('log-list');
-        if (!logList) return;
+        UIComponents.log(message, type);
+    },
 
-        const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+    _showClickFloat: function(amount) {
+        UIComponents.showClickFloat(amount);
+    },
 
-        const entry = document.createElement('div');
-        entry.className = `log-entry ${type}`;
-        entry.innerHTML = `<span class="log-time">${timeStr}</span>${message}`;
-        logList.insertBefore(entry, logList.firstChild);
+    // ===== 委托给 UIRenderer =====
 
-        // 限制日志数量
-        while (logList.children.length > 50) {
-            logList.removeChild(logList.lastChild);
-        }
+    _renderAchievements: function() {
+        UIRenderer.renderAchievements(this.state);
+    },
+
+    _renderStats: function() {
+        UIRenderer.renderStats(this.state);
+    },
+
+    _renderCollection: function() {
+        UIRenderer.renderCollection(this.state);
+    },
+
+    _renderShopTimer: function() {
+        UIRenderer.renderShopTimer(this.state);
     },
 
     // ===== 生活 / 放置 =====
@@ -507,27 +371,6 @@ const Game = {
         if (this.state.stats.clickSpamCount % 10 === 0) {
             this._log(`💰 点击赚系统点 +${earned} (累计${this.state.stats.clickSpamCount}次)`, 'info');
         }
-    },
-
-    // 内部：显示点击浮动文字效果
-    _showClickFloat: function(amount) {
-        const btn = document.getElementById('click-btn');
-        if (!btn) return;
-        const float = document.createElement('div');
-        float.textContent = `+${amount}`;
-        float.style.cssText = `
-            position: absolute;
-            color: #ffd700;
-            font-weight: bold;
-            font-size: 1.2rem;
-            pointer-events: none;
-            animation: floatUp 0.8s ease-out forwards;
-        `;
-        const rect = btn.getBoundingClientRect();
-        float.style.left = (rect.left + rect.width / 2) + 'px';
-        float.style.top = rect.top + 'px';
-        document.body.appendChild(float);
-        setTimeout(() => float.remove(), 800);
     },
 
     // 公共方法：购买升级A
@@ -603,7 +446,7 @@ const Game = {
                 this.state.points += pointsPerSec;
                 this.state.stats.pointsTotal += pointsPerSec;
                 // 只更新系统点显示，避免全量渲染导致图鉴跳动
-                const pointsEl = document.getElementById('gold');
+                const pointsEl = document.getElementById('points');
                 if (pointsEl) {
                     pointsEl.textContent = Formatter.number(this.state.points);
                 }
@@ -635,160 +478,9 @@ const Game = {
         }, 1000);
     },
 
-    // 内部：渲染商店倒计时
-    _renderShopTimer: function() {
-        if (!this.state) return;
-        const remaining = ShopSystem.getNextRefreshTime(this.state);
-        const timerEl = document.getElementById('refresh-timer');
-        if (timerEl) {
-            timerEl.textContent = Formatter.time(remaining / 1000);
-        }
-    },
-
-    // 内部：渲染成就列表
-    _renderAchievements: function() {
-        const achDiv = document.getElementById('achievements-list');
-        if (!achDiv) return;
-        achDiv.innerHTML = '';
-        const achList = AchievementSystem.getList(this.state);
-        // 只显示已解锁的 + 前5个未解锁的（避免一次显示太多）
-        const unlocked = achList.filter(a => a.unlocked);
-        const locked = achList.filter(a => !a.unlocked).slice(0, 5);
-
-        for (const ach of [...unlocked.slice(-5), ...locked]) {
-            const el = document.createElement('div');
-            el.className = `achievement ${ach.unlocked ? 'unlocked' : 'locked'}`;
-            const bonusText = ach.reward.powerBonus ? `⚔️+${ach.reward.powerBonus}%` : '';
-            el.innerHTML = `
-                <span>${ach.unlocked ? '✅' : '🔒'} ${ach.name}</span>
-                <span class="reward">${bonusText}</span>
-            `;
-            achDiv.appendChild(el);
-        }
-    },
-
-    // 内部：渲染角色属性面板
-    _renderStats: function() {
-        if (!this.state) return;
-        const stats = StatSystem.getCharacterStats(this.state);
-        const breakdown = StatSystem.getStatBreakdown(this.state);
-
-        // 有效战力
-        const effPowerEl = document.getElementById('effective-power');
-        if (effPowerEl) effPowerEl.textContent = Formatter.number(stats.effectivePower);
-
-        // 生命
-        const hpEl = document.getElementById('hp-value');
-        const hpMaxEl = document.getElementById('hp-max');
-        if (hpEl) hpEl.textContent = stats.hp;
-        if (hpMaxEl) hpMaxEl.textContent = stats.hp;
-
-        // 属性网格
-        const gridEl = document.getElementById('stats-grid');
-        if (gridEl) {
-            let html = '';
-            for (const statKey of STAT_CONFIG.calcOrder) {
-                const def = STAT_CONFIG.definitions[statKey];
-                if (!def) continue;
-                const value = stats[statKey] || 0;
-                if (value === 0 && statKey !== 'power' && statKey !== 'defense') continue; // 隐藏0值属性，但保留核心属性
-                
-                const formatted = StatSystem.formatStat(statKey, value);
-                const baseVal = breakdown.base[statKey] || 0;
-                const cardVal = breakdown.cards[statKey] || 0;
-                const setVal = breakdown.sets[statKey] || 0;
-                const pct = breakdown.percent[statKey] || 0;
-                const ach = statKey === 'power' || statKey === 'defense' || statKey === 'hp' ? breakdown.achievement : 0;
-                
-                let tooltip = `基础: ${baseVal}`;
-                if (cardVal) tooltip += `\n卡牌: +${cardVal}`;
-                if (setVal) tooltip += `\n套装: +${setVal}`;
-                if (pct) tooltip += `\n百分比: +${pct}%`;
-                if (ach) tooltip += `\n成就: +${ach}%`;
-
-                html += `
-                    <div class="stat-item" title="${tooltip}">
-                        <span class="stat-icon">${def.icon}</span>
-                        <span class="stat-name">${def.name}</span>
-                        <span class="stat-value">${formatted}</span>
-                    </div>
-                `;
-            }
-            gridEl.innerHTML = html;
-        }
-    },
-
-    // ===== 卡组图鉴渲染 =====
-
-    // 内部：渲染卡组图鉴
-    _renderCollection: function() {
-        const collectionDiv = document.getElementById('collection-list');
-        if (!collectionDiv) return;
-
-        const activeSets = GachaSystem.getActiveSets(this.state);
-        const progress = GachaSystem.getCollectionProgress(this.state);
-
-        let html = `
-            <div class="collection-progress">
-                <div>📚 卡牌收集: ${progress.cardsOwned}/${progress.cardsTotal} (${progress.cardPercent}%)</div>
-                <div>🎯 套装完成: ${progress.setsComplete}/${progress.setsTotal} (${progress.setPercent}%)</div>
-            </div>
-            <div class="sets-grid">
-        `;
-
-        for (const set of activeSets) {
-            const statusIcon = set.isComplete ? '✅' : '⏳';
-            const statusClass = set.isComplete ? 'set-complete' : 'set-incomplete';
-            const hasAnyCard = set.collected.some(c => c.has);
-            
-            // 如果套装中一张卡都没有，默认折叠显示（节省空间）
-            const setVisible = hasAnyCard || set.isComplete;
-            const collapseClass = setVisible ? '' : 'set-collapsed';
-            
-            // 构建卡牌收集状态 - 显示卡牌名称和稀有度
-            let cardsHtml = '';
-            for (const c of set.collected) {
-                const cardConfig = CARD_CONFIG.pool.find(p => p.id === c.id);
-                const rarityColor = cardConfig ? CARD_CONFIG.rarityStyle[cardConfig.rarity].color : '#888';
-                const rarityName = cardConfig ? CARD_CONFIG.rarityStyle[cardConfig.rarity].name : '?';
-                const hasClass = c.has ? 'has-card' : 'missing-card';
-                const opacity = c.has ? '1' : '0.35';
-                cardsHtml += `
-                    <div class="set-card-detail ${hasClass}" style="opacity:${opacity}">
-                        <span class="card-rarity-dot" style="color:${rarityColor}">●</span>
-                        <span class="card-name">${cardConfig ? cardConfig.name : c.id}</span>
-                        <span class="card-rarity-tag" style="color:${rarityColor}">${rarityName}</span>
-                        ${c.has ? '<span class="card-owned">✓</span>' : '<span class="card-missing">—</span>'}
-                    </div>
-                `;
-            }
-
-            // 套装效果
-            const bonusParts = [];
-            if (set.bonus.power) bonusParts.push(`⚔️+${set.bonus.power}`);
-            if (set.bonus.defense) bonusParts.push(`🛡️+${set.bonus.defense}`);
-            if (set.bonus.gold) bonusParts.push(`💰+${set.bonus.gold}`);
-            if (set.bonus.speed) bonusParts.push(`⚡+${set.bonus.speed}`);
-            if (set.bonus.dropRate) bonusParts.push(`🍀+${set.bonus.dropRate}%`);
-            if (set.bonus.heal) bonusParts.push(`❤️+${set.bonus.heal}`);
-
-            html += `
-                <div class="set-item ${statusClass} ${collapseClass}">
-                    <div class="set-header">
-                        <span class="set-status">${statusIcon}</span>
-                        <span class="set-name">${set.name}</span>
-                        <span class="set-count">${set.collected.filter(c => c.has).length}/${set.ids.length}</span>
-                    </div>
-                    <div class="set-desc">${set.desc || ''}</div>
-                    <div class="set-cards-detail">${cardsHtml}</div>
-                    <div class="set-bonus">${bonusParts.join(' ')}</div>
-                </div>
-            `;
-        }
-
-        html += '</div>';
-        collectionDiv.innerHTML = html;
-    }
+    // 委托方法（精简后保留，供 _startAutoTick 等内部调用）
+    _renderAchievements: function() { UIRenderer.renderAchievements(this.state); },
+    _renderShopTimer: function() { UIRenderer.renderShopTimer(this.state); }
 };
 
 // 全局游戏对象

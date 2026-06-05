@@ -58,10 +58,12 @@ const STAGE_CONFIG = {
         };
     },
 
-    // 获取世界名称（占位，后续替换为实际作品名）
+    // 获取世界名称
     getWorldName: function(world) {
         const worldNames = {
-            1: '世界1'
+            1: '生化危机1',
+            2: '哈利波特与魔法石',
+            3: '进击的巨人'
         };
         return worldNames[world] || `世界${world}`;
     },

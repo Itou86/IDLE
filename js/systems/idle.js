@@ -24,11 +24,16 @@ const IdleSystem = {
             const config = CARD_CONFIG.pool.find(c => c.id === id);
             if (!config) continue;
 
-            // 基础 pointsBonus 映射
-            if (config.effect === 'points' && config.basePower) {
-                const level = cardData.level || 1;
-                const multiplier = 1 + (level - 1) * 0.1;
-                const count = cardData.count || 1;
+            const level = cardData.level || 1;
+            const multiplier = 1 + (level - 1) * 0.1;
+            const count = cardData.count || 1;
+
+            // 新格式：stats.pointsBonus
+            if (config.stats && config.stats.pointsBonus) {
+                bonus += config.stats.pointsBonus * count * multiplier;
+            }
+            // 旧格式：effect === 'points'
+            else if (config.effect === 'points' && config.basePower) {
                 bonus += config.basePower * count * multiplier;
             }
         }
@@ -113,7 +118,7 @@ const IdleSystem = {
     buyClickUpgrade: function(gameState) {
         const cost = this.getClickUpgradeCost(gameState);
         if (gameState.points < cost) {
-            return { success: false, reason: '系统点不足' };
+            return { success: false, reason: '系统点不足', errorCode: ERROR_CODES.NOT_ENOUGH_POINTS };
         }
 
         gameState.points -= cost;
@@ -131,7 +136,7 @@ const IdleSystem = {
     buyAutoUpgrade: function(gameState) {
         const cost = this.getAutoUpgradeCost(gameState);
         if (gameState.points < cost) {
-            return { success: false, reason: '系统点不足' };
+            return { success: false, reason: '系统点不足', errorCode: ERROR_CODES.NOT_ENOUGH_POINTS };
         }
 
         gameState.points -= cost;

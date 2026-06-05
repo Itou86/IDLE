@@ -175,6 +175,13 @@ const Assert = {
         }
     },
 
+    // 不存在（null/undefined）
+    notExists: function(value, msg) {
+        if (value !== null && value !== undefined) {
+            throw new Error(msg || '期望不存在值');
+        }
+    },
+
     // 非空
     isNotNull: function(value, msg) {
         if (value === null || value === undefined) {

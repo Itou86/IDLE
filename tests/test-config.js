@@ -287,3 +287,105 @@ TestRunner.suite('📦 配置数据 - Stages', (test) => {
         Assert.equal(STAGE_CONFIG.canUnlockNextWorld({ world: 1, subStage: 1, worldProgress: { '1': 5 } }), true, '第5关可解锁');
     });
 });
+
+TestRunner.suite('📦 配置数据 - 世界卡组', (test) => {
+
+    test('worlds: 至少3个世界', () => {
+        Assert.greaterThanOrEqual(CARD_CONFIG.worlds.length, 3, '应有至少3个世界');
+    });
+
+    test('worlds: 每个世界都有必需字段', () => {
+        for (const world of CARD_CONFIG.worlds) {
+            Assert.exists(world.id, '世界应有id');
+            Assert.exists(world.name, '世界应有name');
+            Assert.exists(world.description, '世界应有description');
+            Assert.exists(world.cardIds, '世界应有cardIds');
+            Assert.greaterThan(world.cardIds.length, 0, '世界应有至少一张卡牌');
+            Assert.exists(world.sets, '世界应有sets');
+            Assert.exists(world.completionBonus, '世界应有completionBonus');
+        }
+    });
+
+    test('worlds: 世界1名称正确', () => {
+        const w1 = CARD_CONFIG.worlds.find(w => w.id === 1);
+        Assert.equal(w1.name, '生化危机1', '世界1应命名为生化危机1');
+    });
+
+    test('worlds: 世界2和世界3存在', () => {
+        const w2 = CARD_CONFIG.worlds.find(w => w.id === 2);
+        const w3 = CARD_CONFIG.worlds.find(w => w.id === 3);
+        Assert.exists(w2, '世界2应存在');
+        Assert.exists(w3, '世界3应存在');
+        Assert.equal(w2.name, '哈利波特与魔法石', '世界2应命名为哈利波特与魔法石');
+        Assert.equal(w3.name, '进击的巨人', '世界3应命名为进击的巨人');
+    });
+
+    test('worlds: 世界cardIds引用都存在于pool', () => {
+        const allIds = new Set(CARD_CONFIG.pool.map(c => c.id));
+        for (const world of CARD_CONFIG.worlds) {
+            for (const cardId of world.cardIds) {
+                Assert.true(allIds.has(cardId), `世界${world.name}引用的卡牌ID ${cardId} 应存在于pool`);
+            }
+        }
+    });
+
+    test('worlds: 每张卡牌都有worldId', () => {
+        for (const card of CARD_CONFIG.pool) {
+            Assert.exists(card.worldId, `卡牌 ${card.name} 应有worldId`);
+        }
+    });
+
+    test('worlds: 世界2卡牌worldId正确', () => {
+        const w2 = CARD_CONFIG.worlds.find(w => w.id === 2);
+        for (const cardId of w2.cardIds) {
+            const card = CARD_CONFIG.pool.find(c => c.id === cardId);
+            Assert.equal(card.worldId, 2, `卡牌 ${card.name} 的worldId应为2`);
+        }
+    });
+
+    test('worlds: 世界3卡牌worldId正确', () => {
+        const w3 = CARD_CONFIG.worlds.find(w => w.id === 3);
+        for (const cardId of w3.cardIds) {
+            const card = CARD_CONFIG.pool.find(c => c.id === cardId);
+            Assert.equal(card.worldId, 3, `卡牌 ${card.name} 的worldId应为3`);
+        }
+    });
+
+    test('worlds: 世界套装引用的卡牌ID存在', () => {
+        const allIds = new Set(CARD_CONFIG.pool.map(c => c.id));
+        for (const world of CARD_CONFIG.worlds) {
+            for (const set of world.sets || []) {
+                Assert.exists(set.name, '套装应有name');
+                for (const id of set.ids) {
+                    Assert.true(allIds.has(id), `世界${world.name}的套装${set.name}引用的卡牌ID ${id} 应存在`);
+                }
+            }
+        }
+    });
+
+    test('cards: 新增卡牌数量正确', () => {
+        const w2Cards = CARD_CONFIG.pool.filter(c => c.worldId === 2);
+        const w3Cards = CARD_CONFIG.pool.filter(c => c.worldId === 3);
+        Assert.equal(w2Cards.length, 9, '世界2应有9张卡');
+        Assert.equal(w3Cards.length, 9, '世界3应有9张卡');
+    });
+
+    test('cards: 世界2和世界3有SSR卡', () => {
+        const w2SSR = CARD_CONFIG.pool.filter(c => c.worldId === 2 && c.rarity === 'SSR');
+        const w3SSR = CARD_CONFIG.pool.filter(c => c.worldId === 3 && c.rarity === 'SSR');
+        Assert.equal(w2SSR.length, 1, '世界2应有1张SSR');
+        Assert.equal(w3SSR.length, 1, '世界3应有1张SSR');
+    });
+
+    test('cards: 世界2和世界3有SR卡', () => {
+        const w2SR = CARD_CONFIG.pool.filter(c => c.worldId === 2 && c.rarity === 'SR');
+        const w3SR = CARD_CONFIG.pool.filter(c => c.worldId === 3 && c.rarity === 'SR');
+        Assert.equal(w2SR.length, 2, '世界2应有2张SR');
+        Assert.equal(w3SR.length, 2, '世界3应有2张SR');
+    });
+
+    test('stages: 新世界名称正确', () => {
+        Assert.equal(STAGE_CONFIG.getWorldName(2), '哈利波特与魔法石', '世界2名称应为哈利波特与魔法石');
+        Assert.equal(STAGE_CONFIG.getWorldName(3), '进击的巨人', '世界3名称应为进击的巨人');
+    });
+});

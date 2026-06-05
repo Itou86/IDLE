@@ -59,13 +59,13 @@ const ShopSystem = {
     buy: function(gameState, itemId) {
         // 先检查库存（不触发刷新）
         if (!gameState.shop) {
-            return { success: false, reason: '商店未初始化' };
+            return { success: false, reason: '商店未初始化', errorCode: ERROR_CODES.SHOP_NOT_INITIALIZED };
         }
 
         // 检查是否是碎片
         if (itemId === 'shard') {
             if (gameState.points < this.SHARD_COST) {
-                return { success: false, reason: '系统点不足' };
+                return { success: false, reason: '系统点不足', errorCode: ERROR_CODES.NOT_ENOUGH_POINTS };
             }
             gameState.points -= this.SHARD_COST;
             gameState.shards += 1;
@@ -75,14 +75,14 @@ const ShopSystem = {
         // 检查是否是卡牌且库存足够
         const stock = gameState.shop.cardStock[itemId];
         if (stock === undefined) {
-            return { success: false, reason: '商品不存在' };
+            return { success: false, reason: '商品不存在', errorCode: ERROR_CODES.UNKNOWN_ITEM };
         }
         if (stock <= 0) {
-            return { success: false, reason: '库存不足' };
+            return { success: false, reason: '库存不足', errorCode: ERROR_CODES.OUT_OF_STOCK };
         }
 
         if (gameState.points < this.CARD_COST) {
-            return { success: false, reason: '系统点不足' };
+            return { success: false, reason: '系统点不足', errorCode: ERROR_CODES.NOT_ENOUGH_POINTS };
         }
 
         // 扣除系统点和库存
@@ -93,18 +93,7 @@ const ShopSystem = {
         const config = CARD_CONFIG.pool.find(c => c.id === itemId);
         const card = Formatter.clone(config);
         card.uid = Formatter.uid();
-        card.level = 1;
-
-        if (!gameState.cards[itemId]) {
-            gameState.cards[itemId] = { count: 0, level: 1, instances: [] };
-        }
-        gameState.cards[itemId].count++;
-        gameState.cards[itemId].instances.push(card.uid);
-
-        // 记录稀有度获得
-        if (!gameState.stats.rarityObtained[card.rarity]) {
-            gameState.stats.rarityObtained[card.rarity] = true;
-        }
+        GameUtils.addCardToInventory(gameState, card);
 
         return { success: true, item: { id: itemId, name: config.name, type: 'card', cost: this.CARD_COST }, received: card.name };
     },
@@ -128,12 +117,19 @@ const ShopSystem = {
         gameState.shop.lastRefresh = Date.now();
         gameState.shop.cardStock = {};
 
-        // 随机选择3-5张N卡作为库存
+        // 随机选择3-5张不重复的N卡作为库存
         const nCards = CARD_CONFIG.pool.filter(c => c.rarity === 'N');
-        const stockCount = 3 + Math.floor(Math.random() * 3);  // 3-5种
+        const stockCount = Math.min(3 + Math.floor(Math.random() * 3), nCards.length);
+
+        // Fisher-Yates 洗牌，确保不重复
+        const shuffled = Formatter.clone(nCards);
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
 
         for (let i = 0; i < stockCount; i++) {
-            const card = nCards[Math.floor(Math.random() * nCards.length)];
+            const card = shuffled[i];
             const amount = 1 + Math.floor(Math.random() * 3);  // 1-3张库存
             gameState.shop.cardStock[card.id] = amount;
         }

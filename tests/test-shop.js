@@ -68,6 +68,7 @@ test('ShopSystem - 系统点不足购买碎片', () => {
     const result = ShopSystem.buy(state, 'shard');
 
     Assert.false(result.success, '系统点不足应失败');
+    Assert.equal(result.errorCode, ERROR_CODES.NOT_ENOUGH_POINTS, '应返回系统点不足错误码');
     Assert.equal(state.shards, 0, '不应获得碎片');
 });
 
@@ -96,6 +97,7 @@ test('ShopSystem - 购买不存在商品', () => {
     const result = ShopSystem.buy(state, 'nonexistent');
 
     Assert.false(result.success, '购买不存在商品应失败');
+    Assert.equal(result.errorCode, ERROR_CODES.UNKNOWN_ITEM, '应返回商品不存在错误码');
 });
 
 test('ShopSystem - 库存不足', () => {
@@ -117,7 +119,7 @@ test('ShopSystem - 库存不足', () => {
     // 再买一次应失败
     const result = ShopSystem.buy(state, cardId);
     Assert.false(result.success, '库存不足应失败');
-    Assert.equal(result.reason, '库存不足', '应返回库存不足');
+    Assert.equal(result.errorCode, ERROR_CODES.OUT_OF_STOCK, '应返回库存不足错误码');
 });
 
 test('ShopSystem - 手动刷新', () => {

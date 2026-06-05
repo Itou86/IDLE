@@ -67,14 +67,11 @@ const StatSystem = {
         const bonuses = {};
         const cards = gameState.cards || {};
 
-        // 检查是否有N卡翻倍效果（ssr_001 无限手套）
-        const hasCreationBlade = cards['ssr_001'] && cards['ssr_001'].count > 0;
-        const nCardMultiplier = hasCreationBlade ? 2 : 1;
-
-        // 检查是否有联动效果（sr_001 + sr_002）
-        const hasDragonSword = cards['sr_001'] && cards['sr_001'].count > 0;
-        const hasDragonArmor = cards['sr_002'] && cards['sr_002'].count > 0;
-        const dragonSynergy = hasDragonSword && hasDragonArmor;
+        // 通过 EffectRegistry 获取 stat_calc 触发的效果上下文
+        const effectContext = EffectRegistry.trigger('stat_calc', gameState, { nCardMultiplier: 1 });
+        const nCardMultiplier = effectContext.nCardMultiplier || 1;
+        const synergyBonuses = effectContext.synergyBonuses || {};
+        const flatStatBonuses = effectContext.flatStatBonuses || [];
 
         for (const [id, cardData] of Object.entries(cards)) {
             const config = CARD_CONFIG.pool.find(c => c.id === id);
@@ -91,37 +88,32 @@ const StatSystem = {
             const levelMultiplier = 1 + (level - 1) * 0.1;
             const count = cardData.count || 1;
 
-            // 计算基础值
+            // 计算基础值（含联动加成）
+            const synergyRatio = synergyBonuses[id] || 0;
+            // 世界收集度倍率（全收集奖励）
+            const worldMultiplier = CARD_CONFIG.getWorldCompletionMultiplier(gameState, config.worldId);
             for (const [stat, baseValue] of Object.entries(cardStats)) {
                 if (baseValue === 0) continue;
-                const totalValue = baseValue * count * levelMultiplier;
+                let totalValue = baseValue * count * levelMultiplier;
+                // 应用联动加成
+                if (synergyRatio > 0) {
+                    totalValue = totalValue * (1 + synergyRatio);
+                }
+                // 应用世界收集度加成
+                totalValue = totalValue * worldMultiplier;
                 bonuses[stat] = (bonuses[stat] || 0) + totalValue;
             }
+        }
 
-            // ===== 特殊卡牌效果 =====
-
-            // r_006 圣光道标: 生命上限+20
-            if (id === 'r_006') {
-                const hpBonus = 20 * count * levelMultiplier;
-                bonuses.hp = (bonuses.hp || 0) + hpBonus;
-            }
-
-            // r_005 飞雷神苦无: 闪避+5%
-            if (id === 'r_005') {
-                const dodgeBonus = 5 * count * levelMultiplier;
-                bonuses.dodgeRate = (bonuses.dodgeRate || 0) + dodgeBonus;
-            }
-
-            // sr_001 霜之哀伤: 与统御之冠同时装备时+50%攻击力
-            if (id === 'sr_001' && dragonSynergy) {
-                const synergyBonus = config.basePower * 0.5 * count * levelMultiplier;
-                bonuses.power = (bonuses.power || 0) + synergyBonus;
-            }
-
-            // sr_002 统御之冠: 与霜之哀伤同时装备时+50%防御力
-            if (id === 'sr_002' && dragonSynergy) {
-                const synergyBonus = config.basePower * 0.5 * count * levelMultiplier;
-                bonuses.defense = (bonuses.defense || 0) + synergyBonus;
+        // 应用固定属性加成（含 count * levelMultiplier 缩放）
+        for (const bonus of flatStatBonuses) {
+            const cardData = cards[bonus.cardId];
+            if (cardData) {
+                const count = cardData.count || 1;
+                const level = cardData.level || 1;
+                const levelMultiplier = 1 + (level - 1) * 0.1;
+                const totalValue = bonus.value * count * levelMultiplier;
+                bonuses[bonus.stat] = (bonuses[bonus.stat] || 0) + totalValue;
             }
         }
 
@@ -147,6 +139,9 @@ const StatSystem = {
             case 'points':
                 cardStats.pointsBonus = effectiveBase;
                 break;
+            case 'points':
+                cardStats.pointsBonus = effectiveBase;
+                break;
             case 'heal':
                 cardStats.hpRegen = effectiveBase;
                 break;
@@ -163,12 +158,6 @@ const StatSystem = {
                 break;
         }
         return cardStats;
-    },
-
-    // 获取玩家闪避率（用于 BattleSystem）
-    getDodgeRate: function(gameState) {
-        const bonuses = this._getCardFlatBonuses(gameState);
-        return bonuses.dodgeRate || 0;
     },
 
     // 内部：计算套装固定值加成

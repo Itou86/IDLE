@@ -55,7 +55,7 @@ test('IdleSystem - 系统点不足无法购买升级A', () => {
     const state = createIdleState(3);
     const result = IdleSystem.buyClickUpgrade(state);
     Assert.false(result.success, '系统点不足应失败');
-    Assert.equal(result.reason, '系统点不足', '应返回正确原因');
+    Assert.equal(result.errorCode, ERROR_CODES.NOT_ENOUGH_POINTS, '应返回系统点不足错误码');
     Assert.equal(state.points, 3, '系统点不应变化');
 });
 

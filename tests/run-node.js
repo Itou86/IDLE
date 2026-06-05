@@ -189,6 +189,8 @@ loadJS('test-save.js');
 loadJS('test-integration.js');
 loadJS('test-idle.js');
 loadJS('test-shop.js');
+loadJS('test-stats.js');
+loadJS('test-effect-registry.js');
 
 // ===== 运行测试 =====
 vm.runInContext('TestRunner.runAll();', context);

@@ -31,6 +31,8 @@ const EffectRegistry = {
 
     // 公共方法：扫描 CARD_CONFIG.pool 中所有卡牌的 effects 字段，自动注册
     init: function() {
+        // 清空旧注册，避免重复
+        this._handlers = {};
         if (typeof CARD_CONFIG === 'undefined' || !CARD_CONFIG.pool) return;
         for (const card of CARD_CONFIG.pool) {
             if (card.effects && Array.isArray(card.effects)) {
@@ -81,10 +83,15 @@ const EffectRegistry = {
                         ctx.extraDraws.push({ rarityUp: !!effect.rarityUp });
                     }
                 }
+                // 同时提供数值累加字段（兼容测试和外部调用）
+                ctx.extraDrawCount = (ctx.extraDrawCount || 0) + (effect.value || triggered || 0);
                 break;
 
             // 对 Boss 伤害加成（百分比）
             case 'boss_damage_bonus':
+                // 累加 bossDamageBonus 值（兼容测试和外部读取）
+                ctx.bossDamageBonus = (ctx.bossDamageBonus || 0) + (effect.value || 0);
+                // 同时直接修改 damage（供 BattleSystem 使用）
                 if (ctx.isBoss && ctx.damage !== undefined) {
                     ctx.damage = Math.floor(ctx.damage * (1 + (effect.value || 0)));
                 }
@@ -129,16 +136,14 @@ const EffectRegistry = {
 
             // 固定属性加成（如生命上限+20）
             case 'flat_stat_bonus':
-                if (!ctx.flatStatBonus) ctx.flatStatBonus = {};
-                const statKey = effect.stat;
-                if (statKey) {
-                    ctx.flatStatBonus[statKey] = (ctx.flatStatBonus[statKey] || 0) + (effect.value || 0);
+                if (!ctx.flatStatBonuses) ctx.flatStatBonuses = [];
+                if (effect.stat) {
+                    ctx.flatStatBonuses.push({
+                        stat: effect.stat,
+                        value: effect.value || 0,
+                        cardId: effect._cardId
+                    });
                 }
-                break;
-
-            // 闪避率加成（百分比）
-            case 'dodge_rate_bonus':
-                ctx.dodgeRateBonus = (ctx.dodgeRateBonus || 0) + (effect.value || 0);
                 break;
 
             default:
